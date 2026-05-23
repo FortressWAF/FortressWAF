@@ -1,0 +1,186 @@
+- id: "FORTRESS-PHP-001"
+  name: "PHP Attack - File Upload Shell"
+  severity: critical
+  tags: ["php", "owasp-a03", "webshell", "upload"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(Content-Disposition\s*:.*filename=.*\.(php\d*|phtml|pht|php\d{2}|shtml|phar|php\.suspected|php\..*))'
+      - field: request.path
+        operator: regex
+        pattern: '(?i)(upload|file|import|media|attachment)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-PHP-001"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-PHP-002"
+  name: "PHP Attack - Disable Functions / Configuration"
+  severity: critical
+  tags: ["php", "owasp-a03", "rce"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(ini_set\s*\(|set_time_limit|ignore_user_abort|dl\s*\(|php_value|php_admin_value|php_flag)'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(ini_set\s*\(|set_time_limit|ignore_user_abort|dl\s*\(|php_value|php_admin_value|php_flag)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-PHP-002"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-PHP-003"
+  name: "PHP Attack - System Command Execution Functions"
+  severity: critical
+  tags: ["php", "owasp-a03", "rce"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)\b(system|exec|shell_exec|passthru|popen|proc_open|pcntl_exec|popen|exec_with|system_with)\s*\('
+      - field: request.query
+        operator: regex
+        pattern: '(?i)\b(system|exec|shell_exec|passthru|popen|proc_open|pcntl_exec|popen|exec_with|system_with)\s*\('
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-PHP-003"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-PHP-004"
+  name: "PHP Attack - Code Evaluation"
+  severity: critical
+  tags: ["php", "owasp-a03", "eval"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(eval\s*\(|assert\s*\(|preg_replace\s*\(\s*["'"'"'].*e["'"'"']\s*[,\)]|create_function\s*\(|call_user_func\s*\(|call_user_func_array\s*\()'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(eval\s*\(|assert\s*\(|preg_replace\s*\(\s*["'"'"'].*e["'"'"']\s*[,\)]|create_function\s*\(|call_user_func\s*\(|call_user_func_array\s*\()'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-PHP-004"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-PHP-005"
+  name: "PHP Attack - File Manipulation Functions"
+  severity: high
+  tags: ["php", "owasp-a03", "file-ops"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(file_put_contents\s*\(|fwrite\s*\(|fputs\s*\(|file_get_contents\s*\(|readfile\s*\(|fopen\s*\(|move_uploaded_file\s*\()'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(file_put_contents\s*\(|fwrite\s*\(|fputs\s*\(|file_get_contents\s*\(|readfile\s*\(|fopen\s*\(|move_uploaded_file\s*\()'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-PHP-005"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-PHP-006"
+  name: "PHP Attack - Include/LFI via PHP"
+  severity: critical
+  tags: ["php", "owasp-a03", "lfi"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(include\s*\(|include_once\s*\(|require\s*\(|require_once\s*\(|virtual\s*\()'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(include\s*\(|include_once\s*\(|require\s*\(|require_once\s*\(|virtual\s*\()'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-PHP-006"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-PHP-007"
+  name: "PHP Attack - Object Injection / Unserialize"
+  severity: critical
+  tags: ["php", "owasp-a03", "deserialization"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(O:\d+:"|unserialize\s*\(|__PHP_Incomplete_Class|C:\d+:"|__autoload|spl_autoload)'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(O:\d+:"|unserialize\s*\(|__PHP_Incomplete_Class|C:\d+:"|__autoload|spl_autoload)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-PHP-007"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-PHP-008"
+  name: "PHP Attack - phpinfo Exposure"
+  severity: high
+  tags: ["php", "owasp-a05", "info-disclosure"]
+  condition:
+    any:
+      - field: request.path
+        operator: regex
+        pattern: '(?i)(\/phpinfo\.php|\/info\.php|phpinfo\(\)|phpinfo\s*\()'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-PHP-008"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-PHP-009"
+  name: "PHP Attack - Variable Variable Injection"
+  severity: high
+  tags: ["php", "owasp-a03", "variable-injection"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(\$_{1,2}(GET|POST|REQUEST|SERVER|COOKIE|FILES|ENV|SESSION|GLOBALS)|extract\s*\(|parse_str\s*\(|import_request_variables\s*\()'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(\$_{1,2}(GET|POST|REQUEST|SERVER|COOKIE|FILES|ENV|SESSION|GLOBALS)|extract\s*\(|parse_str\s*\(|import_request_variables\s*\()'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-PHP-009"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-PHP-010"
+  name: "PHP Attack - MySQL/Mysqli Functions"
+  severity: high
+  tags: ["php", "owasp-a03", "sqli"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(mysql_query|mysql_connect|mysqli_query|mysqli_connect|mysql_select_db|mysql_fetch|mysqli_fetch|mysql_db_query|mysql_pconnect|mysqli_multi_query)\s*\('
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(mysql_query|mysql_connect|mysqli_query|mysqli_connect|mysql_select_db|mysql_fetch|mysqli_fetch|mysql_db_query|mysql_pconnect|mysqli_multi_query)\s*\('
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-PHP-010"}'
+  log: true
+  alert: true

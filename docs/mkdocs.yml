@@ -1,0 +1,98 @@
+site_name: FortressWAF Documentation
+site_url: https://docs.fortresswaf.io
+site_description: Enterprise Web Application Firewall - Documentation
+site_author: FortressWAF Team
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - search.suggest
+    - search.highlight
+    - content.code.annotate
+    - content.code.copy
+plugins:
+  - search
+  - mkdocstrings
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/fortresswaf/fortresswaf
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/fortresswaf
+  generator: false
+repo_url: https://github.com/zulfff/FortressWAF
+repo_name: zulfff/FortressWAF
+edit_url: "https://github.com/zulfff/FortressWAF/edit/main/docs/{path}"
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.magiclink
+  - pymdownx.mark
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+  - attr_list
+  - md_in_html
+  - tables
+nav:
+  - Home: index.md
+  - Getting Started:
+      - quickstart.md
+      - kubernetes.md
+      - configuration.md
+  - Core Concepts:
+      - concepts/architecture.md
+      - concepts/rules.md
+      - concepts/pipeline.md
+      - concepts/ml-engine.md
+  - Features:
+      - features/owasp.md
+      - features/api-security.md
+      - features/bot-management.md
+      - features/ddos.md
+      - features/virtual-patching.md
+      - features/rate-limiting.md
+  - Deployment:
+      - deploy/docker.md
+      - deploy/kubernetes.md
+      - deploy/terraform.md
+      - deploy/ansible.md
+      - deploy/cloud.md
+  - API Reference: api-reference.md
+  - CLI Reference: cli-reference.md
+  - Compliance:
+      - compliance/pci-dss.md
+      - compliance/gdpr.md
+      - compliance/soc2.md
+  - Integrations:
+      - integrations/splunk.md
+      - integrations/elastic.md
+      - integrations/datadog.md
+      - integrations/slack.md
+  - Troubleshooting: troubleshooting.md
+  - Changelog: changelog.md

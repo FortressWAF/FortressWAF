@@ -1,0 +1,113 @@
+version: '3.8'
+services:
+  fortress-proxy:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8443:8443" # admin API
+    depends_on:
+      redis: condition: service_healthy
+      postgres: condition: service_healthy
+      ml-engine: condition: service_started
+      nats: condition: service_started
+    environment:
+      - CONFIG_PATH=/etc/fortresswaf/config.yaml
+      - REDIS_URL=redis://redis:6379
+      - DATABASE_URL=postgres://fortress:fortress@postgres:5432/fortresswaf
+      - ML_ENGINE_URL=http://ml-engine:8000
+      - NATS_URL=nats://nats:4222
+    volumes:
+      - ./config.yaml:/etc/fortresswaf/config.yaml
+      - fortress-data:/var/lib/fortresswaf
+      - ./rules:/etc/fortresswaf/rules
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  ml-engine:
+    build:
+      context: ../ml-engine
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - MODEL_DIR=/app/models
+    volumes:
+      - ml-models:/app/models
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  dashboard:
+    build:
+      context: ../dashboard
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      - fortress-proxy
+    environment:
+      - API_URL=http://fortress-proxy:8443/api/v1
+      - NODE_ENV=production
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: fortresswaf
+      POSTGRES_USER: fortress
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-fortress}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fortress"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-fortress}
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  nats:
+    image: nats:2.10-alpine
+    command: -js
+    ports:
+      - "4222:4222"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8222/healthz || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  opensearch:
+    image: opensearchproject/opensearch:2.12.0
+    environment:
+      - discovery.type=single-node
+      - plugins.security.disabled=true
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_PASSWORD:-FortressWAF123!}
+    ports:
+      - "9200:9200"
+    volumes:
+      - opensearch-data:/usr/share/opensearch/data
+
+volumes:
+  postgres-data:
+  redis-data:
+  opensearch-data:
+  fortress-data:
+  ml-models:

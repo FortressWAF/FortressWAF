@@ -1,0 +1,75 @@
+groups:
+  - name: fortresswaf.alerts
+    interval: 30s
+    rules:
+      - alert: HighBlockRate
+        expr: rate(fortresswaf_http_requests_blocked_total[5m]) / rate(fortresswaf_http_requests_total[5m]) > 0.5
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High block rate detected"
+          description: "Block rate is above 50% for more than 2 minutes"
+
+      - alert: WAFNodeDown
+        expr: fortresswaf_node_status == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "WAF node is down"
+          description: "WAF node {{ $labels.instance }} has been down for more than 1 minute"
+
+      - alert: DDoSAttackInProgress
+        expr: rate(fortresswaf_ddos_events_total[1m]) > 10
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Potential DDoS attack in progress"
+          description: "DDoS event rate is {{ $value }} per second"
+
+      - alert: HighMLLatency
+        expr: histogram_quantile(0.95, rate(fortresswaf_ml_inference_seconds_bucket[5m])) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "ML inference latency is high"
+          description: "P95 ML latency is {{ $value }}s"
+
+      - alert: CertificateExpiring
+        expr: fortresswaf_cert_valid_days < 14
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: "TLS certificate expiring soon"
+          description: "Certificate expires in {{ $value }} days"
+
+      - alert: HighErrorRate
+        expr: rate(fortresswaf_http_errors_total[5m]) / rate(fortresswaf_http_requests_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value | humanizePercentage }}"
+
+      - alert: ZeroDayAttack
+        expr: rate(fortresswaf_zero_day_attacks_total[5m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Zero-day attack detected"
+          description: "ML model detected a potential zero-day attack"
+
+      - alert: MLModelDegraded
+        expr: fortresswaf_ml_model_health != 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "ML model is degraded"
+          description: "ML model {{ $labels.model }} health status is {{ $value }}"

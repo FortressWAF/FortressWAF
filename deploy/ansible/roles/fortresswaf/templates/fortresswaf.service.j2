@@ -1,0 +1,27 @@
+[Unit]
+Description=FortressWAF Enterprise Web Application Firewall
+Documentation=https://fortresswaf.io/docs
+Requires=docker.service
+After=docker.service network.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+User=root
+Group=root
+
+WorkingDirectory={{ fortresswaf_home }}/deploy
+
+ExecStart=/usr/bin/docker compose --project-name {{ docker_compose_project }} up -d
+ExecStop=/usr/bin/docker compose --project-name {{ docker_compose_project }} down
+ExecReload=/usr/bin/docker compose --project-name {{ docker_compose_project }} pull
+ExecReload=/usr/bin/docker compose --project-name {{ docker_compose_project }} up -d
+
+Restart=on-failure
+RestartSec=10
+
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

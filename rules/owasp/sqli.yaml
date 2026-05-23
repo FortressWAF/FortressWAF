@@ -1,0 +1,189 @@
+- id: "FORTRESS-SQLI-001"
+  name: "SQL Injection - UNION SELECT"
+  severity: critical
+  tags: ["sqli", "owasp-a03", "pci-dss"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(union\s+(all\s+)?select)'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(union\s+(all\s+)?select)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-SQLI-001"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-SQLI-002"
+  name: "SQL Injection - OR/AND 1=1"
+  severity: critical
+  tags: ["sqli", "owasp-a03", "pci-dss"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)((\bor\b|\band\b)\s+[\d\w]+\s*=\s*[\d\w]+)'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)((\bor\b|\band\b)\s+[\d\w]+\s*=\s*[\d\w]+)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-SQLI-002"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-SQLI-003"
+  name: "SQL Injection - Sleep/Pause"
+  severity: critical
+  tags: ["sqli", "owasp-a03", "blind-sqli"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(sleep\s*\(\s*\d+\s*\)|waitfor\s+delay|pg_sleep|dbms_lock\.sleep)'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(sleep\s*\(\s*\d+\s*\)|waitfor\s+delay|pg_sleep|dbms_lock\.sleep)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-SQLI-003"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-SQLI-004"
+  name: "SQL Injection - Comments"
+  severity: high
+  tags: ["sqli", "owasp-a03"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(--[\s\S]*|#[\s\S]*|\/\*[\s\S]*\*\/)'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(--[\s\S]*|#[\s\S]*|\/\*[\s\S]*\*\/)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-SQLI-004"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-SQLI-005"
+  name: "SQL Injection - Information Schema"
+  severity: critical
+  tags: ["sqli", "owasp-a03", "information-schema"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(information_schema|sys\.tables|sys\.columns|pg_catalog|mysql\.user)'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(information_schema|sys\.tables|sys\.columns|pg_catalog|mysql\.user)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-SQLI-005"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-SQLI-006"
+  name: "SQL Injection - Stored Procedure Injection"
+  severity: critical
+  tags: ["sqli", "owasp-a03", "stored-proc"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(exec\s+|\bxp_\s*|sp_executesql|sp_prepare|call\s+\w+\s*\()'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(exec\s+|\bxp_\s*|sp_executesql|sp_prepare|call\s+\w+\s*\()'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-SQLI-006"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-SQLI-007"
+  name: "SQL Injection - Hex/String Encoding Evasion"
+  severity: high
+  tags: ["sqli", "owasp-a03", "evasion"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(0x[0-9a-f]{4,}|char\s*\(\s*\d+\s*\)|nchar\s*\(\s*\d+\s*\)|unhex\s*\(|unhex\()'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(0x[0-9a-f]{4,}|char\s*\(\s*\d+\s*\)|nchar\s*\(\s*\d+\s*\)|unhex\s*\(|unhex\()'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-SQLI-007"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-SQLI-008"
+  name: "SQL Injection - Stacked Queries"
+  severity: critical
+  tags: ["sqli", "owasp-a03", "stacked"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(;\s*(select|insert|update|delete|create|drop|alter|exec)\s+)'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(;\s*(select|insert|update|delete|create|drop|alter|exec)\s+)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-SQLI-008"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-SQLI-009"
+  name: "SQL Injection - INTO OUTFILE/DUMPFILE"
+  severity: critical
+  tags: ["sqli", "owasp-a03", "file-write"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(into\s+(outfile|dumpfile)\s+)'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(into\s+(outfile|dumpfile)\s+)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-SQLI-009"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-SQLI-010"
+  name: "SQL Injection - Load File"
+  severity: critical
+  tags: ["sqli", "owasp-a03", "file-read"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(load_file\s*\(|pg_read_file|read_text_file)'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(load_file\s*\(|pg_read_file|read_text_file)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-SQLI-010"}'
+  log: true
+  alert: true

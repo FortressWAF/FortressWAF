@@ -1,0 +1,37 @@
+# FortressWAF Bad Bot User-Agent Corpus
+# 30 labeled bad bot user agents
+# Format: [category] user-agent
+
+[scraper] Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)
+[scraper] Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)
+[scraper] Mozilla/5.0 (compatible; AhrefsBot/7.0; +http://ahrefs.com/robot/)
+[scraper] Mozilla/5.0 (compatible; SemrushBot/7~bl; +http://www.semrush.com/bot.html)
+[scraper] Mozilla/5.0 (compatible; MJ12bot/v1.4.8; http://www.majestic12.co.uk/bot.php)
+[scraper] Mozilla/5.0 (compatible; DotBot/1.2; +https://opensiteexplorer.org/dotbot; +https://moz.com/help/guides/moz-programs/what-is-dotbot)
+[scraper] Mozilla/5.0 (compatible; Baiduspider/2.0; +http://www.baidu.com/search/spider.html)
+[scraper] Mozilla/5.0 (compatible; YandexBot/3.0; +http://yandex.com/bots)
+[scraper] Mozilla/5.0 (compatible; Sogou web spider/4.0; +http://www.sogou.com/docs/help/webmasters.htm#07)
+
+[aggressive] Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 (compatible; Screaming Frog SEO Spider/20.0)
+[aggressive] Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 (compatible; BLEXBot/1.0)
+[aggressive] Mozilla/5.0 (compatible; BLEXBot/1.0; +http://webmeup-crawler.com/)
+[aggressive] Mozilla/5.0 (compatible; seoscanners.net/1.0; +http://seoscanners.net/)
+[aggressive] Mozilla/5.0 (compatible; SEOkicks; +https://www.seokicks.de/robot.html)
+
+[malicious] curl/7.68.0 (CVEs scanner)
+[malicious] sqlmap/1.7.2#stable (http://sqlmap.org)
+[malicious] nmap/7.94 (https://nmap.org)
+[malicious] gobuster/3.6 (https://github.com/OJ/gobuster)
+[malicious] Wfuzz/3.1.0 (https://github.com/xmendez/wfuzz)
+[malicious] dirbuster/1.0
+[malicious] Nikto/2.5.0 (https://cirt.net/Nikto2)
+[malicious] Mozilla/5.0 (compatible; CensysInspect/1.0; +https://about.censys.io/)
+[malicious] Mozilla/5.0 (compatible; ZoomeyeBot/1.0; +http://www.zoomeye.org/)
+[malicious] Mozilla/5.0 (compatible; Shodan/1.0; +https://shodan.io)
+
+[spam] Mozilla/5.0 (compatible; spbot/5.0; +http://www.seoprofiler.com/bot/)
+[spam] Mozilla/5.0 (compatible; Cliqzbot/1.0; +http://cliqz.com/company)
+[spam] Mozilla/5.0 (compatible; archive.org_bot; +http://archive.org/details/archive.org_bot)
+[spam] Mozilla/5.0 (compatible; TurnitinBot/1.5; +http://www.turnitin.com/robot/crawlerinfo.html)
+[spam] Mozilla/5.0 (compatible; PaperLiBot/2.1; +http://support.paper.li/entries/20016881-what-is-paper-li/)
+[spam] Mozilla/5.0 (compatible; Exabot/3.0; +http://www.exabot.com/go/robot)

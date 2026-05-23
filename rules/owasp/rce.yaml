@@ -1,0 +1,186 @@
+- id: "FORTRESS-RCE-001"
+  name: "Remote Code Execution - Command Injection (Linux)"
+  severity: critical
+  tags: ["rce", "owasp-a03", "pci-dss"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(;\s*(id|whoami|cat|rm|wget|curl|bash|sh|nc|ncat|python|perl|php|ruby|powershell)\s|`\s*(id|whoami|cat|rm|wget|curl|bash|sh|nc|ncat|python|perl|php|ruby|powershell))'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(;\s*(id|whoami|cat|rm|wget|curl|bash|sh|nc|ncat|python|perl|php|ruby|powershell)\s|`\s*(id|whoami|cat|rm|wget|curl|bash|sh|nc|ncat|python|perl|php|ruby|powershell))'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-RCE-001"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-RCE-002"
+  name: "Remote Code Execution - Pipe/Fd Redirect"
+  severity: critical
+  tags: ["rce", "owasp-a03"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(\|\s*(id|whoami|cat|rm|wget|curl|bash|sh|nc|ncat|python|perl|php|ruby|powershell)|2>&1|1>&2|\|&\s*)'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(\|\s*(id|whoami|cat|rm|wget|curl|bash|sh|nc|ncat|python|perl|php|ruby|powershell)|2>&1|1>&2|\|&\s*)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-RCE-002"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-RCE-003"
+  name: "Remote Code Execution - PHP Code Injection"
+  severity: critical
+  tags: ["rce", "owasp-a03", "php"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(<\?php\s|<\?=|\b(preg_replace|assert|eval|system|exec|shell_exec|passthru|popen|proc_open|pcntl_exec)\s*\()'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(<\?php\s|<\?=|\b(preg_replace|assert|eval|system|exec|shell_exec|passthru|popen|proc_open|pcntl_exec)\s*\()'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-RCE-003"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-RCE-004"
+  name: "Remote Code Execution - Java Runtime Exec"
+  severity: critical
+  tags: ["rce", "owasp-a03", "java"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(Runtime\s*\.\s*getRuntime\s*\(|ProcessBuilder\s*\(|java\.lang\.Runtime|MethodHandle\.invoke)'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(Runtime\s*\.\s*getRuntime\s*\(|ProcessBuilder\s*\(|java\.lang\.Runtime|MethodHandle\.invoke)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-RCE-004"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-RCE-005"
+  name: "Remote Code Execution - Python/Perl/Lua Eval"
+  severity: critical
+  tags: ["rce", "owasp-a03"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(\b(__import__|exec|compile|eval|os\.system|os\.popen|subprocess\.(call|Popen|run)|commands\.getoutput)\s*\()'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(\b(__import__|exec|compile|eval|os\.system|os\.popen|subprocess\.(call|Popen|run)|commands\.getoutput)\s*\()'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-RCE-005"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-RCE-006"
+  name: "Remote Code Execution - Node.js Child Process"
+  severity: critical
+  tags: ["rce", "owasp-a03", "nodejs"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(child_process\.exec|child_process\.execSync|child_process\.spawn|child_process\.fork|require\(["'"'"']child_process["'"'"']\))'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(child_process\.exec|child_process\.execSync|child_process\.spawn|child_process\.fork|require\(["'"'"']child_process["'"'"']\))'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-RCE-006"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-RCE-007"
+  name: "Remote Code Execution - Environment Variable Substitution"
+  severity: high
+  tags: ["rce", "owasp-a03", "evasion"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(\$\{|%\(|\%[a-z_][a-z0-9_]*\b)'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(\$\{|%\(|\%[a-z_][a-z0-9_]*\b)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-RCE-007"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-RCE-008"
+  name: "Remote Code Execution - PowerShell Encoded Command"
+  severity: critical
+  tags: ["rce", "owasp-a03", "powershell"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(powershell\s+.*-enc(odedcommand)?\s+[A-Za-z0-9+/]+=*)'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(powershell\s+.*-enc(odedcommand)?\s+[A-Za-z0-9+/]+=*)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-RCE-008"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-RCE-009"
+  name: "Remote Code Execution - Time-based Blind Detection"
+  severity: medium
+  tags: ["rce", "owasp-a03", "blind"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(\bsleep\s+\d+|timeout\s+\/t\s+\d+|ping\s+-n\s+\d+)'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(\bsleep\s+\d+|timeout\s+\/t\s+\d+|ping\s+-n\s+\d+)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-RCE-009"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-RCE-010"
+  name: "Remote Code Execution - Webshell Parameter Detection"
+  severity: critical
+  tags: ["rce", "owasp-a03", "webshell"]
+  condition:
+    any:
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(\b(cmd|exec|command|run|system|shell|wget|download|upload|read|write|delete|file)\s*=|^\s*(cmd|exec|command|run|system|shell)\s*\[)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-RCE-010"}'
+  log: true
+  alert: true

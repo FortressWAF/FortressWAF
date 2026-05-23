@@ -1,0 +1,30 @@
+# FortressWAF LFI/Path Traversal Attack Corpus
+# 20 labeled path traversal payloads
+# Format: [category] payload
+
+[basic] ../../etc/passwd
+[basic] ..\\..\\..\\windows\\win.ini
+[basic] ../../../etc/shadow
+[basic] ../../../../etc/hosts
+
+[url-encoded] %2e%2e%2fetc%2fpasswd
+[url-encoded] ..%252f..%252f..%252fetc%252fpasswd
+[url-encoded] %2e%2e%5c%2e%2e%5c%2e%2e%5cetc%5cpasswd
+[url-encoded] ..%c0%ae%c0%ae/%c0%ae%c0%ae/%c0%ae%c0%ae/etc/passwd
+
+[double-encoding] %252e%252e%252fetc%252fpasswd
+[double-encoding] ..%25252f..%25252f..%25252fetc%25252fpasswd
+
+[null-byte] ../../../etc/passwd%00
+[null-byte] ../../../etc/passwd%00.html
+[null-byte] ../../../etc/passwd\0.php
+
+[wrapper] php://filter/convert.base64-encode/resource=index.php
+[wrapper] php://filter/read=convert.base64-encode/resource=config.php
+[wrapper] php://input
+[wrapper] php://filter/convert.base64-encode/resource=/etc/passwd
+[wrapper] file:///etc/passwd
+[wrapper] expect://id
+
+[nested] ....//....//....//etc/passwd
+[nested] ....\/....\/....\/etc/passwd

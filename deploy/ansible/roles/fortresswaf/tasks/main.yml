@@ -1,0 +1,299 @@
+---
+# FortressWAF installation tasks for bare metal / VM deployments
+
+- name: Include OS-specific variables
+  include_vars: "{{ item }}"
+  with_first_found:
+    - "{{ ansible_distribution }}-{{ ansible_distribution_version }}.yml"
+    - "{{ ansible_distribution }}.yml"
+    - "{{ ansible_os_family }}.yml"
+    - "default.yml"
+  tags: [always]
+
+- name: Ensure system dependencies are installed
+  package:
+    name:
+      - curl
+      - wget
+      - git
+      - gnupg
+      - ca-certificates
+      - lsb-release
+      - python3-pip
+      - python3-setuptools
+      - openssl
+      - ufw
+      - jq
+    state: present
+    update_cache: yes
+  tags: [dependencies]
+
+- name: Add Docker GPG key
+  apt_key:
+    url: https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg
+    state: present
+  when: ansible_os_family == "Debian"
+  tags: [docker]
+
+- name: Add Docker repository
+  apt_repository:
+    repo: "deb [arch={{ ansible_architecture }}] https://download.docker.com/linux/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable"
+    state: present
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+  tags: [docker]
+
+- name: Install Docker and Docker Compose plugin
+  package:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-compose-plugin
+    state: present
+  when: ansible_os_family == "Debian"
+  tags: [docker]
+
+- name: Install Docker on RHEL/CentOS
+  package:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-compose-plugin
+    state: present
+  when: ansible_os_family == "RedHat"
+  tags: [docker]
+
+- name: Start and enable Docker service
+  systemd:
+    name: docker
+    state: started
+    enabled: yes
+    daemon_reload: yes
+  tags: [docker]
+
+- name: Create fortresswaf system group
+  group:
+    name: "{{ fortresswaf_group }}"
+    system: yes
+    state: present
+  tags: [users]
+
+- name: Create fortresswaf system user
+  user:
+    name: "{{ fortresswaf_user }}"
+    group: "{{ fortresswaf_group }}"
+    home: "{{ fortresswaf_home }}"
+    shell: /sbin/nologin
+    system: yes
+    state: present
+    create_home: no
+  tags: [users]
+
+- name: Add current user to docker group
+  user:
+    name: "{{ ansible_user }}"
+    groups: docker
+    append: yes
+  tags: [docker]
+
+- name: Create FortressWAF directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ fortresswaf_user }}"
+    group: "{{ fortresswaf_group }}"
+    mode: 0750
+  loop:
+    - "{{ fortresswaf_home }}"
+    - "{{ fortresswaf_config_dir }}"
+    - "{{ fortresswaf_config_dir }}/tls"
+    - "{{ fortresswaf_data_dir }}"
+    - "{{ fortresswaf_log_dir }}"
+    - "{{ fortresswaf_rules_dir }}"
+    - "{{ fortresswaf_rules_dir }}/owasp"
+    - "{{ fortresswaf_rules_dir }}/virtual-patches"
+    - "{{ fortresswaf_home }}/deploy"
+  tags: [directories]
+
+- name: Copy docker-compose.yml
+  copy:
+    src: "{{ playbook_dir }}/../../docker-compose.yml"
+    dest: "{{ fortresswaf_home }}/deploy/docker-compose.yml"
+    owner: "{{ fortresswaf_user }}"
+    group: "{{ fortresswaf_group }}"
+    mode: 0644
+  tags: [config, compose]
+
+- name: Generate config.yaml from template
+  template:
+    src: "{{ playbook_dir }}/../../config.yaml"
+    dest: "{{ fortresswaf_config_dir }}/config.yaml"
+    owner: "{{ fortresswaf_user }}"
+    group: "{{ fortresswaf_group }}"
+    mode: 0640
+  tags: [config]
+
+- name: Copy rule files
+  synchronize:
+    src: "{{ playbook_dir }}/../../rules/"
+    dest: "{{ fortresswaf_rules_dir }}/"
+    owner: "{{ fortresswaf_user }}"
+    group: "{{ fortresswaf_group }}"
+    delete: yes
+    recursive: yes
+  tags: [rules]
+
+- name: Generate self-signed TLS certificate (if none exists)
+  command: >
+    openssl req -x509 -nodes -days 365 -newkey rsa:4096
+    -keyout "{{ tls_key_path }}"
+    -out "{{ tls_cert_path }}"
+    -subj "/CN={{ ansible_fqdn }}"
+    -addext "subjectAltName=DNS:{{ ansible_fqdn }},DNS:{{ ansible_hostname }},IP:{{ ansible_default_ipv4.address }}"
+  args:
+    creates: "{{ tls_cert_path }}"
+  tags: [tls]
+
+- name: Set TLS certificate permissions
+  file:
+    path: "{{ item.path }}"
+    owner: "{{ fortresswaf_user }}"
+    group: "{{ fortresswaf_group }}"
+    mode: "{{ item.mode }}"
+  loop:
+    - { path: "{{ tls_cert_path }}", mode: "0644" }
+    - { path: "{{ tls_key_path }}", mode: "0640" }
+  tags: [tls]
+
+- name: Configure firewall - allow HTTP/HTTPS
+  ufw:
+    rule: allow
+    port: "{{ item.port }}"
+    proto: "{{ item.proto }}"
+    comment: "{{ item.desc }}"
+  loop: "{{ firewall_ports }}"
+  when: ansible_os_family == "Debian"
+  tags: [firewall]
+
+- name: Configure firewall - allow SSH
+  ufw:
+    rule: allow
+    port: "22"
+    proto: tcp
+    comment: "SSH"
+  when: ansible_os_family == "Debian"
+  tags: [firewall]
+
+- name: Enable UFW
+  ufw:
+    state: enabled
+    policy: deny
+    direction: incoming
+  when: ansible_os_family == "Debian"
+  tags: [firewall]
+
+- name: Configure firewalld on RHEL
+  firewalld:
+    port: "{{ item.port }}/{{ item.proto }}"
+    permanent: yes
+    state: enabled
+    immediate: yes
+  loop: "{{ firewall_ports }}"
+  when: ansible_os_family == "RedHat"
+  tags: [firewall]
+
+- name: Create systemd service for FortressWAF
+  template:
+    src: fortresswaf.service.j2
+    dest: /etc/systemd/system/fortresswaf.service
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart fortresswaf
+  tags: [systemd]
+
+- name: Reload systemd daemon
+  systemd:
+    daemon_reload: yes
+  tags: [systemd]
+
+- name: Enable and start FortressWAF service
+  systemd:
+    name: fortresswaf
+    enabled: yes
+    state: started
+  tags: [systemd]
+
+- name: Wait for FortressWAF to be healthy
+  uri:
+    url: "http://localhost:8080/health"
+    method: GET
+    status_code: 200
+    timeout: 5
+  register: health_check
+  retries: 12
+  delay: 5
+  until: health_check.status == 200
+  tags: [healthcheck]
+
+- name: Configure log rotation
+  template:
+    src: logrotate.j2
+    dest: /etc/logrotate.d/fortresswaf
+    owner: root
+    group: root
+    mode: 0644
+  tags: [logging]
+
+- name: Set sysctl for increased connection limits
+  sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    state: present
+    reload: yes
+  loop:
+    - { name: net.core.somaxconn, value: "65535" }
+    - { name: net.ipv4.tcp_max_syn_backlog, value: "65535" }
+    - { name: net.ipv4.ip_local_port_range, value: "1024 65535" }
+    - { name: net.ipv4.tcp_tw_reuse, value: "1" }
+    - { name: fs.file-max, value: "2097152" }
+  tags: [sysctl]
+
+- name: Create environment file for Docker Compose
+  template:
+    src: env.j2
+    dest: "{{ fortresswaf_home }}/deploy/.env"
+    owner: "{{ fortresswaf_user }}"
+    group: "{{ fortresswaf_group }}"
+    mode: 0600
+  tags: [config]
+
+- name: Pull Docker images
+  docker_compose:
+    project_src: "{{ fortresswaf_home }}/deploy"
+    pull: yes
+  register: pull_result
+  changed_when: "'Downloaded' in pull_result.stdout"
+  tags: [docker, compose]
+
+- name: Start FortressWAF stack with Docker Compose
+  docker_compose:
+    project_src: "{{ fortresswaf_home }}/deploy"
+    state: present
+    restarted: no
+  register: compose_result
+  tags: [docker, compose]
+
+- name: Verify all services are running
+  docker_compose:
+    project_src: "{{ fortresswaf_home }}/deploy"
+    state: present
+  register: verify_result
+  failed_when: >
+    verify_result.services
+    | selectattr('state', 'nequal', 'running')
+    | list
+    | length > 0
+  tags: [docker, compose, verify]

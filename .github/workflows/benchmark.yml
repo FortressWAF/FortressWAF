@@ -1,0 +1,36 @@
+name: Performance Benchmark
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  benchmark:
+    name: Benchmarks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Run benchmarks
+        run: |
+          go test -bench=. -benchmem -run=^$ ./internal/engine/... -count=5 > benchmark.txt
+
+      - name: Compare with main
+        if: github.event_name == 'pull_request'
+        run: |
+          git stash
+          go test -bench=. -benchmem -run=^$ ./internal/engine/... -count=3 > baseline.txt
+          git stash pop
+          go test -bench=. -benchmem -run=^$ ./internal/engine/... -count=3 > current.txt
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmarks
+          path: benchmark.txt

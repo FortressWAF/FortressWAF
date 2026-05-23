@@ -1,0 +1,424 @@
+package engine
+
+import (
+	"fmt"
+	"log/slog"
+	"regexp"
+	"strings"
+	"sync"
+	"unicode"
+)
+
+type TokenType int
+
+const (
+	TokenKeyword TokenType = iota
+	TokenOperator
+	TokenString
+	TokenNumber
+	TokenIdentifier
+	TokenComment
+	TokenPunctuation
+	TokenFunction
+	TokenUnknown
+)
+
+type Token struct {
+	Type  TokenType
+	Value string
+	Pos   int
+}
+
+type SQLInjectionEngine struct {
+	mu          sync.RWMutex
+	devMode     bool
+	dialects    []string
+	patterns    []*regexp.Regexp
+	encodingRE  *regexp.Regexp
+	commentRE   *regexp.Regexp
+	hexRE       *regexp.Regexp
+	unicodeRE   *regexp.Regexp
+	nullByteRE  *regexp.Regexp
+	doubleEncRE *regexp.Regexp
+	base64RE    *regexp.Regexp
+}
+
+func NewSQLInjectionEngine(devMode bool) *SQLInjectionEngine {
+	e := &SQLInjectionEngine{
+		devMode:  devMode,
+		dialects: []string{
+			"mysql", "postgresql", "mssql", "oracle", "sqlite",
+			"mariadb", "db2", "informix", "sybase", "access",
+			"firebird", "teradata", "hana", "redshift", "snowflake",
+		},
+	}
+
+	e.encodingRE = regexp.MustCompile(`(?i)(?:\\x[0-9a-f]{2}|\\u[0-9a-f]{4}|%[0-9a-f]{2}|&#x?[0-9a-f]+;)`)
+	e.commentRE = regexp.MustCompile(`(?is)(?:/\*.*?\*|--.*?$|#.*?$|--\s)`)
+	e.hexRE = regexp.MustCompile(`(?i)(?:0x[0-9a-f]+|x'[0-9a-f]+'|unhex\(|hex\(|char\()`)
+	e.unicodeRE = regexp.MustCompile(`(?i)(?:\\u[0-9a-f]{4}|%u[0-9a-f]{4}|nchar|n'|unicode\()`)
+	e.nullByteRE = regexp.MustCompile(`\x00`)
+	e.doubleEncRE = regexp.MustCompile(`(?:%25[0-9a-f]{2}|%25[0-9a-f]{2}%[0-9a-f]{2})`)
+	e.base64RE = regexp.MustCompile(`(?i)(?:base64_decode|base64_encode|from_base64|to_base64)`)
+
+	e.compilePatterns()
+
+	return e
+}
+
+func (e *SQLInjectionEngine) Name() string { return "sqli" }
+
+func (e *SQLInjectionEngine) compilePatterns() {
+	rawPatterns := []struct {
+		id   string
+		re   string
+		desc string
+		sev  string
+	}{
+		{"SQLI001", `(?i)(?:\b(?:union|union\s+all)\s+select\b)`, "UNION SELECT", "critical"},
+		{"SQLI002", `(?i)(?:select\s+.*?\bfrom\b.*?\bwhere\b)`, "SELECT FROM WHERE", "high"},
+		{"SQLI003", `(?i)(?:\b(?:insert|update|delete|drop|truncate|alter|create|replace)\b)`, "DML/DDL", "critical"},
+		{"SQLI004", `(?i)(?:\b(?:exec|execute|exec_sp|xp_cmdshell|sp_executesql)\b)`, "Procedure Execution", "critical"},
+		{"SQLI005", `(?i)(?:'.*\b(?:or|and)\b.*['\"])`, "SQL tautology", "high"},
+		{"SQLI006", `(?i)(?:'.*\s*=\s*'.*--|'.*=\s*'.*#)`, "SQL comment injection", "high"},
+		{"SQLI007", `(?i)(?:sleep|waitfor\s+delay|pg_sleep|benchmark)\s*\(`, "Time-based blind", "critical"},
+		{"SQLI008", `(?i)(?:or\s+1\s*=\s*1|and\s+1\s*=\s*1)`, "Boolean-based", "high"},
+		{"SQLI009", `(?i)(?:';.*--|';.*#|'\)\s*;?\s*--)`, "SQL quote injection", "critical"},
+		{"SQLI010", `(?i)(?:pg_sleep|waitfor|delay|sleep|benchmark|if)\s*\(`, "Time-based functions", "critical"},
+		{"SQLI011", `(?i)(?:\b(?:information_schema|mysql\.|pg_catalog|sys\.|sqlite_master)\b)`, "Schema enumeration", "high"},
+		{"SQLI012", `(?i)(?:@@version|version\(\)|@@servername|db_name\(\))`, "DB version probing", "medium"},
+		{"SQLI013", `(?i)(?:into\s+(?:outfile|dumpfile|load_file)\b)`, "File operations", "critical"},
+		{"SQLI014", `(?i)(?:conv|char|nchar|hex|unhex|ord|ascii)\s*\(`, "String functions injection", "high"},
+		{"SQLI015", `(?i)(?:admin'|'admin|\bor\b.*\badmin\b|\badmin\b.*\bor\b)`, "Admin bypass", "high"},
+	}
+
+	for _, p := range rawPatterns {
+		e.patterns = append(e.patterns, regexp.MustCompile(p.re))
+	}
+}
+
+func (e *SQLInjectionEngine) Inspect(ctx *RequestContext) (*Decision, error) {
+	targets := e.extractTargets(ctx)
+
+	for _, target := range targets {
+		if dec := e.inspectValue(target.value, target.source); dec != nil {
+			return dec, nil
+		}
+	}
+
+	return nil, nil
+}
+
+type targetValue struct {
+	value  string
+	source string
+}
+
+func (e *SQLInjectionEngine) extractTargets(ctx *RequestContext) []targetValue {
+	var targets []targetValue
+
+	for k, v := range ctx.QueryParams {
+		for _, val := range v {
+			targets = append(targets, targetValue{value: val, source: fmt.Sprintf("query:%s", k)})
+		}
+	}
+
+	for k, v := range ctx.FormParams {
+		for _, val := range v {
+			targets = append(targets, targetValue{value: val, source: fmt.Sprintf("form:%s", k)})
+		}
+	}
+
+	if ctx.Body != nil {
+		targets = append(targets, targetValue{value: string(ctx.Body), source: "body"})
+	}
+
+	for k, v := range ctx.Headers {
+		targets = append(targets, targetValue{value: v, source: fmt.Sprintf("header:%s", k)})
+	}
+
+	for k, v := range ctx.Cookies {
+		targets = append(targets, targetValue{value: v, source: fmt.Sprintf("cookie:%s", k)})
+	}
+
+	return targets
+}
+
+func (e *SQLInjectionEngine) inspectValue(value, source string) *Decision {
+	if value == "" {
+		return nil
+	}
+
+	original := value
+
+	if dec := e.detectEncodingBypass(value, source); dec != nil {
+		return dec
+	}
+
+	value = e.normalizeInput(value)
+
+	tokens := e.tokenize(value)
+	if dec := e.analyzeTokens(tokens, value, source); dec != nil {
+		return dec
+	}
+
+	for _, pattern := range e.patterns {
+		if pattern.MatchString(value) {
+			return &Decision{
+				Action:   ActionBlock,
+				RuleID:   "SQLI016",
+				RuleName: "SQL Pattern Match",
+				Severity: "high",
+				Score:    75,
+				Evidence: fmt.Sprintf("SQL injection pattern matched in %s: %q", source, original[:min(len(original), 200)]),
+			}
+		}
+	}
+
+	return nil
+}
+
+func (e *SQLInjectionEngine) detectEncodingBypass(value, source string) *Decision {
+	if e.nullByteRE.MatchString(value) {
+		return &Decision{
+			Action:   ActionBlock,
+			RuleID:   "SQLI017",
+			RuleName: "Null Byte Injection",
+			Severity: "high",
+			Score:    70,
+			Evidence: fmt.Sprintf("null byte detected in %s", source),
+		}
+	}
+
+	if e.doubleEncRE.MatchString(value) {
+		return &Decision{
+			Action:   ActionBlock,
+			RuleID:   "SQLI018",
+			RuleName: "Double Encoding",
+			Severity: "high",
+			Score:    75,
+			Evidence: fmt.Sprintf("double encoding detected in %s", source),
+		}
+	}
+
+	if e.hexRE.MatchString(value) {
+		return &Decision{
+			Action:   ActionMonitor,
+			RuleID:   "SQLI019",
+			RuleName: "Hex Encoding",
+			Severity: "medium",
+			Score:    40,
+			Evidence: fmt.Sprintf("hex encoding detected in %s", source),
+		}
+	}
+
+	if e.base64RE.MatchString(value) {
+		return &Decision{
+			Action:   ActionMonitor,
+			RuleID:   "SQLI020",
+			RuleName: "Base64 Encoding",
+			Severity: "medium",
+			Score:    35,
+			Evidence: fmt.Sprintf("base64 function detected in %s", source),
+		}
+	}
+
+	return nil
+}
+
+func (e *SQLInjectionEngine) normalizeInput(input string) string {
+	result := e.commentRE.ReplaceAllString(input, " ")
+	result = e.encodingRE.ReplaceAllString(result, "X")
+	return result
+}
+
+func (e *SQLInjectionEngine) tokenize(input string) []Token {
+	var tokens []Token
+	i := 0
+	runes := []rune(input)
+
+	for i < len(runes) {
+		ch := runes[i]
+
+		if unicode.IsSpace(ch) {
+			i++
+			continue
+		}
+
+		if ch == '\'' || ch == '"' {
+			start := i
+			i++
+			for i < len(runes) && runes[i] != ch {
+				if runes[i] == '\\' {
+					i++
+				}
+				i++
+			}
+			if i < len(runes) {
+				i++
+			}
+			tokens = append(tokens, Token{Type: TokenString, Value: string(runes[start:i]), Pos: start})
+			continue
+		}
+
+		if ch == '/' && i+1 < len(runes) && runes[i+1] == '*' {
+			end := i + 2
+			for end+1 < len(runes) && !(runes[end] == '*' && runes[end+1] == '/') {
+				end++
+			}
+			if end+1 < len(runes) {
+				end += 2
+			}
+			tokens = append(tokens, Token{Type: TokenComment, Value: string(runes[i:end]), Pos: i})
+			i = end
+			continue
+		}
+
+		if ch == '-' && i+1 < len(runes) && runes[i+1] == '-' {
+			end := i + 2
+			for end < len(runes) && runes[end] != '\n' {
+				end++
+			}
+			tokens = append(tokens, Token{Type: TokenComment, Value: string(runes[i:end]), Pos: i})
+			i = end
+			continue
+		}
+
+		if ch == '#' && i+1 < len(runes) {
+			end := i + 1
+			for end < len(runes) && runes[end] != '\n' {
+				end++
+			}
+			tokens = append(tokens, Token{Type: TokenComment, Value: string(runes[i:end]), Pos: i})
+			i = end
+			continue
+		}
+
+		if unicode.IsDigit(ch) || (ch == '.' && i+1 < len(runes) && unicode.IsDigit(runes[i+1])) {
+			start := i
+			for i < len(runes) && (unicode.IsDigit(runes[i]) || runes[i] == '.') {
+				i++
+			}
+			tokens = append(tokens, Token{Type: TokenNumber, Value: string(runes[start:i]), Pos: start})
+			continue
+		}
+
+		if unicode.IsLetter(ch) || ch == '_' {
+			start := i
+			for i < len(runes) && (unicode.IsLetter(runes[i]) || unicode.IsDigit(runes[i]) || runes[i] == '_') {
+				i++
+			}
+			word := string(runes[start:i])
+			upper := strings.ToUpper(word)
+			keywords := map[string]bool{
+				"SELECT": true, "UNION": true, "FROM": true, "WHERE": true,
+				"INSERT": true, "UPDATE": true, "DELETE": true, "DROP": true,
+				"CREATE": true, "ALTER": true, "TABLE": true, "INTO": true,
+				"VALUES": true, "SET": true, "AND": true, "OR": true,
+				"NOT": true, "NULL": true, "LIKE": true, "BETWEEN": true,
+				"IN": true, "EXISTS": true, "HAVING": true, "GROUP": true,
+				"ORDER": true, "BY": true, "LIMIT": true, "OFFSET": true,
+				"JOIN": true, "LEFT": true, "RIGHT": true, "INNER": true,
+				"OUTER": true, "ON": true, "AS": true, "CASE": true,
+				"WHEN": true, "THEN": true, "ELSE": true, "END": true,
+				"EXEC": true, "EXECUTE": true, "SLEEP": true, "BENCHMARK": true,
+				"PG_SLEEP": true, "WAITFOR": true, "DELAY": true,
+			}
+			if keywords[upper] {
+				tokens = append(tokens, Token{Type: TokenKeyword, Value: word, Pos: start})
+			} else if i < len(runes) && runes[i] == '(' {
+				tokens = append(tokens, Token{Type: TokenFunction, Value: word, Pos: start})
+			} else {
+				tokens = append(tokens, Token{Type: TokenIdentifier, Value: word, Pos: start})
+			}
+			continue
+		}
+
+		if strings.ContainsRune("=<>!+-*/%&|^~", ch) {
+			start := i
+			if i+1 < len(runes) && strings.ContainsRune("=<>", runes[i+1]) {
+				i++
+			}
+			i++
+			tokens = append(tokens, Token{Type: TokenOperator, Value: string(runes[start:i]), Pos: start})
+			continue
+		}
+
+		if strings.ContainsRune("()[]{};,", ch) {
+			tokens = append(tokens, Token{Type: TokenPunctuation, Value: string(ch), Pos: i})
+			i++
+			continue
+		}
+
+		tokens = append(tokens, Token{Type: TokenUnknown, Value: string(ch), Pos: i})
+		i++
+	}
+
+	return tokens
+}
+
+func (e *SQLInjectionEngine) analyzeTokens(tokens []Token, original, source string) *Decision {
+	keywordCount := 0
+	stringCount := 0
+	operatorCount := 0
+	hasSemicolon := false
+
+	for _, t := range tokens {
+		switch t.Type {
+		case TokenKeyword:
+			keywordCount++
+			upper := strings.ToUpper(t.Value)
+			if upper == "UNION" || upper == "SELECT" || upper == "DROP" || upper == "EXEC" || upper == "EXECUTE" {
+				return &Decision{
+					Action:   ActionBlock,
+					RuleID:   "SQLI021",
+					RuleName: "SQL Keyword Injection",
+					Severity: "critical",
+					Score:    90,
+					Evidence: fmt.Sprintf("dangerous SQL keyword %q in %s", t.Value, source),
+				}
+			}
+		case TokenString:
+			stringCount++
+		case TokenOperator:
+			operatorCount++
+		case TokenPunctuation:
+			if t.Value == ";" {
+				hasSemicolon = true
+			}
+		}
+	}
+
+	if hasSemicolon && keywordCount > 0 {
+		return &Decision{
+			Action:   ActionBlock,
+			RuleID:   "SQLI022",
+			RuleName: "SQL Statement Chaining",
+			Severity: "critical",
+			Score:    85,
+			Evidence: fmt.Sprintf("SQL statement chaining detected in %s", source),
+		}
+	}
+
+	if keywordCount >= 2 && stringCount >= 1 {
+		return &Decision{
+			Action:   ActionMonitor,
+			RuleID:   "SQLI023",
+			RuleName: "SQL-like Injection Pattern",
+			Severity: "high",
+			Score:    60,
+			Evidence: fmt.Sprintf("SQL-like token pattern in %s: %d keywords, %d strings", source, keywordCount, stringCount),
+		}
+	}
+
+	return nil
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+var _ = slog.Debug

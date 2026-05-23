@@ -1,0 +1,167 @@
+- id: "FORTRESS-SCAN-001"
+  name: "Scanner Detection - Acunetix"
+  severity: medium
+  tags: ["scanner", "fingerprint"]
+  condition:
+    any:
+      - field: request.headers
+        operator: regex
+        pattern: '(?i)(Acunetix|Acunetix-Aspect|acunetix-product-token|acunetix-product)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-SCAN-001"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-SCAN-002"
+  name: "Scanner Detection - Nessus"
+  severity: medium
+  tags: ["scanner", "fingerprint"]
+  condition:
+    any:
+      - field: request.headers
+        operator: regex
+        pattern: '(?i)(Nessus|nessus|NessusSOAP|NAI)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-SCAN-002"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-SCAN-003"
+  name: "Scanner Detection - Nikto/Wapiti"
+  severity: medium
+  tags: ["scanner", "fingerprint"]
+  condition:
+    any:
+      - field: request.headers
+        operator: regex
+        pattern: '(?i)(Nikto|nikto|wapiti|wapiti)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-SCAN-003"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-SCAN-004"
+  name: "Scanner Detection - SQLMap"
+  severity: high
+  tags: ["scanner", "sqlmap", "sqli"]
+  condition:
+    any:
+      - field: request.headers
+        operator: regex
+        pattern: '(?i)(sqlmap|sqlmap)'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(\bsleep\b.*\b(if|or|and)\b.*\d|\bwaitfor\b|\bbenchmark\b.*\(.*\d)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-SCAN-004"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-SCAN-005"
+  name: "Scanner Detection - BurpSuite Scanner"
+  severity: medium
+  tags: ["scanner", "fingerprint"]
+  condition:
+    any:
+      - field: request.headers
+        operator: regex
+        pattern: '(?i)(BurpSuite|Burp Scanner|Burp\s*Scanner|burpsuite)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-SCAN-005"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-SCAN-006"
+  name: "Scanner Detection - ZAP Proxy"
+  severity: medium
+  tags: ["scanner", "fingerprint"]
+  condition:
+    any:
+      - field: request.headers
+        operator: regex
+        pattern: '(?i)(ZAP|ZAP-Header|OWASP ZAP|zaproxy)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-SCAN-006"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-SCAN-007"
+  name: "Scanner Detection - GoBuster/FFUF/DirBuster"
+  severity: low
+  tags: ["scanner", "directory-buster"]
+  condition:
+    any:
+      - field: request.headers
+        operator: regex
+        pattern: '(?i)(gobuster|ffuf|dirbuster|dirb|wfuzz|gospider)'
+      - field: request.path
+        operator: regex
+        pattern: '(?i)(\/(admin|backup|config|db|sql|dump|test|dev|private|secret|\.git|\.env|\.svn|\.htaccess|\.htpasswd|xmlrpc|wp-content|wp-includes|wp-admin)\b)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-SCAN-007"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-SCAN-008"
+  name: "Scanner Detection - Nuclei"
+  severity: medium
+  tags: ["scanner", "fingerprint"]
+  condition:
+    any:
+      - field: request.headers
+        operator: regex
+        pattern: '(?i)(nuclei|Nuclei|nuclei-scan)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-SCAN-008"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-SCAN-009"
+  name: "Scanner Detection - Rapid Rate Probing"
+  severity: low
+  tags: ["scanner", "rate-based"]
+  condition:
+    any:
+      - field: request.path
+        operator: regex
+        pattern: '(?i)(\.(php|aspx|jsp|do|action|cgi|pl|asp)$)'
+  action: log
+  response:
+    code: 200
+  log: true
+  alert: false
+
+- id: "FORTRESS-SCAN-010"
+  name: "Scanner Detection - Common Probe Patterns"
+  severity: medium
+  tags: ["scanner", "probe"]
+  condition:
+    any:
+      - field: request.path
+        operator: regex
+        pattern: '(?i)(\/(phpinfo|info|phpunit|debug|test|shell|cmd|exec|cgi-bin|server-status|server-info)\b)'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)((SELECT|DROP|DELETE|INSERT|ALTER|CREATE|UNION).*(FROM|INTO|TABLE|DATABASE)|(\bOR\b|\bAND\b)\s+\d+\s*=\s*\d+)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-SCAN-010"}'
+  log: true
+  alert: true

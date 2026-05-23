@@ -1,0 +1,86 @@
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "fortresswaf.fullname" . }}-default-deny
+  labels:
+    {{- include "fortresswaf.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "fortresswaf.selectorLabels" . | nindent 6 }}
+  policyTypes:
+    {{- if .Values.networkPolicy.defaultDeny.ingress }}
+    - Ingress
+    {{- end }}
+    {{- if .Values.networkPolicy.defaultDeny.egress }}
+    - Egress
+    {{- end }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "fortresswaf.fullname" . }}-ingress
+  labels:
+    {{- include "fortresswaf.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "fortresswaf.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: proxy
+  policyTypes:
+    - Ingress
+  ingress:
+    {{- with .Values.networkPolicy.ingress }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "fortresswaf.fullname" . }}-egress
+  labels:
+    {{- include "fortresswaf.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "fortresswaf.selectorLabels" . | nindent 6 }}
+  policyTypes:
+    - Egress
+  egress:
+    {{- with .Values.networkPolicy.egress }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "fortresswaf.fullname" . }}-allow-internal
+  labels:
+    {{- include "fortresswaf.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "fortresswaf.selectorLabels" . | nindent 6 }}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              {{- include "fortresswaf.selectorLabels" . | nindent 14 }}
+      ports:
+        - port: 8080
+        - port: 8443
+        - port: 8000
+        - port: 3000
+        - port: 5432
+        - port: 6379
+        - port: 4222
+        - port: 8222
+        - port: 9200
+        - port: 9300
+{{- with .Values.networkPolicy.extraPolicies }}
+{{- toYaml . | nindent 0 }}
+{{- end }}
+{{- end }}

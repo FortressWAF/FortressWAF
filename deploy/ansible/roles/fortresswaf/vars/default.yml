@@ -1,0 +1,46 @@
+---
+# Default OS-specific variables for FortressWAF
+# These can be overridden in host_vars or group_vars
+
+docker_compose_version: "2.24.0"
+docker_compose_binary: "/usr/local/bin/docker-compose"
+
+# Package names by OS family
+docker_packages:
+  Debian:
+    - docker-ce
+    - docker-ce-cli
+    - containerd.io
+    - docker-buildx-plugin
+    - docker-compose-plugin
+  RedHat:
+    - docker-ce
+    - docker-ce-cli
+    - containerd.io
+    - docker-buildx-plugin
+    - docker-compose-plugin
+
+# System limits
+system_limits:
+  - { domain: "{{ fortresswaf_user }}", type: "nofile", value: "1048576" }
+  - { domain: "{{ fortresswaf_user }}", type: "nproc", value: "65536" }
+  - { domain: "{{ fortresswaf_user }}", type: "memlock", value: "unlimited" }
+
+# Docker daemon configuration
+docker_daemon_config:
+  log-driver: "json-file"
+  log-opts:
+    max-size: "10m"
+    max-file: "3"
+  storage-driver: "overlay2"
+  live-restore: true
+  max-concurrent-downloads: 10
+  max-concurrent-uploads: 10
+  iptables: true
+  ip-forward: true
+  ip-masq: true
+
+# Monitoring exporter ports (if enabled)
+exporter_ports:
+  node_exporter: 9100
+  cadvisor: 8080

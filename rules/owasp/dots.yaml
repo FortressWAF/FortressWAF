@@ -1,0 +1,355 @@
+- id: "FORTRESS-DOTS-001"
+  name: "Directory Traversal - Basic Path Traversal"
+  severity: critical
+  description: "Detects basic directory traversal using ../ and ..\\ sequences in request path and parameters"
+  tags: ["lfi", "dots", "path-traversal", "owasp-a03", "pci-dss"]
+  condition:
+    any:
+      - field: request.path
+        operator: regex
+        pattern: '(?i)(\.\./|\.\.\\){1,}'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(\.\./|\.\.\\){1,}'
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(\.\./|\.\.\\){1,}'
+      - field: request.headers
+        name: "X-Original-URL"
+        operator: regex
+        pattern: '(?i)(\.\./|\.\.\\){1,}'
+      - field: request.headers
+        name: "X-Rewrite-URL"
+        operator: regex
+        pattern: '(?i)(\.\./|\.\.\\){1,}'
+      - field: request.headers
+        name: "Referer"
+        operator: regex
+        pattern: '(?i)(\.\./|\.\.\\){2,}'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF - Path traversal detected","ref":"FORTRESS-DOTS-001"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-DOTS-002"
+  name: "Directory Traversal - URL Encoded Dots"
+  severity: critical
+  description: "Detects URL-encoded dot sequences (%2e%2e%2f, %2e%2e/, ..%2f) used for path traversal"
+  tags: ["lfi", "dots", "path-traversal", "owasp-a03", "evasion"]
+  condition:
+    any:
+      - field: request.path
+        operator: regex
+        pattern: '(%2e%2e|%252e%252e|\.%252f|%2e%2e%2f|%2e%2e%5c|\.\.%2f|\.\.%5c)'
+      - field: request.query
+        operator: regex
+        pattern: '(%2e%2e|%252e%252e|\.%252f|%2e%2e%2f|%2e%2e%5c|\.\.%2f|\.\.%5c)'
+      - field: request.body
+        operator: regex
+        pattern: '(%2e%2e|%252e%252e|\.%252f|%2e%2e%2f|%2e%2e%5c|\.\.%2f|\.\.%5c)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF - Encoded path traversal detected","ref":"FORTRESS-DOTS-002"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-DOTS-003"
+  name: "Directory Traversal - Unicode and UTF-8 Variants"
+  severity: critical
+  description: "Detects Unicode/UTF-8 encoded path traversal sequences (e.g., ..%c0%af, ..%ef%bc%8f)"
+  tags: ["lfi", "dots", "path-traversal", "owasp-a03", "unicode", "evasion"]
+  condition:
+    any:
+      - field: request.path
+        operator: regex
+        pattern: '(..%c0%af|..%c0%5c|..%c1%9c|..%c1%pc|..%ef%bc%8f|..%e0%80%af|..%e0%80%ae|\.\.\%c0\%af|\.\.\%c1\%9c)'
+      - field: request.query
+        operator: regex
+        pattern: '(..%c0%af|..%c0%5c|..%c1%9c|..%c1%pc|..%ef%bc%8f|..%e0%80%af|..%e0%80%ae)'
+      - field: request.body
+        operator: regex
+        pattern: '(..%c0%af|..%c0%5c|..%c1%9c|..%c1%pc|..%ef%bc%8f|..%e0%80%af|..%e0%80%ae)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF - Unicode path traversal detected","ref":"FORTRESS-DOTS-003"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-DOTS-004"
+  name: "Directory Traversal - Double Encoding"
+  severity: critical
+  description: "Detects double-encoded path traversal sequences used to bypass WAF decoding"
+  tags: ["lfi", "dots", "path-traversal", "owasp-a03", "double-encode", "evasion"]
+  condition:
+    any:
+      - field: request.path
+        operator: regex
+        pattern: '(%252e%252e%252f|%252e%252e%255c|%252e%252e%252e%252f|%2527%252e%252e)'
+      - field: request.query
+        operator: regex
+        pattern: '(%252e%252e%252f|%252e%252e%255c|%252e%252e%252e%252f)'
+      - field: request.body
+        operator: regex
+        pattern: '(%252e%252e%252f|%252e%252e%255c|%252e%252e%252e%252f)'
+      - field: request.path
+        operator: regex
+        pattern: '(%252f|%255c|%252e)[^a-zA-Z0-9]*(%252f|%255c|%252e)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF - Double-encoded path traversal detected","ref":"FORTRESS-DOTS-004"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-DOTS-005"
+  name: "Directory Traversal - Null Byte Injection"
+  severity: high
+  description: "Detects null byte injection (%00, \\x00) used to truncate file paths"
+  tags: ["lfi", "dots", "path-traversal", "owasp-a03", "null-byte"]
+  condition:
+    any:
+      - field: request.path
+        operator: regex
+        pattern: '(%00|\\x00|\\\\x00|%2500)'
+      - field: request.query
+        operator: regex
+        pattern: '(%00|\\x00|\\\\x00|%2500)'
+      - field: request.body
+        operator: regex
+        pattern: '(%00|\\x00|\\\\x00|%2500)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF - Null byte injection detected","ref":"FORTRESS-DOTS-005"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-DOTS-006"
+  name: "Directory Traversal - /etc/passwd Access"
+  severity: critical
+  description: "Detects attempts to access /etc/passwd and other sensitive Unix system files"
+  tags: ["lfi", "dots", "path-traversal", "owasp-a03", "pci-dss"]
+  condition:
+    any:
+      - field: request.path
+        operator: regex
+        pattern: '(?i)/etc/(passwd|shadow|group|hosts|resolv\.conf|nsswitch\.conf|pam\.d|ssh/sshd_config|sudoers|crontab|bashrc|profile|environment)'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)/etc/(passwd|shadow|group|hosts|resolv\.conf|nsswitch\.conf|pam\.d|ssh/sshd_config|sudoers|crontab)'
+      - field: request.body
+        operator: regex
+        pattern: '(?i)/etc/(passwd|shadow|group|hosts|resolv\.conf|nsswitch\.conf|pam\.d|ssh/sshd_config|sudoers|crontab)'
+      - field: request.path
+        operator: regex
+        pattern: '(?i)(\.\./)*/etc/(passwd|shadow)'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(\.\./)*/etc/(passwd|shadow)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF - /etc/ access blocked","ref":"FORTRESS-DOTS-006"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-DOTS-007"
+  name: "Directory Traversal - /proc/self Access"
+  severity: critical
+  description: "Detects attempts to access /proc/self for process information and memory disclosure"
+  tags: ["lfi", "dots", "path-traversal", "owasp-a03", "proc"]
+  condition:
+    any:
+      - field: request.path
+        operator: regex
+        pattern: '(?i)/proc/(self|[0-9]+)/(environ|cmdline|fd|status|mem|maps|auxv|exe|stat|comm|task)'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)/proc/(self|[0-9]+)/(environ|cmdline|fd|status|mem|maps|auxv|exe|stat|comm|task)'
+      - field: request.body
+        operator: regex
+        pattern: '(?i)/proc/(self|[0-9]+)/(environ|cmdline|fd|status|mem|maps|auxv|exe|stat|comm|task)'
+      - field: request.path
+        operator: regex
+        pattern: '(?i)(\.\./)*/proc/self/'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF - /proc/self access blocked","ref":"FORTRESS-DOTS-007"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-DOTS-008"
+  name: "Directory Traversal - Windows System32 Access"
+  severity: critical
+  description: "Detects attempts to access Windows system directories and sensitive files"
+  tags: ["lfi", "dots", "path-traversal", "owasp-a03", "windows"]
+  condition:
+    any:
+      - field: request.path
+        operator: regex
+        pattern: '(?i)(\\|/)windows(\\|/)system32(\\|/)(config|drivers|cmd\.exe|net\.exe|net1\.exe|regsvr32\.exe|powershell|calc\.exe|whoami\.exe)'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(\\|/)windows(\\|/)system32(\\|/)(config|drivers|cmd\.exe|net\.exe|net1\.exe|regsvr32\.exe|powershell)'
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(\\|/)windows(\\|/)system32(\\|/)(config|drivers|cmd\.exe|net\.exe|net1\.exe|regsvr32\.exe|powershell)'
+      - field: request.path
+        operator: regex
+        pattern: '(?i)\.\.(\\|/)\.\.(\\|/)\.\.(\\|/)(windows|winnt|win)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF - Windows system32 access blocked","ref":"FORTRESS-DOTS-008"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-DOTS-009"
+  name: "Directory Traversal - Common Unix Paths"
+  severity: high
+  description: "Detects attempts to access common Unix traversal targets like /var/log, /tmp/, /dev/"
+  tags: ["lfi", "dots", "path-traversal", "owasp-a03", "unix"]
+  condition:
+    any:
+      - field: request.path
+        operator: regex
+        pattern: '(?i)/var/(log/(syslog|auth|messages|kern|dmesg|apache2|nginx|httpd|mail)|www/(html|vhosts|logs)/|tmp/|spool/|lib/)'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)/var/(log/(syslog|auth|messages|kern|dmesg|apache2|nginx|httpd|mail)|www/(html|vhosts|logs)/|tmp/|spool/|lib/)'
+      - field: request.body
+        operator: regex
+        pattern: '(?i)/var/(log/(syslog|auth|messages|kern|dmesg|apache2|nginx|httpd|mail)|www/(html|vhosts|logs)/|tmp/|spool/|lib/)'
+      - field: request.path
+        operator: regex
+        pattern: '(?i)/(tmp|dev/(null|zero|random|urandom|stdin|stdout|stderr|mem|kmem|tcp|udp)|opt/|usr/local/(bin|src|etc))/'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)/(tmp|dev/(null|zero|random|urandom|stdin|stdout|stderr|mem|kmem|tcp|udp)|opt/|usr/local/(bin|src|etc))/'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF - Unix system path access blocked","ref":"FORTRESS-DOTS-009"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-DOTS-010"
+  name: "Directory Traversal - Path Normalization Bypass"
+  severity: critical
+  description: "Detects path normalization bypass techniques like ....//, ..\/, and nested traversal"
+  tags: ["lfi", "dots", "path-traversal", "owasp-a03", "normalization", "evasion"]
+  condition:
+    any:
+      - field: request.path
+        operator: regex
+        pattern: '(\.\.\./|\.\.\\/|\.\.\.\.//|/\.\.\./|/\.\\\.\\|/\.\.%2f|%2e%2e%2e%2f)'
+      - field: request.query
+        operator: regex
+        pattern: '(\.\.\./|\.\.\\/|\.\.\.\.//|/\.\.\./|/\.\\\.\\|/\.\.%2f|%2e%2e%2e%2f)'
+      - field: request.body
+        operator: regex
+        pattern: '(\.\.\./|\.\.\\/|\.\.\.\.//|/\.\.\./|/\.\\\.\\|/\.\.%2f|%2e%2e%2e%2f)'
+      - field: request.path
+        operator: regex
+        pattern: '(/[^/]+/\\.\.(/|\\))+'
+      - field: request.query
+        operator: regex
+        pattern: '(/[^/]+/\\.\.(/|\\))+'
+      - field: request.path
+        operator: regex
+        pattern: '(?i)(\.\.%c0%af|\.\.%c1%9c|\.\.%ef%bc%8f)'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(\.\.%c0%af|\.\.%c1%9c|\.\.%ef%bc%8f)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF - Path normalization bypass detected","ref":"FORTRESS-DOTS-010"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-DOTS-011"
+  name: "Directory Traversal - Mixed Traversal Techniques"
+  severity: critical
+  description: "Detects combinations of traversal techniques including encoded dots with encoded slashes"
+  tags: ["lfi", "dots", "path-traversal", "owasp-a03", "evasion", "combo"]
+  condition:
+    any:
+      - field: request.path
+        operator: regex
+        pattern: '(%2e|\.)%2f(%2e|\.)%2f(%2e|\.)%2f'
+      - field: request.query
+        operator: regex
+        pattern: '(%2e|\.)%2f(%2e|\.)%2f(%2e|\.)%2f'
+      - field: request.path
+        operator: regex
+        pattern: '(%2e|\.)%5c(%2e|\.)%5c(%2e|\.)%5c'
+      - field: request.query
+        operator: regex
+        pattern: '(%2e|\.)%5c(%2e|\.)%5c(%2e|\.)%5c'
+      - field: request.body
+        operator: regex
+        pattern: '(%2e|\.)%2f(%2e|\.)%2f(%2e|\.)%2f'
+      - field: request.body
+        operator: regex
+        pattern: '(%2e|\.)%5c(%2e|\.)%5c(%2e|\.)%5c'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF - Mixed traversal technique detected","ref":"FORTRESS-DOTS-011"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-DOTS-012"
+  name: "Directory Traversal - Backup and Archive File Access"
+  severity: high
+  description: "Detects attempts to access backup files, archives, and configuration files via traversal"
+  tags: ["lfi", "dots", "path-traversal", "owasp-a03", "backup"]
+  condition:
+    any:
+      - field: request.path
+        operator: regex
+        pattern: '(?i)(\.\.(\/|\\))?.*\.(bak|old|backup|save|orig|swp|tar|gz|zip|rar|7z|bz2|xz|sql|dump|conf|cfg|ini|env|yml|yaml|json|properties)\b'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(\.\.(\/|\\))?.*\.(bak|old|backup|save|orig|swp|tar|gz|zip|rar|7z|bz2|xz|sql|dump|conf|cfg|ini|env|yml|yaml|json|properties)\b'
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(\.\.(\/|\\))?.*\.(bak|old|backup|save|orig|swp|tar|gz|zip|rar|7z|bz2|xz|sql|dump|conf|cfg|ini|env|yml|yaml|json|properties)\b'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF - Backup file traversal detected","ref":"FORTRESS-DOTS-012"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-DOTS-013"
+  name: "Directory Traversal - Absolute Path Injection"
+  severity: critical
+  description: "Detects absolute Unix/Linux and Windows paths injected in parameters to bypass relative path checks"
+  tags: ["lfi", "dots", "path-traversal", "owasp-a03", "absolute-path"]
+  condition:
+    any:
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(^|[&?=])/(etc|proc|var|tmp|dev|usr|opt|home|root|srv|boot|sbin|bin)/'
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(^|[&?=])/(etc|proc|var|tmp|dev|usr|opt|home|root|srv|boot|sbin|bin)/'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(^|[&"?=])([A-Za-z]:\\\\|[A-Za-z]:/)(Windows|Program|Users|inetpub|wwwroot|xampp)'
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(^|[&"?=])([A-Za-z]:\\\\|[A-Za-z]:/)(Windows|Program|Users|inetpub|wwwroot|xampp)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF - Absolute path injection detected","ref":"FORTRESS-DOTS-013"}'
+  log: true
+  alert: true

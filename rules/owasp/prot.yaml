@@ -1,0 +1,168 @@
+- id: "FORTRESS-PROT-001"
+  name: "Protocol Attack - HTTP Parameter Pollution"
+  severity: high
+  tags: ["protocol-attack", "owasp-a03", "hpp"]
+  condition:
+    any:
+      - field: request.query
+        operator: regex
+        pattern: '(?i)((\w+)=.*&(\w+)=.*\2=)'
+  action: block
+  response:
+    code: 400
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-PROT-001"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-PROT-002"
+  name: "Protocol Attack - HTTP Request Smuggling"
+  severity: critical
+  tags: ["protocol-attack", "owasp-a03", "smuggling"]
+  condition:
+    any:
+      - field: request.headers
+        operator: regex
+        pattern: '(?i)(Content-Length\s*:\s*\d+\s*(Content-Length|Transfer-Encoding)|Transfer-Encoding\s*:\s*[^\r\n]*\s*Content-Length)'
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(^[0-9a-fA-F]+\r\n|0\r\n\r\n)'
+  action: block
+  response:
+    code: 400
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-PROT-002"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-PROT-003"
+  name: "Protocol Attack - HTTP Method Override"
+  severity: medium
+  tags: ["protocol-attack", "owasp-a03"]
+  condition:
+    any:
+      - field: request.headers
+        operator: regex
+        pattern: '(?i)(X-HTTP-Method-Override|X-HTTP-Method|X-Method-Override|X-HTTP-Method)'
+  action: block
+  response:
+    code: 400
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-PROT-003"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-PROT-004"
+  name: "Protocol Attack - Host Header Injection"
+  severity: high
+  tags: ["protocol-attack", "owasp-a03", "host-header"]
+  condition:
+    any:
+      - field: request.headers
+        operator: regex
+        pattern: '(?i)(Host\s*:\s*[^\s]+\s*[^\s]+\s*Host|Host\s*:\s*\d+\.\d+\.\d+\.\d+[^:]|Host\s*:\s*localhost|Host\s*:\s*127\.0\.0\.1|Host\s*:\s*0\.0\.0\.0)'
+  action: block
+  response:
+    code: 400
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-PROT-004"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-PROT-005"
+  name: "Protocol Attack - CRLF Injection"
+  severity: critical
+  tags: ["protocol-attack", "owasp-a03", "crlf", "response-splitting"]
+  condition:
+    any:
+      - field: request.headers
+        operator: regex
+        pattern: '(?i)(%0d%0a|%0D%0A|%0a|%0d|\\r\\n|\\r|\\n)'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(%0d%0a|%0D%0A|%0a|%0d)'
+  action: block
+  response:
+    code: 400
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-PROT-005"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-PROT-006"
+  name: "Protocol Attack - HTTP Verb Tampering"
+  severity: medium
+  tags: ["protocol-attack", "owasp-a03", "verb-tamper"]
+  condition:
+    any:
+      - field: request.method
+        operator: in
+        pattern: ["CONNECT", "TRACE", "TRACK", "DEBUG", "OPTIONS"]
+  action: block
+  response:
+    code: 405
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-PROT-006"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-PROT-007"
+  name: "Protocol Attack - Chunked Encoding Abuse"
+  severity: high
+  tags: ["protocol-attack", "owasp-a03"]
+  condition:
+    any:
+      - field: request.headers
+        operator: regex
+        pattern: '(?i)(Transfer-Encoding\s*:\s*[^,\s]*\s*,\s*[^,\s]*)'
+      - field: request.headers
+        operator: regex
+        pattern: '(?i)(Transfer-Encoding\s*:\s*identity)'
+  action: block
+  response:
+    code: 400
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-PROT-007"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-PROT-008"
+  name: "Protocol Attack - Malformed Content-Type"
+  severity: medium
+  tags: ["protocol-attack", "owasp-a03"]
+  condition:
+    any:
+      - field: request.headers
+        operator: regex
+        pattern: '(?i)(Content-Type\s*:\s*[^;]*(;\s*boundary\s*=\s*[^;]*){2,})'
+  action: block
+  response:
+    code: 400
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-PROT-008"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-PROT-009"
+  name: "Protocol Attack - Cache Poisoning via Header Injection"
+  severity: high
+  tags: ["protocol-attack", "cache-poison"]
+  condition:
+    any:
+      - field: request.headers
+        operator: regex
+        pattern: '(?i)(X-Forwarded-Host\s*:\s*[^,\s]+[,\s]+[^,\s]+|X-Forwarded-For\s*:\s*[^,\s]+[,\s]+[^,\s]+|X-Original-URL\s*:\s*\/\/)'
+  action: block
+  response:
+    code: 400
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-PROT-009"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-PROT-010"
+  name: "Protocol Attack - Line Feed Injection in Headers"
+  severity: high
+  tags: ["protocol-attack", "owasp-a03"]
+  condition:
+    any:
+      - field: request.headers
+        operator: regex
+        pattern: '(?i)((\n|\r)[^:\s])'
+  action: block
+  response:
+    code: 400
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-PROT-010"}'
+  log: true
+  alert: true

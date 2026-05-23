@@ -1,0 +1,61 @@
+---
+- name: Deploy FortressWAF on bare metal / VM
+  hosts: fortresswaf
+  become: yes
+  gather_facts: yes
+
+  vars:
+    fortresswaf_version: "1.0.0"
+    fortresswaf_user: "fortress"
+    fortresswaf_group: "fortress"
+    fortresswaf_home: "/opt/fortresswaf"
+    fortresswaf_config_dir: "/etc/fortresswaf"
+    fortresswaf_data_dir: "/var/lib/fortresswaf"
+    fortresswaf_log_dir: "/var/log/fortresswaf"
+    fortresswaf_rules_dir: "/etc/fortresswaf/rules"
+
+    # Database configuration
+    db_password: "{{ vault_db_password | default('ChangeMe123!') }}"
+    redis_password: "{{ vault_redis_password | default('ChangeMe123!') }}"
+    jwt_secret: "{{ vault_jwt_secret | default('ChangeMe123!ChangeMe123!') }}"
+
+    # TLS (let ansible-vault encrypt these)
+    tls_cert_path: "/etc/fortresswaf/tls/cert.pem"
+    tls_key_path: "/etc/fortresswaf/tls/key.pem"
+
+    # Network
+    firewall_ports:
+      - { port: 80, proto: tcp, desc: "HTTP" }
+      - { port: 443, proto: tcp, desc: "HTTPS" }
+      - { port: 8443, proto: tcp, desc: "Admin API" }
+
+    # Docker compose project name
+    docker_compose_project: "fortresswaf"
+
+  pre_tasks:
+    - name: Check minimum Ansible version
+      assert:
+        that: "ansible_version.full is version('2.10', '>=')"
+        msg: "Ansible 2.10 or higher required"
+
+    - name: Gather OS facts
+      setup:
+        filter:
+          - ansible_distribution
+          - ansible_distribution_version
+          - ansible_os_family
+          - ansible_architecture
+
+  roles:
+    - role: fortresswaf
+      tags: [fortresswaf, always]
+
+  post_tasks:
+    - name: Display deployment summary
+      debug:
+        msg:
+          - "FortressWAF deployment complete!"
+          - "Dashboard: https://{{ ansible_default_ipv4.address }}:3000"
+          - "Admin API: https://{{ ansible_default_ipv4.address }}:8443"
+          - "Logs: {{ fortresswaf_log_dir }}"
+          - "Config: {{ fortresswaf_config_dir }}/config.yaml"

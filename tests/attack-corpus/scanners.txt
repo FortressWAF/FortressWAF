@@ -1,0 +1,27 @@
+# FortressWAF Scanner Signature Corpus
+# 20 labeled scanner signatures
+# Format: [category] signature
+
+[web-scanner] /etc/passwd
+[web-scanner] /admin
+[web-scanner] /wp-admin
+[web-scanner] /.env
+[web-scanner] /.git/config
+[web-scanner] /phpinfo.php
+[web-scanner] /debug
+[web-scanner] /actuator/health
+[web-scanner] /swagger-ui.html
+[web-scanner] /graphql
+
+[vuln-scanner] ' OR '1'='1
+[vuln-scanner] <script>alert(1)</script>
+[vuln-scanner] ../../../etc/passwd
+[vuln-scanner] ${7*7}
+[vuln-scanner] {{7*7}}
+
+[header-scanner] X-Forwarded-For: 127.0.0.1
+[header-scanner] X-Forwarded-Host: localhost
+[header-scanner] X-Real-IP: 127.0.0.1
+[header-scanner] X-Original-URL: /admin
+[header-scanner] X-Rewrite-URL: /admin
+[header-scanner] X-HTTP-Method-Override: PUT

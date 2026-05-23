@@ -1,0 +1,167 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "fortresswaf.fullname" . }}-proxy
+  labels:
+    {{- include "fortresswaf.labels" . | nindent 4 }}
+    app.kubernetes.io/component: proxy
+  {{- with .Values.service.proxy.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.service.proxy.type }}
+  {{- with .Values.service.proxy.externalTrafficPolicy }}
+  externalTrafficPolicy: {{ . }}
+  {{- end }}
+  {{- with .Values.service.proxy.clusterIP }}
+  clusterIP: {{ . }}
+  {{- end }}
+  {{- with .Values.service.proxy.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  ports:
+    - name: http
+      port: {{ .Values.service.proxy.ports.http }}
+      targetPort: 8080
+      protocol: TCP
+      {{- with .Values.service.proxy.nodePorts.http }}
+      nodePort: {{ . }}
+      {{- end }}
+    - name: https
+      port: {{ .Values.service.proxy.ports.https }}
+      targetPort: 8443
+      protocol: TCP
+      {{- with .Values.service.proxy.nodePorts.https }}
+      nodePort: {{ . }}
+      {{- end }}
+    - name: admin
+      port: {{ .Values.service.proxy.ports.admin }}
+      targetPort: 8443
+      protocol: TCP
+      {{- with .Values.service.proxy.nodePorts.admin }}
+      nodePort: {{ . }}
+      {{- end }}
+  selector:
+    {{- include "fortresswaf.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: proxy
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "fortresswaf.fullname" . }}-ml-engine
+  labels:
+    {{- include "fortresswaf.labels" . | nindent 4 }}
+    app.kubernetes.io/component: ml-engine
+spec:
+  type: {{ .Values.service.ml.type }}
+  ports:
+    - name: http
+      port: {{ .Values.service.ml.ports.http }}
+      targetPort: 8000
+      protocol: TCP
+  selector:
+    {{- include "fortresswaf.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: ml-engine
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "fortresswaf.fullname" . }}-dashboard
+  labels:
+    {{- include "fortresswaf.labels" . | nindent 4 }}
+    app.kubernetes.io/component: dashboard
+spec:
+  type: {{ .Values.service.dashboard.type }}
+  ports:
+    - name: http
+      port: {{ .Values.service.dashboard.ports.http }}
+      targetPort: 3000
+      protocol: TCP
+  selector:
+    {{- include "fortresswaf.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: dashboard
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "fortresswaf.fullname" . }}-postgres
+  labels:
+    {{- include "fortresswaf.labels" . | nindent 4 }}
+    app.kubernetes.io/component: postgres
+spec:
+  type: {{ .Values.service.postgres.type }}
+  ports:
+    - name: postgres
+      port: {{ .Values.service.postgres.ports.postgres }}
+      targetPort: 5432
+      protocol: TCP
+  selector:
+    {{- include "fortresswaf.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: postgres
+  clusterIP: None
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "fortresswaf.fullname" . }}-redis
+  labels:
+    {{- include "fortresswaf.labels" . | nindent 4 }}
+    app.kubernetes.io/component: redis
+spec:
+  type: {{ .Values.service.redis.type }}
+  ports:
+    - name: redis
+      port: {{ .Values.service.redis.ports.redis }}
+      targetPort: 6379
+      protocol: TCP
+  selector:
+    {{- include "fortresswaf.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: redis
+  clusterIP: None
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "fortresswaf.fullname" . }}-nats
+  labels:
+    {{- include "fortresswaf.labels" . | nindent 4 }}
+    app.kubernetes.io/component: nats
+spec:
+  type: {{ .Values.service.nats.type }}
+  ports:
+    - name: client
+      port: {{ .Values.service.nats.ports.client }}
+      targetPort: 4222
+      protocol: TCP
+    - name: http
+      port: {{ .Values.service.nats.ports.http }}
+      targetPort: 8222
+      protocol: TCP
+  selector:
+    {{- include "fortresswaf.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: nats
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "fortresswaf.fullname" . }}-opensearch
+  labels:
+    {{- include "fortresswaf.labels" . | nindent 4 }}
+    app.kubernetes.io/component: opensearch
+spec:
+  type: {{ .Values.service.opensearch.type }}
+  ports:
+    - name: rest
+      port: {{ .Values.service.opensearch.ports.rest }}
+      targetPort: 9200
+      protocol: TCP
+    - name: transport
+      port: {{ .Values.service.opensearch.ports.transport }}
+      targetPort: 9300
+      protocol: TCP
+  selector:
+    {{- include "fortresswaf.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: opensearch
+  clusterIP: None

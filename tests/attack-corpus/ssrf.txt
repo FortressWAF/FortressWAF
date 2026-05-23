@@ -1,0 +1,21 @@
+# FortressWAF SSRF Attack Corpus
+# 15 labeled SSRF payloads
+# Format: [category] payload
+
+[internal-ip] http://169.254.169.254/latest/meta-data/
+[internal-ip] http://169.254.169.254/latest/user-data/
+[internal-ip] http://10.0.0.1/admin
+[internal-ip] http://172.16.0.1/config
+[internal-ip] http://192.168.1.1/status
+[internal-ip] http://127.0.0.1:9200/  # Elasticsearch
+[internal-ip] http://localhost:5432/  # PostgreSQL
+[internal-ip] http://0.0.0.0:6379/   # Redis
+
+[dns-rebind] http://spoofed.burpcollaborator.net/steal
+[dns-rebind] http://evil.1u.rl/ssrf
+
+[protocol] file:///etc/passwd
+[protocol] dict://localhost:11211/STATS  # Memcached
+[protocol] gopher://localhost:6379/_SET key value  # Redis via gopher
+[protocol] ftp://evil.com:21/anonymous
+[protocol] s3://internal-bucket.s3.amazonaws.com/secret

@@ -1,0 +1,192 @@
+- id: "FORTRESS-XSS-001"
+  name: "Cross-Site Scripting - Script Tag Injection"
+  severity: critical
+  tags: ["xss", "owasp-a07", "pci-dss"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)<script[^>]*>.*?<\/script>'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)<script[^>]*>.*?<\/script>'
+      - field: request.headers
+        operator: regex
+        pattern: '(?i)<script[^>]*>.*?<\/script>'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-XSS-001"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-XSS-002"
+  name: "Cross-Site Scripting - Event Handlers"
+  severity: critical
+  tags: ["xss", "owasp-a07", "pci-dss"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(\bon\w+\s*=\s*["'"'"']*[^"'"'"']*\(|\bon\w+\s*=\s*[^&\s=]+\s)'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(\bon\w+\s*=\s*["'"'"']*[^"'"'"']*\(|\bon\w+\s*=\s*[^&\s=]+\s)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-XSS-002"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-XSS-003"
+  name: "Cross-Site Scripting - Javascript URI"
+  severity: critical
+  tags: ["xss", "owasp-a07"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(javascript\s*:\s*|data\s*:\s*text\/html|vbscript\s*:)'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(javascript\s*:\s*|data\s*:\s*text\/html|vbscript\s*:)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-XSS-003"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-XSS-004"
+  name: "Cross-Site Scripting - SVG/Iframe/Embed"
+  severity: high
+  tags: ["xss", "owasp-a07"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(<svg[^>]*>|<iframe[^>]*>|<embed[^>]*>|<object[^>]*>|<applet[^>]*>)'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(<svg[^>]*>|<iframe[^>]*>|<embed[^>]*>|<object[^>]*>|<applet[^>]*>)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-XSS-004"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-XSS-005"
+  name: "Cross-Site Scripting - Base64 Encoded Payload"
+  severity: high
+  tags: ["xss", "owasp-a07", "evasion"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(base64\s*[A-Za-z0-9+/]{40,}={0,2})'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(base64\s*[A-Za-z0-9+/]{40,}={0,2})'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-XSS-005"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-XSS-006"
+  name: "Cross-Site Scripting - Document.Cookie Access"
+  severity: critical
+  tags: ["xss", "owasp-a07", "session-hijack"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(document\s*\.\s*cookie|document\s*\[\s*["'"'"']cookie["'"'"']\s*\]|window\.cookie)'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(document\s*\.\s*cookie|document\s*\[\s*["'"'"']cookie["'"'"']\s*\]|window\.cookie)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-XSS-006"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-XSS-007"
+  name: "Cross-Site Scripting - Alert/Prompt/Confirm"
+  severity: high
+  tags: ["xss", "owasp-a07", "dom"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(alert\s*\(|prompt\s*\(|confirm\s*\()'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(alert\s*\(|prompt\s*\(|confirm\s*\()'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-XSS-007"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-XSS-008"
+  name: "Cross-Site Scripting - Expression/Evaluate"
+  severity: critical
+  tags: ["xss", "owasp-a07", "rce"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(eval\s*\(|setTimeout\s*\(|setInterval\s*\(|Function\s*\(|new\s+Function)'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(eval\s*\(|setTimeout\s*\(|setInterval\s*\(|Function\s*\(|new\s+Function)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-XSS-008"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-XSS-009"
+  name: "Cross-Site Scripting - Style/Class Injection"
+  severity: medium
+  tags: ["xss", "owasp-a07"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(expression\s*\(|url\s*\(\s*["'"'"']*\s*javascript|@import\s+url)'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(expression\s*\(|url\s*\(\s*["'"'"']*\s*javascript|@import\s+url)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-XSS-009"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-XSS-010"
+  name: "Cross-Site Scripting - Template Injection"
+  severity: critical
+  tags: ["xss", "owasp-a07", "ssti"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(\{\{[\s\S]*\}\}|<%=[\s\S]*%>|\$\{[\s\S]*\}|#\{[\s\S]*\})'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(\{\{[\s\S]*\}\}|<%=[\s\S]*%>|\$\{[\s\S]*\}|#\{[\s\S]*\})'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-XSS-010"}'
+  log: true
+  alert: true

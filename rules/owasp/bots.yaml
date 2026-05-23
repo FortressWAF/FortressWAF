@@ -1,0 +1,160 @@
+- id: "FORTRESS-BOT-001"
+  name: "Bad Bot Detection - Known Malicious User-Agents"
+  severity: medium
+  tags: ["bot", "malicious", "fingerprint"]
+  condition:
+    any:
+      - field: request.headers
+        operator: regex
+        pattern: '(?i)^(curl|wget|python-requests|python-urllib|Go-http-client|Java\/|libwww-perl|perl|ruby|php|LWP|HTTP_Request2|MegaIndex|MJ12bot|AhrefsBot|SemrushBot|Screaming Frog|BLEXBot|DotBot|Baiduspider|YandexBot|Sogou|Exabot|80legs|MauiBot|CCBot|Lipperhey|SEOkicks|archive.org_bot|TurnitinBot|Buck|GrapeshotCrawler|ZmEu|Morfeus|AIBot|Xenu|Lycos)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-BOT-001"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-BOT-002"
+  name: "Bad Bot Detection - Missing User-Agent"
+  severity: medium
+  tags: ["bot", "fingerprint"]
+  condition:
+    any:
+      - field: request.headers
+        operator: regex
+        pattern: '^\s*$|^User-Agent\s*:\s*$'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-BOT-002"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-BOT-003"
+  name: "Bad Bot Detection - Spam/Scraping Bots"
+  severity: low
+  tags: ["bot", "scraping", "spam"]
+  condition:
+    any:
+      - field: request.headers
+        operator: regex
+        pattern: '(?i)(Semrush|Ahrefs|Moz|Majestic|Sitebulb|Screaming|Scrapy|Wget|curl|python)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-BOT-003"}'
+  log: true
+  alert: false
+
+- id: "FORTRESS-BOT-004"
+  name: "Bad Bot Detection - Headless Browser Detection"
+  severity: medium
+  tags: ["bot", "headless", "fingerprint"]
+  condition:
+    any:
+      - field: request.headers
+        operator: regex
+        pattern: '(?i)(Headless|PhantomJS|Selenium|Puppeteer|Playwright|jsdom|NightmareJS|HtmlUnit|CasperJS|SlimerJS|trident)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-BOT-004"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-BOT-005"
+  name: "Bad Bot Detection - Fake Search Engine Crawlers"
+  severity: high
+  tags: ["bot", "fake-crawler"]
+  condition:
+    any:
+      - field: request.headers
+        operator: regex
+        pattern: '(?i)(Googlebot|bingbot|Slurp|DuckDuckBot|Baiduspider|YandexBot|facebookexternalhit|Twitterbot)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-BOT-005"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-BOT-006"
+  name: "Bad Bot Detection - Content Scraping"
+  severity: low
+  tags: ["bot", "scraping"]
+  condition:
+    any:
+      - field: request.headers
+        operator: regex
+        pattern: '(?i)(Scrapy|Guzzle|HTTPie|PostmanRuntime|Insomnia|RestClient|axios|node-fetch)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-BOT-006"}'
+  log: true
+  alert: false
+
+- id: "FORTRESS-BOT-007"
+  name: "Bad Bot Detection - DDoS Tool Signatures"
+  severity: critical
+  tags: ["bot", "ddos", "stresser"]
+  condition:
+    any:
+      - field: request.headers
+        operator: regex
+        pattern: '(?i)(Slowloris|RUDY|LOIC|HOIC|PyLoris|TorsHammer|HULK|GoldenEye|SlowHTTPTest|DDoSTool|UFONet|Booter|Stresser|ApacheBench)'
+      - field: request.headers
+        operator: regex
+        pattern: '(?i)(X-LOIC|X-HOIC|X-BOOTER|X-DDoS)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-BOT-007"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-BOT-008"
+  name: "Bad Bot Detection - Anonymizer/Proxy/VPN"
+  severity: low
+  tags: ["bot", "proxy", "anonymizer"]
+  condition:
+    any:
+      - field: request.headers
+        operator: regex
+        pattern: '(?i)(TOR|torproject|onion|anon|proxy|vpn|hidemyass|nordvpn|expressvpn)'
+  action: log
+  response:
+    code: 200
+  log: true
+  alert: false
+
+- id: "FORTRESS-BOT-009"
+  name: "Bad Bot Detection - Abnormal Accept-Language"
+  severity: low
+  tags: ["bot", "fingerprint"]
+  condition:
+    any:
+      - field: request.headers
+        operator: regex
+        pattern: '(?i)(Accept-Language\s*:\s*$|Accept-Language\s*:\s*[a-z]{2}(-[A-Z]{2})?\s*$|Accept-Language\s*:\s*\*\s*$)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-BOT-009"}'
+  log: true
+  alert: false
+
+- id: "FORTRESS-BOT-010"
+  name: "Bad Bot Detection - Rate-Limited IP (per RFC)"
+  severity: low
+  tags: ["bot", "rate-limit"]
+  condition:
+    any:
+      - field: request.headers
+        operator: regex
+        pattern: '(?i)(X-RateLimit-Reset|X-RateLimit-Remaining|X-RateLimit-Limit)'
+  action: log
+  response:
+    code: 200
+  log: true
+  alert: false

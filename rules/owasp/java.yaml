@@ -1,0 +1,186 @@
+- id: "FORTRESS-JAVA-001"
+  name: "Java Attack - Runtime.exec / ProcessBuilder"
+  severity: critical
+  tags: ["java", "owasp-a03", "rce"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(Runtime\s*\.\s*getRuntime\s*\(|ProcessBuilder\s*\(|java\.lang\.Runtime|\..*exec\s*\(|subprocess)'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(Runtime\s*\.\s*getRuntime\s*\(|ProcessBuilder\s*\(|java\.lang\.Runtime|\..*exec\s*\(|subprocess)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-JAVA-001"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-JAVA-002"
+  name: "Java Attack - JNDI/LDAP Injection"
+  severity: critical
+  tags: ["java", "owasp-a03", "jndi", "log4j"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(\$jndi:|\$\{jndi:|javax\.naming|InitialContext|JndiLookup|Context\.lookup|rmi:|ldap:|ldaps:|iiop:|corba:|nds:)'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(\$jndi:|\$\{jndi:|javax\.naming|InitialContext|JndiLookup|Context\.lookup|rmi:|ldap:|ldaps:|iiop:|corba:|nds:)'
+      - field: request.headers
+        operator: regex
+        pattern: '(?i)(\$\{jndi:|rmi:|ldap:)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-JAVA-002"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-JAVA-003"
+  name: "Java Attack - Deserialization Payload"
+  severity: critical
+  tags: ["java", "owasp-a03", "deserialization"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(\xAC\xED\x00\x05|rO0AB|java\.io\.ObjectInputStream|readObject|readUnshared|ObjectInputStream|Serializable)'
+      - field: request.headers
+        operator: regex
+        pattern: '(?i)(application\/x-java-serialized-object|application\/java-serialization)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-JAVA-003"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-JAVA-004"
+  name: "Java Attack - Expression Language Injection"
+  severity: critical
+  tags: ["java", "owasp-a03", "el-injection"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(\$\{[\s\S]*?(Runtime|Process|exec|getRuntime|forName|invoke|getMethod|getDeclaredMethod|AccessController)\}|#\{[\s\S]*?(Runtime|Process|exec|getRuntime)\})'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(\$\{[\s\S]*?(Runtime|Process|exec|getRuntime|forName|invoke|getMethod|getDeclaredMethod|AccessController)\}|#\{[\s\S]*?(Runtime|Process|exec|getRuntime)\})'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-JAVA-004"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-JAVA-005"
+  name: "Java Attack - Spring Framework Exploits"
+  severity: critical
+  tags: ["java", "owasp-a03", "spring", "spring4shell"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(class\.module\.classLoader|class\.prototype\.classLoader|springframework|org\.springframework|@RequestMapping|@GetMapping|@PostMapping|@RestController)'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(class\.module\.classLoader|class\.prototype\.classLoader)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-JAVA-005"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-JAVA-006"
+  name: "Java Attack - Method Reflection Abuse"
+  severity: high
+  tags: ["java", "owasp-a03", "reflection"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(java\.lang\.reflect|getDeclaredMethod|getMethod|setAccessible|invoke\s*\(|MethodHandle|Unsafe|sun\.misc\.Unsafe|sun\.reflect)'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(java\.lang\.reflect|getDeclaredMethod|getMethod|setAccessible|invoke\s*\(|MethodHandle|Unsafe|sun\.misc\.Unsafe|sun\.reflect)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-JAVA-006"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-JAVA-007"
+  name: "Java Attack - Struts2 Vulnerability Patterns"
+  severity: critical
+  tags: ["java", "owasp-a03", "struts"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(#_memberAccess|#context|#root|#this|#stack|#session|#request|#application|#parameters|#attr|ognl)'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(#_memberAccess|#context|#root|#this|#stack|#session|#request|#application|#parameters|#attr|ognl)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-JAVA-007"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-JAVA-008"
+  name: "Java Attack - Tomcat/Servlet Path Traversal"
+  severity: high
+  tags: ["java", "owasp-a03", "lfi"]
+  condition:
+    any:
+      - field: request.path
+        operator: regex
+        pattern: '(?i)(\.\.\/\.\.\/\.\.\/WEB-INF|\.\.\/\.\.\/META-INF|\/WEB-INF\/(web|classes|lib)|\/META-INF\/context)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-JAVA-008"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-JAVA-009"
+  name: "Java Attack - XXE Injection"
+  severity: critical
+  tags: ["java", "owasp-a03", "xxe"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(<!DOCTYPE\s+[A-Za-z]+\s+\[|<!ENTITY\s+|SYSTEM\s+"file:\/\/|SYSTEM\s+"http:\/\/|SYSTEM\s+"expect:|\bxxe\b|DOCTYPE.*ENTITY.*SYSTEM)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-JAVA-009"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-JAVA-010"
+  name: "Java Attack - JMX/RMI Remote Access"
+  severity: critical
+  tags: ["java", "owasp-a03", "jmx", "rmi"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(javax\.management|java\.rmi|MBeanServer|ObjectName|JMXConnector|jmxrmi|jndi.rmi|rmi:\/\/)'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(javax\.management|java\.rmi|MBeanServer|ObjectName|JMXConnector|jmxrmi|jndi.rmi|rmi:\/\/)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-JAVA-010"}'
+  log: true
+  alert: true

@@ -1,0 +1,157 @@
+- id: "FORTRESS-LFI-001"
+  name: "Local File Inclusion - Path Traversal"
+  severity: critical
+  tags: ["lfi", "owasp-a03", "pci-dss"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(\.\.\/|\.\.\\|%2e%2e%2f|%2e%2e%5c|\.\.%252f|%252e%252e%252f)'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(\.\.\/|\.\.\\|%2e%2e%2f|%2e%2e%5c|\.\.%252f|%252e%252e%252f)'
+      - field: request.path
+        operator: regex
+        pattern: '(?i)(\.\.\/|\.\.\\|%2e%2e%2f|%2e%2e%5c)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-LFI-001"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-LFI-002"
+  name: "Local File Inclusion - Sensitive Unix Files"
+  severity: critical
+  tags: ["lfi", "owasp-a03"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(\/etc\/passwd|\/etc\/shadow|\/etc\/hosts|\/etc\/sudoers|\/etc\/ssh|\/root\/\.ssh|\/home\/.*\/\.ssh|\/var\/log\/auth|\/proc\/self\/environ|\/proc\/self\/fd)'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(\/etc\/passwd|\/etc\/shadow|\/etc\/hosts|\/etc\/sudoers|\/etc\/ssh|\/root\/\.ssh|\/home\/.*\/\.ssh|\/var\/log\/auth|\/proc\/self\/environ|\/proc\/self\/fd)'
+      - field: request.path
+        operator: regex
+        pattern: '(?i)(\/etc\/passwd|\/etc\/shadow|\/etc\/hosts|\/etc\/sudoers|\/root\/\.ssh|\/proc\/self)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-LFI-002"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-LFI-003"
+  name: "Local File Inclusion - Sensitive Windows Files"
+  severity: critical
+  tags: ["lfi", "owasp-a03", "windows"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(boot\.ini|win\.ini|autoexec\.bat|system32\\config\\SAM|system32\\drivers\\etc\\hosts|Windows\\System32\\drivers\\etc\\hosts|windows\\repair\\SAM|Program\s*Files)'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(boot\.ini|win\.ini|autoexec\.bat|system32\\config\\SAM|system32\\drivers\\etc\\hosts|Windows\\System32\\drivers\\etc\\hosts)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-LFI-003"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-LFI-004"
+  name: "Local File Inclusion - PHP Wrappers"
+  severity: critical
+  tags: ["lfi", "owasp-a03", "php-wrapper"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(php:\/\/|file:\/\/|expect:\/\/|zip:\/\/|compress\.zlib:\/\/|compress\.bzip2:\/\/|data:\/\/)'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(php:\/\/|file:\/\/|expect:\/\/|zip:\/\/|compress\.zlib:\/\/|compress\.bzip2:\/\/|data:\/\/)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-LFI-004"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-LFI-005"
+  name: "Local File Inclusion - Null Byte Injection"
+  severity: high
+  tags: ["lfi", "owasp-a03", "null-byte"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(%00|\\x00|\\\\x00)'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(%00|\\x00|\\\\x00)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-LFI-005"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-LFI-006"
+  name: "Local File Inclusion - Log File Injection"
+  severity: high
+  tags: ["lfi", "owasp-a03", "log-poison"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(\/var\/log|\/var\/apache2\/log|\/var\/httpd\/log|\/var\/nginx\/log|\/var\/www\/logs|C:\\\\xampp\\\\apache\\\\logs)'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(\/var\/log|\/var\/apache2\/log|\/var\/httpd\/log|\/var\/nginx\/log|\/var\/www\/logs|C:\\\\xampp\\\\apache\\\\logs)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-LFI-006"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-LFI-007"
+  name: "Local File Inclusion - Config/Database Files"
+  severity: critical
+  tags: ["lfi", "owasp-a03"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)((config|database|db|connection|settings|wp-config)\.(php|inc|yml|yaml|json|env|sql|bak|old|txt|dist))'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)((config|database|db|connection|settings|wp-config)\.(php|inc|yml|yaml|json|env|sql|bak|old|txt|dist))'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-LFI-007"}'
+  log: true
+  alert: true
+
+- id: "FORTRESS-LFI-008"
+  name: "Local File Inclusion - Application Source Code"
+  severity: high
+  tags: ["lfi", "owasp-a03"]
+  condition:
+    any:
+      - field: request.body
+        operator: regex
+        pattern: '(?i)(\.(php|aspx?|jsp|jspx|do|action|py|rb|pl|cgi|java|class|jar|war)\b)'
+      - field: request.query
+        operator: regex
+        pattern: '(?i)(\.(php|aspx?|jsp|jspx|do|action|py|rb|pl|cgi|java|class|jar|war)\b)'
+  action: block
+  response:
+    code: 403
+    body: '{"error":"Blocked by FortressWAF","ref":"FORTRESS-LFI-008"}'
+  log: true
+  alert: true

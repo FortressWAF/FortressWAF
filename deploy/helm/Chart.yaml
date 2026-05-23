@@ -1,0 +1,29 @@
+apiVersion: v2
+name: fortresswaf
+description: FortressWAF — Enterprise Web Application Firewall
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+kubeVersion: ">=1.25.0-0"
+icon: https://fortresswaf.io/icon.png
+home: https://fortresswaf.io
+sources:
+  - https://github.com/fortresswaf/fortresswaf
+maintainers:
+  - name: FortressWAF Team
+    email: team@fortresswaf.io
+    url: https://fortresswaf.io
+keywords:
+  - waf
+  - web-application-firewall
+  - security
+  - firewall
+  - owasp
+  - crs
+  - ml
+annotations:
+  artifacthub.io/changes: |
+    - kind: added
+      description: Initial FortressWAF Helm chart release
+  artifacthub.io/license: Apache-2.0
+  artifacthub.io/category: security

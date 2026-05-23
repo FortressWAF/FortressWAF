@@ -1,0 +1,177 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "fortresswaf.fullname" . }}-config
+  labels:
+    {{- include "fortresswaf.labels" . | nindent 4 }}
+data:
+  config.yaml: |
+    server:
+      listen: ":8080"
+      listen_tls: ":8443"
+      max_body_size: 10485760
+      read_timeout: 30
+      write_timeout: 30
+      idle_timeout: 120
+      max_header_size: 8192
+      enable_http2: true
+      enable_http3: false
+      workers: 4
+      proxy_protocol: false
+      trusted_proxies:
+        - "10.0.0.0/8"
+        - "172.16.0.0/12"
+        - "192.168.0.0/16"
+    admin:
+      listen: ":8443"
+      enabled: true
+      jwt_secret: "${ADMIN_JWT_SECRET}"
+      jwt_expiry: 24
+      tls_cert: ""
+      tls_key: ""
+      rate_limit: 60
+      allowed_ips: []
+      cors:
+        enabled: true
+        allowed_origins:
+          - "*"
+        allowed_methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - PATCH
+    sites:
+{{ toYaml .Values.config.sites | indent 6 }}
+    rules:
+      paths:
+        - "/etc/fortresswaf/rules/**/*.yaml"
+        - "/etc/fortresswaf/rules/**/*.yml"
+      default_action: {{ .Values.config.defaultAction }}
+      stop_on_match: true
+      evaluation_mode: "first-match"
+      anomaly_scoring: {{ gt .Values.config.anomalyThreshold 0 }}
+      anomaly_threshold: {{ .Values.config.anomalyThreshold }}
+      exclude_ips:
+        - "127.0.0.1"
+        - "::1"
+      exclude_paths:
+        - "/health"
+        - "/metrics"
+    rate_limiting:
+      enabled: {{ .Values.config.ratelimitEnabled }}
+      backend: "redis"
+      default_rps: 1000
+      default_burst: 2000
+      per_ip:
+        enabled: true
+        rps: 100
+        burst: 200
+        track_by: "ip"
+      response:
+        code: 429
+        body: '{"error":"Rate limit exceeded","retry_after":%d}'
+    ml:
+      enabled: {{ .Values.config.mlEnabled }}
+      engine_url: "http://{{ include "fortresswaf.fullname" . }}-ml-engine:8000"
+      timeout: 5
+      inference_timeout: 2
+      models:
+        - name: "anomaly-detection"
+          version: "1.0"
+          threshold: 0.85
+        - name: "bot-detection"
+          version: "1.0"
+          threshold: 0.75
+        - name: "payload-classifier"
+          version: "1.0"
+          threshold: 0.90
+      cache_ttl: 300
+      fallback_action: "allow"
+      sample_rate: 1.0
+    logging:
+      level: {{ .Values.config.logLevel }}
+      format: {{ .Values.config.logFormat }}
+      output: "stdout"
+      access_log:
+        enabled: true
+        format: '{"remote_ip":"%s","method":"%s","path":"%s","status":%d,"bytes":%d,"duration":%f,"user_agent":"%s","referer":"%s","rule_id":"%s","action":"%s"}'
+        log_request_body: true
+        max_body_log_size: 4096
+      audit_log:
+        enabled: {{ .Values.config.auditLogEnabled }}
+        output: "/var/log/fortresswaf/audit.log"
+        format: "json"
+        include_full_request: false
+    tls:
+      enabled: true
+      min_version: "1.2"
+      max_version: "1.3"
+      cipher_suites:
+        - "TLS_AES_128_GCM_SHA256"
+        - "TLS_AES_256_GCM_SHA384"
+        - "TLS_CHACHA20_POLY1305_SHA256"
+        - "ECDHE-ECDSA-AES128-GCM-SHA256"
+        - "ECDHE-RSA-AES128-GCM-SHA256"
+        - "ECDHE-ECDSA-AES256-GCM-SHA384"
+        - "ECDHE-RSA-AES256-GCM-SHA384"
+      prefer_server_ciphers: true
+      ocsp_stapling: false
+      session_tickets: true
+    cache:
+      enabled: true
+      backend: "redis"
+      default_ttl: 300
+      max_entries: 10000
+      key_prefix: "cache:"
+      content_types:
+        - "text/css"
+        - "text/javascript"
+        - "application/javascript"
+        - "image/png"
+        - "image/jpeg"
+        - "image/gif"
+        - "image/svg+xml"
+        - "application/font-woff2"
+        - "application/font-woff"
+      bypass_paths:
+        - "/api/"
+        - "/admin/"
+        - "/login"
+        - "/logout"
+    database:
+      primary:
+        driver: "postgres"
+        url: "${DATABASE_URL}"
+        max_open_conns: 25
+        max_idle_conns: 10
+        conn_max_lifetime: 300
+        conn_max_idle_time: 60
+      migrations:
+        enabled: true
+        auto_migrate: true
+    alerting:
+      enabled: false
+      min_severity: "high"
+      cooldown: 300
+    monitoring:
+      prometheus:
+        enabled: true
+        path: "/metrics"
+        per_rule_metrics: true
+        per_site_metrics: true
+      health:
+        path: "/health"
+        detailed: true
+{{- if .Values.config.customConfig }}
+{{ toYaml .Values.config.customConfig | indent 4 }}
+{{- end }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "fortresswaf.fullname" . }}-rules
+  labels:
+    {{- include "fortresswaf.labels" . | nindent 4 }}
+data:
+{{ (.Files.Glob "rules/**/*.yaml").AsConfig | indent 2 }}

@@ -1,0 +1,100 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+      - id: end-of-file-fixer
+      - id: check-yaml
+        args: [--allow-multiple-documents]
+      - id: check-json
+      - id: check-toml
+      - id: check-added-large-files
+        args: [--maxkb=1024]
+      - id: check-merge-conflict
+      - id: check-symlinks
+      - id: detect-private-key
+      - id: mixed-line-ending
+        args: [--fix=lf]
+      - id: check-case-conflict
+      - id: check-executables-have-shebangs
+      - id: check-shebang-scripts-are-executable
+      - id: destroyed-symlinks
+      - id: fix-byte-order-marker
+
+  - repo: https://github.com/golangci/golangci-lint
+    rev: v1.57.2
+    hooks:
+      - id: golangci-lint
+        name: golangci-lint
+        description: Fast Go linters runner
+        entry: golangci-lint run --timeout=5m
+        language: golang
+        types: [go]
+        pass_filenames: false
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.3.5
+    hooks:
+      - id: ruff
+        name: ruff-lint
+        description: Python linter
+        args: [--fix, --exit-non-zero-on-fix]
+        files: ^ml-engine/
+      - id: ruff-format
+        name: ruff-format
+        description: Python formatter
+        files: ^ml-engine/
+
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v4.0.0-alpha.8
+    hooks:
+      - id: prettier
+        name: prettier
+        description: JavaScript/TypeScript formatter
+        types_or: [javascript, typescript, tsx, jsx, css, scss, json, markdown, yaml]
+        files: ^dashboard/
+        args: [--write, --list-different]
+
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.40.0
+    hooks:
+      - id: markdownlint
+        name: markdownlint
+        description: Markdown linter
+        args: [--disable, MD013, MD033, MD041]
+        files: \.md$
+
+  - repo: https://github.com/lycheeverse/lychee
+    rev: v0.14.3
+    hooks:
+      - id: lychee
+        name: lychee-link-checker
+        description: Check links in Markdown files
+        args: [--no-progress, --exclude, "localhost"]
+        files: \.md$
+
+  - repo: https://github.com/woodruffw/zizmor
+    rev: v0.1.0
+    hooks:
+      - id: zizmor
+        name: zizmor
+        description: GitHub Actions security audit
+        files: ^\.github/workflows/
+
+  - repo: https://github.com/jumanjihouse/pre-commit-hook-yamlfmt
+    rev: 0.2.3
+    hooks:
+      - id: yamlfmt
+        name: yamlfmt
+        description: YAML formatter
+        args: [--mapping, '2', --sequence, '4', --offset, '2']
+        files: \.ya?ml$
+
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        name: detect-secrets
+        description: Detect secrets in codebase
+        args: [--exclude-files, '\.gitignore|\.pre-commit-config\.yaml|tests/attack-corpus/']
