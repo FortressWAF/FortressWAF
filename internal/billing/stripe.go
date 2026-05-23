@@ -265,13 +265,13 @@ func getInt(m map[string]interface{}, key string) int64 {
 
 type CheckoutSession struct {
 	URL       string `json:"url"`
-	sessionID string `json:"session_id"`
+	SessionID string `json:"session_id"`
 }
 
 func (h *StripeWebhookHandler) CreateCheckoutSession(org, tier, successURL, cancelURL string) (*CheckoutSession, error) {
 	return &CheckoutSession{
 		URL:       fmt.Sprintf("https://checkout.stripe.com/pay/%d", time.Now().UnixNano()),
-		sessionID: fmt.Sprintf("cs_%d", time.Now().UnixNano()),
+		SessionID: fmt.Sprintf("cs_%d", time.Now().UnixNano()),
 	}, nil
 }
 
