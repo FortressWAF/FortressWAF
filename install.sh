@@ -164,21 +164,35 @@ install_docker() {
     warn "Docker not found. Installing Docker..."
 
     if [ "$OS" = linux ]; then
-      curl -fsSL https://get.docker.com | sudo bash
-      sudo usermod -aG docker "$USER" || true
+      if [ -t 0 ]; then
+        curl -fsSL https://get.docker.com | Sudo bash
+      else
+        warn "Non-interactive mode. Install Docker manually then re-run: curl -fsSL https://get.docker.com | bash"
+        warn "Continuing with build from source..."
+      fi
     elif [ "$OS" = macos ]; then
       error "Install Docker Desktop manually: https://docker.com"
       exit 1
     fi
   fi
 
-  info "Pulling FortressWAF Docker image..."
-  sudo docker pull "ghcr.io/$REPO:latest" || {
+  if ! docker info &>/dev/null; then
+    warn "Docker daemon not running. Starting..."
+    Sudo dockerd &>/dev/null &
+    for i in 1 2 3 4 5; do
+      sleep 2
+      docker info &>/dev/null && break
+    done
+  fi
+
+  IMAGE="ghcr.io/fortresswaf/fortresswaf:latest"
+  info "Pulling FortressWAF Docker image ($IMAGE)..."
+  Sudo docker pull "$IMAGE" 2>/dev/null || {
     warn "Image not found on ghcr, building locally..."
     if [ ! -d "/tmp/fortresswaf-src" ]; then
-      git clone --depth 1 "https://github.com/$REPO.git" /tmp/fortresswaf-src
+      git clone --depth 1 "https://github.com/$REPO.git" /tmp/fortresswaf-src 2>/dev/null
     fi
-    sudo docker build -t fortresswaf:local /tmp/fortresswaf-src
+    Sudo docker build -t fortresswaf:local /tmp/fortresswaf-src
     IMAGE="fortresswaf:local"
   }
 
@@ -186,7 +200,7 @@ install_docker() {
 version: '3'
 services:
   fortresswaf:
-    image: ${IMAGE:-ghcr.io/$REPO:latest}
+    image: $IMAGE
     container_name: fortresswaf
     restart: unless-stopped
     ports:
@@ -206,7 +220,7 @@ services:
 YAML
 
   info "Starting FortressWAF..."
-  (cd "$INSTALL_DIR" && sudo docker compose up -d)
+  (cd "$INSTALL_DIR" && Sudo docker compose up -d)
 
   echo ""
   info "FortressWAF running!"
@@ -231,10 +245,10 @@ install_binary() {
   info "Building..."
   (cd "$TMP_DIR/fortresswaf" && go build -o "$TMP_DIR/fortresswafd" ./cmd/fortresswaf)
 
-  sudo mv "$TMP_DIR/fortresswafd" "/usr/local/bin/fortresswafd"
+  Sudo mv "$TMP_DIR/fortresswafd" "/usr/local/bin/fortresswafd"
   info "Binary: /usr/local/bin/fortresswafd"
 
-  sudo tee /etc/systemd/system/fortresswaf.service > /dev/null <<SYSTEMD
+  Sudo tee /etc/systemd/system/fortresswaf.service > /dev/null <<SYSTEMD
 [Unit]
 Description=FortressWAF
 After=network.target
@@ -252,9 +266,9 @@ LimitNOFILE=65535
 WantedBy=multi-user.target
 SYSTEMD
 
-  sudo systemctl daemon-reload
-  sudo systemctl enable fortresswaf
-  sudo systemctl start fortresswaf
+  Sudo systemctl daemon-reload
+  Sudo systemctl enable fortresswaf
+  Sudo systemctl start fortresswaf
 
   info "Service started: fortresswaf"
 }
@@ -312,11 +326,15 @@ main() {
 
   if [ -f "$CONFIG_DIR/config.yml" ]; then
     warn "Config already exists: $CONFIG_DIR/config.yml"
-    read -rp "Overwrite? [y/N] " yn
-    case "$yn" in
-      [Yy]*) gen_config;;
-      *)     info "Using existing config";;
-    esac
+    if [ -t 0 ]; then
+      read -rp "Overwrite? [y/N] " yn
+      case "$yn" in
+        [Yy]*) gen_config;;
+        *)     info "Using existing config";;
+      esac
+    else
+      info "Skipping config overwrite (non-interactive). Delete $CONFIG_DIR/config.yml to regenerate."
+    fi
   else
     gen_config
   fi
