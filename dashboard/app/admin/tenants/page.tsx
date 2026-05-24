@@ -13,6 +13,7 @@ interface Tenant {
     max_sites: number;
     max_rules: number;
     max_users: number;
+    max_api_keys: number;
     max_api_calls_per_day: number;
     max_storage_gb: number;
   };

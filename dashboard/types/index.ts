@@ -86,7 +86,7 @@ export interface AttackerIP {
 export interface Alert {
   id: string
   type: 'attack' | 'anomaly' | 'system' | 'update'
-  severity: 'critical' | 'high' | 'medium' | 'low'
+  severity: 'critical' | 'high' | 'medium' | 'low' | 'info'
   message: string
   timestamp: string
   siteName?: string
@@ -105,7 +105,7 @@ export interface Patch {
   id: string
   cveId: string
   title: string
-  severity: 'critical' | 'high' | 'medium' | 'low'
+  severity: 'critical' | 'high' | 'medium' | 'low' | 'info'
   status: 'draft' | 'testing' | 'deployed' | 'expired'
   affectedSites: string[]
   createdAt: string

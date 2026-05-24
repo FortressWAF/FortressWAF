@@ -1,4 +1,3 @@
-import os
 import time
 import logging
 from datetime import datetime, timezone
@@ -6,7 +5,7 @@ from contextlib import asynccontextmanager
 
 import numpy as np
 
-from fastapi import FastAPI, Request, HTTPException, Depends
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 import prometheus_client
@@ -75,7 +74,7 @@ app.add_middleware(
 @app.middleware("http")
 async def request_logging_middleware(request: Request, call_next):
     start_time = time.time()
-    body = await request.body()
+    _ = await request.body()
     try:
         response = await call_next(request)
     except Exception as e:

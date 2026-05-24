@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -16,8 +17,11 @@ import (
 )
 
 var (
-	Version   = "dev"
-	Commit    = "unknown"
+	// Version is set at build time via ldflags.
+	Version = "dev"
+	// Commit is set at build time via ldflags.
+	Commit = "unknown"
+	// BuildDate is set at build time via ldflags.
 	BuildDate = "unknown"
 )
 
@@ -27,12 +31,17 @@ var (
 	timeout time.Duration
 )
 
+func fatal(format string, args ...interface{}) {
+	fmt.Fprintf(os.Stderr, "Error: "+format+"\n", args...)
+	os.Exit(1) //nolint:revive
+}
+
 func main() {
 	rootCmd := &cobra.Command{
 		Use:          "fortressctl",
 		Short:        "FortressWAF CLI management tool",
 		SilenceUsage: true,
-		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
 			if envURL := os.Getenv("FORTRESS_API_URL"); envURL != "" && !cmd.Flags().Changed("api-url") {
 				apiURL = envURL
 			}
@@ -61,13 +70,13 @@ func main() {
 	)
 
 	if err := rootCmd.Execute(); err != nil {
-		os.Exit(1)
+		os.Exit(1) //nolint:revive
 	}
 }
 
-func newRequest(method, path string, body io.Reader) (*http.Request, error) {
+func newRequest(ctx context.Context, method, path string, body io.Reader) (*http.Request, error) {
 	u := fmt.Sprintf("%s/api/v1%s", apiURL, path)
-	req, err := http.NewRequest(method, u, body)
+	req, err := http.NewRequestWithContext(ctx, method, u, body)
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +98,7 @@ func doRequest(method, path string, body interface{}) (*http.Response, error) {
 		reader = bytes.NewReader(data)
 	}
 
-	req, err := newRequest(method, path, reader)
+	req, err := newRequest(context.Background(), method, path, reader)
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +108,7 @@ func doRequest(method, path string, body interface{}) (*http.Response, error) {
 }
 
 func doRequestRaw(method, path string, body io.Reader) (*http.Response, error) {
-	req, err := newRequest(method, path, body)
+	req, err := newRequest(context.Background(), method, path, body)
 	if err != nil {
 		return nil, err
 	}
@@ -111,16 +120,16 @@ func doRequestRaw(method, path string, body io.Reader) (*http.Response, error) {
 func handleResponse(resp *http.Response, err error) {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		os.Exit(1)
+		os.Exit(1) //nolint:revive
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	var result map[string]interface{}
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		body, _ := io.ReadAll(resp.Body)
 		if resp.StatusCode >= 400 {
 			fmt.Fprintf(os.Stderr, "Error %d: %s\n", resp.StatusCode, string(body))
-			os.Exit(1)
+			os.Exit(1) //nolint:revive
 		}
 		if len(body) > 0 {
 			fmt.Println(string(body))
@@ -136,7 +145,7 @@ func handleResponse(resp *http.Response, err error) {
 			fmt.Fprintf(os.Stderr, " - %s", detail)
 		}
 		fmt.Fprintln(os.Stderr)
-		os.Exit(1)
+		os.Exit(1) //nolint:revive
 	}
 
 	pretty, _ := json.MarshalIndent(result, "", "  ")
@@ -156,15 +165,15 @@ func siteCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			if name == "" {
 				fmt.Fprintln(os.Stderr, "Error: --name is required")
-				os.Exit(1)
+				os.Exit(1) //nolint:revive
 			}
 			if domain == "" {
 				fmt.Fprintln(os.Stderr, "Error: --domain is required")
-				os.Exit(1)
+				os.Exit(1) //nolint:revive
 			}
 			if origin == "" {
 				fmt.Fprintln(os.Stderr, "Error: --origin is required")
-				os.Exit(1)
+				os.Exit(1) //nolint:revive
 			}
 
 			body := map[string]interface{}{
@@ -199,7 +208,7 @@ func siteCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			if removeName == "" {
 				fmt.Fprintln(os.Stderr, "Error: --name is required")
-				os.Exit(1)
+				os.Exit(1) //nolint:revive
 			}
 			resp, err := doRequest("DELETE", "/sites/"+removeName, nil)
 			handleResponse(resp, err)
@@ -224,13 +233,13 @@ func ruleCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			if ruleFile == "" {
 				fmt.Fprintln(os.Stderr, "Error: --file is required")
-				os.Exit(1)
+				os.Exit(1) //nolint:revive
 			}
 
 			data, err := os.ReadFile(ruleFile)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Error reading file: %v\n", err)
-				os.Exit(1)
+				os.Exit(1) //nolint:revive
 			}
 
 			contentType := "application/json"
@@ -238,10 +247,10 @@ func ruleCmd() *cobra.Command {
 				contentType = "application/x-yaml"
 			}
 
-			req, err := newRequest("POST", "/rules", bytes.NewReader(data))
+			req, err := newRequest(context.Background(), "POST", "/rules", bytes.NewReader(data))
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-				os.Exit(1)
+				os.Exit(1) //nolint:revive
 			}
 			req.Header.Set("Content-Type", contentType)
 
@@ -284,7 +293,7 @@ func ruleCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			if ruleID == "" {
 				fmt.Fprintln(os.Stderr, "Error: --id is required")
-				os.Exit(1)
+				os.Exit(1) //nolint:revive
 			}
 			resp, err := doRequest("DELETE", "/rules/"+ruleID, nil)
 			handleResponse(resp, err)
@@ -300,17 +309,17 @@ func ruleCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			if ruleID == "" {
 				fmt.Fprintln(os.Stderr, "Error: --id is required")
-				os.Exit(1)
+				os.Exit(1) //nolint:revive
 			}
 			if requestFile == "" {
 				fmt.Fprintln(os.Stderr, "Error: --request is required")
-				os.Exit(1)
+				os.Exit(1) //nolint:revive
 			}
 
 			data, err := os.ReadFile(requestFile)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Error reading request file: %v\n", err)
-				os.Exit(1)
+				os.Exit(1) //nolint:revive
 			}
 
 			var reqBody interface{}
@@ -359,7 +368,7 @@ func logsCmd() *cobra.Command {
 			resp, err := doRequest("GET", path, nil)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-				os.Exit(1)
+				os.Exit(1) //nolint:revive
 			}
 			defer resp.Body.Close()
 
@@ -367,7 +376,7 @@ func logsCmd() *cobra.Command {
 			if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 				body, _ := io.ReadAll(resp.Body)
 				fmt.Fprintf(os.Stderr, "Error: %s\n", string(body))
-				os.Exit(1)
+				os.Exit(1) //nolint:revive
 			}
 
 			entries, ok := result["logs"].([]interface{})
@@ -407,30 +416,30 @@ func logsCmd() *cobra.Command {
 			resp, err := doRequestRaw("GET", path, nil)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-				os.Exit(1)
+				os.Exit(1) //nolint:revive
 			}
 			defer resp.Body.Close()
 
 			if resp.StatusCode >= 400 {
 				body, _ := io.ReadAll(resp.Body)
 				fmt.Fprintf(os.Stderr, "Error %d: %s\n", resp.StatusCode, string(body))
-				os.Exit(1)
+				os.Exit(1) //nolint:revive
 			}
 
 			data, err := io.ReadAll(resp.Body)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Error reading response: %v\n", err)
-				os.Exit(1)
+				os.Exit(1) //nolint:revive
 			}
 
 			if err := os.MkdirAll(filepath.Dir(output), 0755); err != nil && !os.IsExist(err) {
 				fmt.Fprintf(os.Stderr, "Error creating directory: %v\n", err)
-				os.Exit(1)
+				os.Exit(1) //nolint:revive
 			}
 
 			if err := os.WriteFile(output, data, 0644); err != nil {
 				fmt.Fprintf(os.Stderr, "Error writing file: %v\n", err)
-				os.Exit(1)
+				os.Exit(1) //nolint:revive
 			}
 
 			fmt.Printf("Exported %d bytes to %s\n", len(data), output)
@@ -456,7 +465,7 @@ func patchCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			if cve == "" {
 				fmt.Fprintln(os.Stderr, "Error: --cve is required")
-				os.Exit(1)
+				os.Exit(1) //nolint:revive
 			}
 			body := map[string]interface{}{
 				"cve": cve,
@@ -474,7 +483,7 @@ func patchCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			if cve == "" {
 				fmt.Fprintln(os.Stderr, "Error: --cve is required")
-				os.Exit(1)
+				os.Exit(1) //nolint:revive
 			}
 			resp, err := doRequest("POST", "/patches/"+cve+"/revoke", nil)
 			handleResponse(resp, err)
@@ -499,7 +508,7 @@ func configCmd() *cobra.Command {
 			resp, err := doRequest("POST", "/config/validate", nil)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-				os.Exit(1)
+				os.Exit(1) //nolint:revive
 			}
 			defer resp.Body.Close()
 
@@ -507,7 +516,7 @@ func configCmd() *cobra.Command {
 			if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 				body, _ := io.ReadAll(resp.Body)
 				fmt.Fprintf(os.Stderr, "Error: %s\n", string(body))
-				os.Exit(1)
+				os.Exit(1) //nolint:revive
 			}
 
 			valid, _ := result["valid"].(bool)
@@ -524,7 +533,7 @@ func configCmd() *cobra.Command {
 					pretty, _ := json.MarshalIndent(errs, "  ", "  ")
 					fmt.Printf("  %s\n", string(pretty))
 				}
-				os.Exit(1)
+				os.Exit(1) //nolint:revive
 			}
 		},
 	}
@@ -538,20 +547,20 @@ func configCmd() *cobra.Command {
 			resp, err := doRequestRaw("GET", "/config/export", nil)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-				os.Exit(1)
+				os.Exit(1) //nolint:revive
 			}
 			defer resp.Body.Close()
 
 			if resp.StatusCode >= 400 {
 				body, _ := io.ReadAll(resp.Body)
 				fmt.Fprintf(os.Stderr, "Error %d: %s\n", resp.StatusCode, string(body))
-				os.Exit(1)
+				os.Exit(1) //nolint:revive
 			}
 
 			data, err := io.ReadAll(resp.Body)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Error reading response: %v\n", err)
-				os.Exit(1)
+				os.Exit(1) //nolint:revive
 			}
 
 			if outputFile == "" {
@@ -561,12 +570,12 @@ func configCmd() *cobra.Command {
 
 			if err := os.MkdirAll(filepath.Dir(outputFile), 0755); err != nil && !os.IsExist(err) {
 				fmt.Fprintf(os.Stderr, "Error creating directory: %v\n", err)
-				os.Exit(1)
+				os.Exit(1) //nolint:revive
 			}
 
 			if err := os.WriteFile(outputFile, data, 0644); err != nil {
 				fmt.Fprintf(os.Stderr, "Error writing file: %v\n", err)
-				os.Exit(1)
+				os.Exit(1) //nolint:revive
 			}
 
 			fmt.Printf("Configuration exported to %s (%d bytes)\n", outputFile, len(data))
@@ -582,13 +591,13 @@ func configCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			if diffFile == "" {
 				fmt.Fprintln(os.Stderr, "Error: --file is required")
-				os.Exit(1)
+				os.Exit(1) //nolint:revive
 			}
 
 			data, err := os.ReadFile(diffFile)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Error reading file: %v\n", err)
-				os.Exit(1)
+				os.Exit(1) //nolint:revive
 			}
 
 			contentType := "application/json"
@@ -596,10 +605,10 @@ func configCmd() *cobra.Command {
 				contentType = "application/x-yaml"
 			}
 
-			req, err := newRequest("POST", "/config/diff", bytes.NewReader(data))
+			req, err := newRequest(context.Background(), "POST", "/config/diff", bytes.NewReader(data))
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-				os.Exit(1)
+				os.Exit(1) //nolint:revive
 			}
 			req.Header.Set("Content-Type", contentType)
 
@@ -618,13 +627,13 @@ func configCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			if applyFile == "" {
 				fmt.Fprintln(os.Stderr, "Error: --file is required")
-				os.Exit(1)
+				os.Exit(1) //nolint:revive
 			}
 
 			data, err := os.ReadFile(applyFile)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Error reading file: %v\n", err)
-				os.Exit(1)
+				os.Exit(1) //nolint:revive
 			}
 
 			contentType := "application/json"
@@ -632,10 +641,10 @@ func configCmd() *cobra.Command {
 				contentType = "application/x-yaml"
 			}
 
-			req, err := newRequest("POST", "/config/import", bytes.NewReader(data))
+			req, err := newRequest(context.Background(), "POST", "/config/import", bytes.NewReader(data))
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-				os.Exit(1)
+				os.Exit(1) //nolint:revive
 			}
 			req.Header.Set("Content-Type", contentType)
 
@@ -643,14 +652,14 @@ func configCmd() *cobra.Command {
 			resp, err := client.Do(req)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-				os.Exit(1)
+				os.Exit(1) //nolint:revive
 			}
 			defer resp.Body.Close()
 
 			if resp.StatusCode >= 400 {
 				body, _ := io.ReadAll(resp.Body)
 				fmt.Fprintf(os.Stderr, "Error %d: %s\n", resp.StatusCode, string(body))
-				os.Exit(1)
+				os.Exit(1) //nolint:revive
 			}
 
 			var result map[string]interface{}

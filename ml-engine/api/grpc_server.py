@@ -1,7 +1,5 @@
-import os
 import logging
 from concurrent import futures
-from typing import Optional
 
 import grpc
 

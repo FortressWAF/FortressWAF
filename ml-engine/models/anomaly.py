@@ -1,14 +1,12 @@
 import os
-import math
 import pickle
 import logging
 from typing import Dict, List, Optional, Tuple, Any
-from collections import Counter
 
 import numpy as np
 from sklearn.ensemble import IsolationForest
 
-from training.feature_engineering import extract_http_features, compute_entropy
+from training.feature_engineering import extract_http_features
 
 logger = logging.getLogger(__name__)
 
