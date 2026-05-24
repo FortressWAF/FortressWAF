@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: FortressWAF Documentation
+    url: https://docs.fortresswaf.io
+    about: Check the documentation before opening an issue
+  - name: Security Issues
+    url: https://github.com/FortressWAF/FortressWAF/security/policy
+    about: Please report security vulnerabilities here
