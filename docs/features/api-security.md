@@ -6,11 +6,11 @@ FortressWAF provides comprehensive security for REST, GraphQL, gRPC, and WebSock
 
 | API Type | Protection Level | Key Features |
 |----------|------------------|--------------|
-| REST | Full | Request validation, rate limiting, OWASP coverage |
-| GraphQL | Full | Query depth limiting, field authorization, alias detection |
-| gRPC | Full | Protocol validation, method-level controls |
-| WebSocket | Full | Message validation, connection limiting |
-| SOAP | Full | XML validation, WS-Security |
+| REST | Stable | Request validation, rate limiting, OWASP coverage |
+| GraphQL | Stable | Query depth limiting, field authorization, alias detection |
+| gRPC | Experimental | Content-type detection, method-level rate limiting |
+| WebSocket | Stable | Message validation, connection limiting |
+| SOAP | Experimental | XML validation, WS-Security |
 
 ## OWASP API Top 10 Coverage
 
@@ -307,6 +307,8 @@ action:
 ```
 
 ## gRPC Protection
+
+> **Status: Experimental** — Basic content-type detection and method rate limiting work, but full gRPC protocol validation (service/method resolution, message parsing, streaming control) is on the roadmap.
 
 ### Protocol Validation
 

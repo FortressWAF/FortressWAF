@@ -10,10 +10,9 @@
 
 | Category | Details |
 |----------|---------|
-| **OWASP Top 10** | Full coverage: SQLi, XSS, RCE, LFI, SSRF, XXE, broken auth, misconfiguration |
-| **ML-Powered Detection** | Anomaly detection engine with ensemble models (Random Forest + XGBoost + Transformer) |
-| **Layer 7 DDoS Protection** | Sliding window rate limiting, token bucket, per-route limits, burst control |
-| **Bot Management** | 500+ signatures, JS challenges, CAPTCHA integration, fingerprinting |
+| **OWASP Top 10** | SQLi, XSS, RCE, API protection — LFI, SSRF, XXE on roadmap |
+| **Detection Engine** | Pattern-based detection with ML anomaly detection client |
+| **Bot Management** | Behavior-based detection with signature matching |
 | **API Security** | Schema validation, JWT introspection, GraphQL depth limiting, OWASP API Top 10 |
 | **IP Reputation** | Real-time threat intel feeds, geo-blocking, TOR/VPN/proxy detection |
 | **Real-time Dashboard** | Live metrics, attack visualization, top targets, latency heatmaps, WebSocket feed |
@@ -28,7 +27,7 @@
 curl -sSL https://github.com/FortressWAF/FortressWAF/blob/main/install.sh | bash
 
 # Or clone and run with Docker Compose
-git clone https://github.com/zulfff/FortressWAF.git
+git clone https://github.com/FortressWAF/FortressWAF.git
 cd FortressWAF
 docker compose -f deploy/docker-compose.yml up -d
 
@@ -156,7 +155,7 @@ curl -X POST -H "Authorization: Bearer $TOKEN" /api/v1/rules    # Add rule
 
 ## Contributing
 
-Contributions are welcome! Please read our guidelines and submit PRs to [github.com/zulfff/FortressWAF](https://github.com/zulfff/FortressWAF/pulls).
+Contributions are welcome! Please read our guidelines and submit PRs to [github.com/FortressWAF/FortressWAF](https://github.com/FortressWAF/FortressWAF/pulls).
 
 ## Security
 

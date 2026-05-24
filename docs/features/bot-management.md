@@ -1,6 +1,8 @@
 # Bot Management
 
-FortressWAF provides sophisticated bot detection and management capabilities to distinguish between legitimate human users, good bots, and malicious automated traffic.
+> **Status: Experimental** — Pattern-based bot detection is implemented. Fingerprinting, CAPTCHA, and JS challenge integration are documented as reference design and on the roadmap.
+
+FortressWAF provides bot detection capabilities to distinguish between legitimate human users, good bots, and malicious automated traffic.
 
 ## Bot Detection Overview
 
