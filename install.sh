@@ -71,7 +71,17 @@ install_deps() {
   head "Checking Dependencies"
 
   if [ "$HAS_DOCKER" = true ]; then
-    info "Docker found: $(docker --version)"
+    info "Docker found: $(docker --version 2>/dev/null)"
+    if ! docker info &>/dev/null; then
+      warn "Docker daemon not running. Attempting to start..."
+      Sudo systemctl start docker 2>/dev/null || Sudo service docker start 2>/dev/null || true
+      sleep 2
+      if docker info &>/dev/null; then
+        info "Docker daemon started"
+      else
+        warn "Could not start Docker daemon. You may need to start it manually: sudo systemctl start docker"
+      fi
+    fi
   else
     warn "Docker not found"
   fi
