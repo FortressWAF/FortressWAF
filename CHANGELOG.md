@@ -5,6 +5,60 @@ All notable changes to FortressWAF are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-05-24
+
+### Added
+- JWT/OAuth authentication and token validation
+  - JWKS-based signature verification with caching
+  - Standard claims validation (exp, nbf, iat, iss, aud)
+  - OAuth 2.0 token introspection (RFC 7662)
+  - Scope and role-based access control
+- GraphQL protection engine
+  - Query depth limiting (configurable max nesting)
+  - Query cost analysis (operation-based scoring)
+  - Alias and batch query limiting
+  - Introspection and schema query blocking
+  - Injection pattern detection in queries
+- mTLS client certificate authentication
+  - X.509 certificate chain validation against CA
+  - Certificate policy OID enforcement
+  - Client cert subject injection into upstream headers
+  - Configurable client auth modes (require/verify/skip)
+- WebSocket inspection
+  - Connection upgrade handshake validation
+  - Frame type allowlisting (text/binary/ping/pong/close)
+  - Frame rate limiting per IP address
+  - Injection pattern detection in text messages
+  - JSON depth validation in frames
+  - Raw frame parsing (masking, fragmentation)
+- SIEM integration (Splunk HEC + Elasticsearch)
+  - Batched event export with configurable interval
+  - Splunk HTTP Event Collector (HEC) support
+  - Elasticsearch bulk API export with daily index rotation
+  - CEF (Common Event Format) output
+  - Rich event schema with attack context
+- Request/Response rewriting engine
+  - Header manipulation (set/add/remove/rename)
+  - Body content replacement and regex rewriting
+  - URL redirection with template variables
+  - Condition-based rule matching (path/header/query/method/ip)
+- Credential stuffing and brute force protection
+  - Rate-based login attempt tracking (per IP/user/session)
+  - Automated credential stuffing pattern detection
+  - Response-based brute force detection
+- File upload security
+  - MIME type validation (declared vs magic bytes)
+  - Dangerous file type blocking
+  - Content-based malicious payload scanning
+- HTTP protocol compliance enforcement
+  - HTTP smuggling detection (CL.TE, TE.CL, TE.TE)
+  - Strict header/URI size limits
+  - HTTP method allowlisting
+  - HTTP version enforcement
+- Comprehensive feature documentation
+  - 9 new feature docs (auth, graphql, mtls, websocket, siem, rewrite, credential, upload, protocol)
+  - Updated mkdocs.yml navigation
+
 ## [1.0.0] - 2024-03-15
 
 ### Added
