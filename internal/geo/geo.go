@@ -189,5 +189,3 @@ func (l *Lookup) IsAvailable() bool {
 	defer l.mu.RUnlock()
 	return l.available
 }
-
-

@@ -391,8 +391,8 @@ func (c *CredentialProtection) validateJWT(ctx *RequestContext) *Decision {
 	if payload.Exp > 0 && now > payload.Exp {
 		return &Decision{
 			Action:   ActionBlock,
-		RuleID:   "CRED013",
-		RuleName: "Expired JWT",
+			RuleID:   "CRED013",
+			RuleName: "Expired JWT",
 			Severity: "medium",
 			Score:    40,
 			Evidence: "jwt token has expired",
@@ -433,4 +433,3 @@ func hmacSHA256(secret, data []byte) []byte {
 	h.Write(data)
 	return h.Sum(nil)
 }
-

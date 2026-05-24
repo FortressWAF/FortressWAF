@@ -367,5 +367,3 @@ func (u *FileUploadSecurity) ScanWithClamAV(data []byte) *Decision {
 	}
 	return nil
 }
-
-

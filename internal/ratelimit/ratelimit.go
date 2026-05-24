@@ -390,5 +390,3 @@ func (rl *RateLimiter) cleanupLoop() {
 func (rl *RateLimiter) Allowed(key string, granularity Granularity) (bool, *Decision) {
 	return rl.Inspect(key, granularity)
 }
-
-
