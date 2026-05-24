@@ -1588,7 +1588,7 @@ func (h *Handlers) UpdateConfigHandler(w http.ResponseWriter, r *http.Request) {
 						cfg.ML.Endpoint = v
 					}
 					if v, ok := m["timeout"].(float64); ok {
-						cfg.ML.Timeout = int(v)
+						cfg.ML.TimeoutSec = int(v)
 					}
 				}
 			case "redis":

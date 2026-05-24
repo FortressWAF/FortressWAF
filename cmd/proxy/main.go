@@ -21,6 +21,7 @@ import (
 
 	"github.com/FortressWAF/FortressWAF/internal/config"
 	"github.com/FortressWAF/FortressWAF/internal/engine"
+	"github.com/FortressWAF/FortressWAF/internal/siem"
 	"github.com/gorilla/mux"
 )
 
@@ -94,9 +95,51 @@ func main() {
 		)
 	}
 
-	e := engine.New(engine.EngineConfig{
-		DevMode: *dev,
-	})
+	eCfg := buildEngineConfig(cfg, *dev)
+	e := engine.New(eCfg)
+
+	// Initialize rewrite manager
+	rewriteMgr := engine.NewRewriteManager()
+	for _, r := range cfg.RewriteRules {
+		if !r.Enabled {
+			continue
+		}
+		rewriteMgr.AddRule(engine.RewriteRule{
+			Name:       r.Name,
+			Conditions: engineRewriteConditions(r.Conditions),
+			Actions:    engineRewriteActions(r.Actions),
+		})
+		slog.Debug("rewrite rule loaded", "rule", r.Name)
+	}
+
+	// Initialize SIEM if enabled
+	var siemMgr *siem.Manager
+	if cfg.SIEM.Enabled {
+		var err error
+		siemCfg := siem.SIEMConfig{
+			Enabled:        cfg.SIEM.Enabled,
+			ExportInterval: cfg.SIEM.ExportInterval,
+			BatchSize:      cfg.SIEM.BatchSize,
+		}
+		for _, e := range cfg.SIEM.Exporters {
+			siemCfg.Exporters = append(siemCfg.Exporters, siem.ExporterConfig{
+				Type:      e.Type,
+				Enabled:   e.Enabled,
+				URL:       e.URL,
+				Token:     e.Token,
+				Index:     e.Index,
+				Username:  e.Username,
+				Password:  e.Password,
+				VerifySSL: e.VerifySSL,
+			})
+		}
+		siemMgr, err = siem.NewManager(siemCfg)
+		if err != nil {
+			slog.Warn("siem init failed", "error", err)
+		} else {
+			slog.Info("siem manager initialized", "exporters", len(cfg.SIEM.Exporters))
+		}
+	}
 
 	cfgMgr.OnChange(func(newCfg *config.Config) {
 		slog.Info("config reloaded",
@@ -105,7 +148,7 @@ func main() {
 		)
 	})
 
-	proxyHandler := newWAFHandler(cfgMgr, e, *dev)
+	proxyHandler := newWAFHandler(cfgMgr, e, rewriteMgr, siemMgr, *dev)
 
 	proxySrv := &http.Server{
 		Addr:              fmt.Sprintf(":%d", *proxyPort),
@@ -211,19 +254,23 @@ func main() {
 }
 
 type wafHandler struct {
-	mu      sync.RWMutex
-	cfgMgr  *config.Manager
-	engine  *engine.Engine
-	dev     bool
-	proxies map[string]*httputil.ReverseProxy
+	mu         sync.RWMutex
+	cfgMgr     *config.Manager
+	engine     *engine.Engine
+	rewriteMgr *engine.RewriteManager
+	siemMgr    *siem.Manager
+	dev        bool
+	proxies    map[string]*httputil.ReverseProxy
 }
 
-func newWAFHandler(cfgMgr *config.Manager, e *engine.Engine, dev bool) http.Handler {
+func newWAFHandler(cfgMgr *config.Manager, e *engine.Engine, rm *engine.RewriteManager, sm *siem.Manager, dev bool) http.Handler {
 	h := &wafHandler{
-		cfgMgr:  cfgMgr,
-		engine:  e,
-		dev:     dev,
-		proxies: make(map[string]*httputil.ReverseProxy),
+		cfgMgr:     cfgMgr,
+		engine:     e,
+		rewriteMgr: rm,
+		siemMgr:    sm,
+		dev:        dev,
+		proxies:    make(map[string]*httputil.ReverseProxy),
 	}
 
 	for _, site := range cfgMgr.Get().Sites {
@@ -681,4 +728,99 @@ setTimeout(function(){
 </div>
 </body>
 </html>`, challengeToken, r.URL.Path, time.Now().Unix()))
+}
+
+func buildEngineConfig(cfg *config.Config, dev bool) engine.EngineConfig {
+	eCfg := engine.EngineConfig{
+		DevMode: dev,
+	}
+
+	if cfg.SQLI.Enabled {
+		eCfg.SQLI = engine.NewSQLInjectionEngine(dev)
+	}
+	if cfg.XSS.Enabled {
+		eCfg.XSS = engine.NewXSSEngine(dev)
+	}
+	if cfg.RCE.Enabled {
+		eCfg.RCE = engine.NewRCEInjection(dev)
+	}
+	if cfg.DDoS.Enabled {
+		eCfg.DDoS = engine.NewDDoSProtection(dev)
+	}
+	if cfg.Protocol.Enabled {
+		eCfg.Protocol = engine.NewProtocolAnomaly(dev)
+	}
+	if cfg.Bot.Enabled {
+		eCfg.Bot = engine.NewBotDetector(dev)
+	}
+	if cfg.APIProtect.Enabled {
+		eCfg.APIProtect = engine.NewAPIProtection(dev)
+	}
+	if cfg.Upload.Enabled {
+		eCfg.Upload = engine.NewFileUploadSecurity(dev)
+	}
+	if cfg.Credential.Enabled {
+		eCfg.Credential = engine.NewCredentialProtection(dev, cfg.JWT.Secret)
+	}
+	if cfg.JWT.Enabled {
+		eCfg.JWT = engine.NewJWTValidator(cfg.JWT)
+	}
+	if cfg.OAuth.Enabled {
+		eCfg.OAuth = engine.NewOAuthIntrospector(cfg.OAuth)
+	}
+	if cfg.GraphQL.Enabled {
+		eCfg.GraphQL = engine.NewGraphQLInspector(cfg.GraphQL)
+	}
+	if cfg.WebSocket.Enabled {
+		eCfg.WebSocket = engine.NewWebSocketInspector(cfg.WebSocket)
+	}
+	if cfg.MTLS.Enabled {
+		inspector, err := engine.NewMTLSInspector(cfg.MTLS)
+		if err != nil {
+			slog.Warn("mtls init failed", "error", err)
+		} else {
+			eCfg.MTLS = inspector
+		}
+	}
+
+	return eCfg
+}
+
+func engineRewriteConditions(conds []config.RewriteConditionConfig) []engine.RewriteCondition {
+	result := make([]engine.RewriteCondition, 0, len(conds))
+	for _, c := range conds {
+		result = append(result, engine.RewriteCondition{
+			Field:    c.Field,
+			Name:     c.Name,
+			Operator: c.Operator,
+			Value:    c.Value,
+		})
+	}
+	return result
+}
+
+func engineRewriteActions(actions []config.RewriteActionConfig) []engine.RewriteAction {
+	result := make([]engine.RewriteAction, 0, len(actions))
+	for _, a := range actions {
+		switch a.Type {
+		case "set_header":
+			result = append(result, &engine.HeaderAction{
+				Operation: "set",
+				Name:      a.Name,
+				Value:     a.Value,
+			})
+		case "remove_header":
+			result = append(result, &engine.HeaderAction{
+				Operation: "remove",
+				Name:      a.Name,
+			})
+		case "set_body":
+			result = append(result, &engine.BodyAction{
+				Operation: a.Op,
+				Pattern:   a.Pattern,
+				Value:     a.Value,
+			})
+		}
+	}
+	return result
 }

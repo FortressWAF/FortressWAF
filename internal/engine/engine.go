@@ -1,8 +1,10 @@
 package engine
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
 	"sync"
@@ -113,6 +115,15 @@ func NewRequestContext(r *http.Request) *RequestContext {
 	}
 
 	ctx.ContentType = r.Header.Get("Content-Type")
+
+	// Read request body so inspectors can inspect it
+	if r.Body != nil {
+		body, err := io.ReadAll(r.Body)
+		if err == nil {
+			ctx.Body = body
+			r.Body = io.NopCloser(bytes.NewReader(body))
+		}
+	}
 
 	return ctx
 }

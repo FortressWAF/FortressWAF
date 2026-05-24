@@ -7,31 +7,22 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/FortressWAF/FortressWAF/internal/config"
 )
 
 type MTLSInspector struct {
 	mu             sync.RWMutex
-	config         MTLSConfig
+	mtlsCfg        config.MTLSConfig
 	caCert         *x509.CertPool
 	verifyDepth    int
 	failOnError    bool
 	earlyAuth      bool
 	usernameHeader string
-}
-
-type MTLSConfig struct {
-	Enabled        bool
-	CAFile         string
-	ClientAuth     string
-	SkipVerify     bool
-	PolicyOID      string
-	VerifyDepth    int
-	FailOnError    bool
-	EarlyAuth      bool
-	UsernameHeader string
 }
 
 type ClientCertInfo struct {
@@ -44,9 +35,9 @@ type ClientCertInfo struct {
 	PEM          string
 }
 
-func NewMTLSInspector(cfg MTLSConfig) (*MTLSInspector, error) {
+func NewMTLSInspector(cfg config.MTLSConfig) (*MTLSInspector, error) {
 	i := &MTLSInspector{
-		config:         cfg,
+		mtlsCfg:        cfg,
 		verifyDepth:    cfg.VerifyDepth,
 		failOnError:    cfg.FailOnError,
 		earlyAuth:      cfg.EarlyAuth,
@@ -65,13 +56,24 @@ func NewMTLSInspector(cfg MTLSConfig) (*MTLSInspector, error) {
 }
 
 func loadCAFile(path string) (*x509.CertPool, error) {
-	return nil, nil
+	if path == "" {
+		return nil, nil
+	}
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("read CA file: %w", err)
+	}
+	pool := x509.NewCertPool()
+	if !pool.AppendCertsFromPEM(data) {
+		return nil, fmt.Errorf("no valid CA certificates found in %s", path)
+	}
+	return pool, nil
 }
 
 func (m *MTLSInspector) Name() string { return "mtls_inspection" }
 
 func (m *MTLSInspector) Inspect(ctx *RequestContext) (*Decision, error) {
-	if !m.config.Enabled {
+	if !m.mtlsCfg.Enabled {
 		return &Decision{Action: ActionAllow}, nil
 	}
 
@@ -105,7 +107,7 @@ func (m *MTLSInspector) Inspect(ctx *RequestContext) (*Decision, error) {
 
 	peerCerts := tlsConn.ConnectionState().PeerCertificates
 	if len(peerCerts) == 0 {
-		if m.config.ClientAuth == "require-and-verify-client-cert" || m.config.ClientAuth == "require-any-client-cert" {
+		if m.mtlsCfg.ClientAuth == "require-and-verify-client-cert" || m.mtlsCfg.ClientAuth == "require-any-client-cert" {
 			return &Decision{
 				Action:   ActionBlock,
 				RuleID:   "MTLS-003",
@@ -125,11 +127,11 @@ func (m *MTLSInspector) Inspect(ctx *RequestContext) (*Decision, error) {
 		ctx.Headers[m.usernameHeader] = certInfo.Subject
 	}
 
-	if m.config.SkipVerify {
+	if m.mtlsCfg.SkipVerify {
 		return &Decision{Action: ActionAllow}, nil
 	}
 
-	if m.config.PolicyOID != "" {
+	if m.mtlsCfg.PolicyOID != "" {
 		if !m.validateCertificatePolicy(cert) {
 			return &Decision{
 				Action:   ActionBlock,
@@ -137,7 +139,7 @@ func (m *MTLSInspector) Inspect(ctx *RequestContext) (*Decision, error) {
 				RuleName: "client certificate policy violation",
 				Severity: "high",
 				Score:    85,
-				Evidence: fmt.Sprintf("required policy: %s", m.config.PolicyOID),
+				Evidence: fmt.Sprintf("required policy: %s", m.mtlsCfg.PolicyOID),
 			}, nil
 		}
 	}
@@ -146,13 +148,13 @@ func (m *MTLSInspector) Inspect(ctx *RequestContext) (*Decision, error) {
 }
 
 func (m *MTLSInspector) validateCertificatePolicy(cert *x509.Certificate) bool {
-	if m.config.PolicyOID == "" {
+	if m.mtlsCfg.PolicyOID == "" {
 		return true
 	}
 
 	for _, ext := range cert.Extensions {
 		if ext.Id.String() == "2.5.29.32" {
-			return strings.Contains(string(ext.Value), m.config.PolicyOID)
+			return strings.Contains(string(ext.Value), m.mtlsCfg.PolicyOID)
 		}
 	}
 	return false

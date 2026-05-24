@@ -57,7 +57,7 @@ type DBConfig struct {
 type MLConfig struct {
 	Enabled      bool    `yaml:"enabled"`
 	Endpoint     string  `yaml:"endpoint"`
-	Timeout      int     `yaml:"timeout"`
+	TimeoutSec   int     `yaml:"timeout_sec"`
 	MaxRetries   int     `yaml:"max_retries"`
 	FallbackMode string  `yaml:"fallback_mode"`
 	MinScore     float64 `yaml:"min_score"`
@@ -147,14 +147,19 @@ type MTLSConfig struct {
 }
 
 type WebSocketConfig struct {
-	Enabled      bool  `yaml:"enabled"`
-	MaxFrameSize int   `yaml:"max_frame_size"`
-	MaxDepth     int   `yaml:"max_depth"`
-	AllowedTypes []int `yaml:"allowed_types"`
-	StrictMode   bool  `yaml:"strict_mode"`
-	EnablePing   bool  `yaml:"enable_ping"`
-	EnablePong   bool  `yaml:"enable_pong"`
-	EnableClose  bool  `yaml:"enable_close"`
+	Enabled           bool          `yaml:"enabled"`
+	MaxFrameSize      int           `yaml:"max_frame_size"`
+	MaxMessageSize    int           `yaml:"max_message_size"`
+	MaxDepth          int           `yaml:"max_depth"`
+	MaxFramesPerMin   int           `yaml:"max_frames_per_min"`
+	MaxBytesPerMin    int           `yaml:"max_bytes_per_min"`
+	BlockOnLimit      bool          `yaml:"block_on_limit"`
+	AllowedTypes      []int         `yaml:"allowed_types"`
+	StrictMode        bool          `yaml:"strict_mode"`
+	EnablePing        bool          `yaml:"enable_ping"`
+	EnablePong        bool          `yaml:"enable_pong"`
+	EnableClose       bool          `yaml:"enable_close"`
+	ConnectionTimeout time.Duration `yaml:"connection_timeout"`
 }
 
 type SIEMConfig struct {
@@ -176,9 +181,10 @@ type SIEMExporterConfig struct {
 }
 
 type RewriteRuleConfig struct {
-	Name       string                   `yaml:"name"`
+	Enabled    bool                   `yaml:"enabled"`
+	Name       string                 `yaml:"name"`
 	Conditions []RewriteConditionConfig `yaml:"conditions"`
-	Actions    []RewriteActionConfig    `yaml:"actions"`
+	Actions    []RewriteActionConfig  `yaml:"actions"`
 }
 
 type RewriteConditionConfig struct {
@@ -189,11 +195,78 @@ type RewriteConditionConfig struct {
 }
 
 type RewriteActionConfig struct {
-	Type      string `yaml:"type"`
-	Operation string `yaml:"operation"`
-	Name      string `yaml:"name"`
-	Value     string `yaml:"value"`
-	Pattern   string `yaml:"pattern"`
+	Type    string `yaml:"type"`
+	Name    string `yaml:"name"`
+	Value   string `yaml:"value"`
+	Op      string `yaml:"op"`
+	Pattern string `yaml:"pattern"`
+}
+
+type FeatureConfig struct {
+	Enabled bool `yaml:"enabled"`
+}
+
+type SQLIConfig struct {
+	Enabled bool `yaml:"enabled"`
+}
+
+type XSSConfig struct {
+	Enabled bool `yaml:"enabled"`
+}
+
+type RCEConfig struct {
+	Enabled bool `yaml:"enabled"`
+}
+
+type DDoSConfig struct {
+	Enabled bool `yaml:"enabled"`
+}
+
+type ProtocolConfig struct {
+	Enabled bool `yaml:"enabled"`
+}
+
+type BotConfig struct {
+	Enabled bool `yaml:"enabled"`
+}
+
+type APIProtectConfig struct {
+	Enabled bool `yaml:"enabled"`
+}
+
+type UploadConfig struct {
+	Enabled bool `yaml:"enabled"`
+}
+
+type CredentialConfig struct {
+	Enabled bool `yaml:"enabled"`
+}
+
+type GeoConfig struct {
+	Enabled    bool   `yaml:"enabled"`
+	CityDBPath string `yaml:"city_db_path"`
+	ASNDBPath  string `yaml:"asn_db_path"`
+}
+
+type RateLimitConfig struct {
+	Enabled      bool   `yaml:"enabled"`
+	Algorithm    string `yaml:"algorithm"`
+	DefaultRate  int    `yaml:"default_rate"`
+	DefaultBurst int    `yaml:"default_burst"`
+}
+
+type SessionConfig struct {
+	Enabled bool          `yaml:"enabled"`
+	TTL     time.Duration `yaml:"ttl"`
+}
+
+type ReputationConfig struct {
+	Enabled bool `yaml:"enabled"`
+}
+
+type RulesConfig struct {
+	Enabled bool `yaml:"enabled"`
+	DryRun  bool `yaml:"dry_run"`
 }
 
 type Config struct {
@@ -215,6 +288,20 @@ type Config struct {
 	WebSocket    WebSocketConfig     `yaml:"websocket"`
 	SIEM         SIEMConfig          `yaml:"siem"`
 	RewriteRules []RewriteRuleConfig `yaml:"rewrite_rules"`
+	SQLI         SQLIConfig          `yaml:"sqli"`
+	XSS          XSSConfig           `yaml:"xss"`
+	RCE          RCEConfig           `yaml:"rce"`
+	DDoS         DDoSConfig          `yaml:"ddos"`
+	Protocol     ProtocolConfig      `yaml:"protocol"`
+	Bot          BotConfig           `yaml:"bot"`
+	APIProtect   APIProtectConfig    `yaml:"api_protect"`
+	Upload       UploadConfig        `yaml:"upload"`
+	Credential   CredentialConfig    `yaml:"credential"`
+	Geo          GeoConfig           `yaml:"geo"`
+	RateLimit    RateLimitConfig     `yaml:"rate_limit"`
+	Session      SessionConfig       `yaml:"session"`
+	Reputation   ReputationConfig    `yaml:"reputation"`
+	RulesCfg     RulesConfig         `yaml:"rules_cfg"`
 }
 
 type Manager struct {
@@ -231,7 +318,7 @@ func DefaultConfig() *Config {
 		ML: MLConfig{
 			Enabled:      false,
 			Endpoint:     "http://127.0.0.1:9090",
-			Timeout:      5000,
+			TimeoutSec:   5,
 			MaxRetries:   2,
 			FallbackMode: "allow",
 			MinScore:     0.5,
@@ -306,18 +393,23 @@ func DefaultConfig() *Config {
 func Load(path string) (*Config, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return nil, fmt.Errorf("read config file: %w", err)
+		return nil, fmt.Errorf("read config: %w", err)
+	}
+
+	data, err = ExpandEnvRefs(data)
+	if err != nil {
+		return nil, fmt.Errorf("expand env refs: %w", err)
 	}
 
 	cfg := DefaultConfig()
 	if err := yaml.Unmarshal(data, cfg); err != nil {
-		return nil, fmt.Errorf("parse config file: %w", err)
+		return nil, fmt.Errorf("parse config: %w", err)
 	}
 
 	cfg.filePath = path
 
 	if err := cfg.Validate(); err != nil {
-		return nil, fmt.Errorf("validate config: %w", err)
+		return nil, fmt.Errorf("invalid config: %w", err)
 	}
 
 	return cfg, nil

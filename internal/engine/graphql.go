@@ -7,6 +7,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/FortressWAF/FortressWAF/internal/config"
 )
 
 type GraphQLInspector struct {
@@ -22,7 +24,7 @@ type GraphQLInspector struct {
 	strictValidation   bool
 }
 
-func NewGraphQLInspector(cfg GraphQLConfig) *GraphQLInspector {
+func NewGraphQLInspector(cfg config.GraphQLConfig) *GraphQLInspector {
 	allowed := make(map[string]bool)
 	for _, op := range cfg.AllowedOperations {
 		allowed[op] = true
@@ -45,20 +47,6 @@ func NewGraphQLInspector(cfg GraphQLConfig) *GraphQLInspector {
 		restrictedFields:   restricted,
 		strictValidation:   cfg.StrictValidation,
 	}
-}
-
-type GraphQLConfig struct {
-	Enabled            bool
-	MaxDepth           int
-	MaxCost            int
-	MaxAliases         int
-	MaxBatchSize       int
-	MaxTokens          int
-	BlockIntrospection bool
-	BlockSchema        bool
-	AllowedOperations  []string
-	RestrictedFields   []string
-	StrictValidation   bool
 }
 
 func (g *GraphQLInspector) Name() string { return "graphql_protection" }

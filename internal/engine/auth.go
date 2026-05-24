@@ -1,9 +1,13 @@
 package engine
 
 import (
+	"crypto"
+	"crypto/ecdsa"
+	"crypto/elliptic"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
+	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"math/big"
@@ -40,6 +44,8 @@ type JWK struct {
 	N   string `json:"n"`
 	E   string `json:"e"`
 	Crv string `json:"crv"`
+	X   string `json:"x"`
+	Y   string `json:"y"`
 }
 
 type JWKS struct {
@@ -303,13 +309,79 @@ func (j *JWTValidator) verifySignature(parts []string, alg string, key *JWK) err
 }
 
 func (j *JWTValidator) verifyRSASignature(data, sig []byte, key *JWK) error {
-	if j.secret != "" {
-		return nil
+	if key.N == "" || key.E == "" {
+		return fmt.Errorf("incomplete RSA key: missing n or e")
 	}
-	return nil
+
+	nBytes, err := j.decodeSegment(key.N)
+	if err != nil {
+		return fmt.Errorf("decode RSA modulus: %w", err)
+	}
+
+	eBytes, err := j.decodeSegment(key.E)
+	if err != nil {
+		return fmt.Errorf("decode RSA exponent: %w", err)
+	}
+
+	// Decode the exponent (which is base64url-encoded big-endian bytes)
+	var exp int
+	if len(eBytes) >= 8 {
+		exp = int(binary.BigEndian.Uint64(eBytes))
+	} else {
+		for _, b := range eBytes {
+			exp = (exp << 8) | int(b)
+		}
+	}
+
+	pub := &rsa.PublicKey{
+		N: new(big.Int).SetBytes(nBytes),
+		E: exp,
+	}
+
+	hash := crypto.SHA256
+	hasher := hash.New()
+	hasher.Write(data)
+	hashed := hasher.Sum(nil)
+
+	return rsa.VerifyPKCS1v15(pub, hash, hashed, sig)
 }
 
 func (j *JWTValidator) verifyECSignature(data []byte, sig []byte, key *JWK) error {
+	if key.Crv == "" || key.X == "" || key.Y == "" {
+		return fmt.Errorf("incomplete EC key: missing crv, x, or y")
+	}
+
+	xBytes, err := j.decodeSegment(key.X)
+	if err != nil {
+		return fmt.Errorf("decode EC x: %w", err)
+	}
+
+	yBytes, err := j.decodeSegment(key.Y)
+	if err != nil {
+		return fmt.Errorf("decode EC y: %w", err)
+	}
+
+	var curve elliptic.Curve
+	switch key.Crv {
+	case "P-256":
+		curve = elliptic.P256()
+	case "P-384":
+		curve = elliptic.P384()
+	case "P-521":
+		curve = elliptic.P521()
+	default:
+		return fmt.Errorf("unsupported EC curve: %s", key.Crv)
+	}
+
+	pub := &ecdsa.PublicKey{
+		Curve: curve,
+		X:     new(big.Int).SetBytes(xBytes),
+		Y:     new(big.Int).SetBytes(yBytes),
+	}
+
+	if !ecdsa.VerifyASN1(pub, data, sig) {
+		return fmt.Errorf("ECDSA signature verification failed")
+	}
 	return nil
 }
 

@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/FortressWAF/FortressWAF/internal/config"
 	"github.com/gorilla/websocket"
 )
 
@@ -42,7 +43,7 @@ type Frame struct {
 	Seq      int64
 }
 
-func NewWebSocketInspector(cfg WebSocketConfig) *WebSocketInspector {
+func NewWebSocketInspector(cfg config.WebSocketConfig) *WebSocketInspector {
 	allowedTypes := make(map[int]bool)
 	if len(cfg.AllowedTypes) == 0 {
 		allowedTypes[websocket.TextMessage] = true
@@ -68,22 +69,6 @@ func NewWebSocketInspector(cfg WebSocketConfig) *WebSocketInspector {
 		enableClose:       cfg.EnableClose,
 		connectionTimeout: cfg.ConnectionTimeout,
 	}
-}
-
-type WebSocketConfig struct {
-	Enabled           bool
-	MaxFrameSize      int
-	MaxMessageSize    int
-	MaxDepth          int
-	MaxFramesPerMin   int
-	MaxBytesPerMin    int
-	BlockOnLimit      bool
-	AllowedTypes      []int
-	StrictMode        bool
-	EnablePing        bool
-	EnablePong        bool
-	EnableClose       bool
-	ConnectionTimeout time.Duration
 }
 
 func (w *WebSocketInspector) Name() string { return "websocket_inspection" }
