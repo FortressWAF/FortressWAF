@@ -100,7 +100,9 @@ type apiError struct {
 func writeJSON(w http.ResponseWriter, status int, v interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(v)
+	if err := json.NewEncoder(w).Encode(v); err != nil {
+		slog.Warn("json encode failed", "error", err, "status", status)
+	}
 }
 
 func writeOK(w http.ResponseWriter, data interface{}) {
@@ -141,11 +143,6 @@ func writeConflict(w http.ResponseWriter, msg string) {
 
 func writeInternalErr(w http.ResponseWriter) {
 	writeErr(w, http.StatusInternalServerError, "INTERNAL_ERROR", "internal server error")
-}
-
-func readJSON(r *http.Request, v interface{}) error {
-	defer r.Body.Close()
-	return json.NewDecoder(r.Body).Decode(v)
 }
 
 func readJSONStrict(r *http.Request, v interface{}) error {

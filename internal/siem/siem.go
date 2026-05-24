@@ -121,6 +121,7 @@ func (m *Manager) Send(event SIEMEvent) {
 		select {
 		case m.flushCh <- struct{}{}:
 		default:
+			slog.Warn("siem flush channel full, signal dropped")
 		}
 	}
 }

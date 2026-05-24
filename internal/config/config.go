@@ -493,6 +493,7 @@ func (m *Manager) watchLoop(path string) {
 	defer func() {
 		if r := recover(); r != nil {
 			slog.Error("config watcher panic", "recover", r)
+			go m.watchLoop(path)
 		}
 	}()
 

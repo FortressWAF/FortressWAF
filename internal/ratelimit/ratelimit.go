@@ -59,6 +59,7 @@ type RateLimiter struct {
 	perGeoLimits      map[string]int
 	perAPIKeyLimits   map[string]int
 	priorityQueues    map[string]bool
+	done              chan struct{}
 }
 
 type leakyBucket struct {
@@ -86,6 +87,7 @@ func NewRateLimiter(algorithm Algorithm, defaultRate, defaultBurst int) *RateLim
 		perGeoLimits:      make(map[string]int),
 		perAPIKeyLimits:   make(map[string]int),
 		priorityQueues:    make(map[string]bool),
+		done:              make(chan struct{}),
 	}
 
 	go rl.cleanupLoop()
@@ -342,49 +344,59 @@ func (rl *RateLimiter) SetPriority(key string, premium bool) {
 
 func (rl *RateLimiter) cleanupLoop() {
 	ticker := time.NewTicker(rl.cleanupTick)
-	for range ticker.C {
-		rl.mu.Lock()
-		now := time.Now()
+	defer ticker.Stop()
+	for {
+		select {
+		case <-rl.done:
+			return
+		case <-ticker.C:
+			rl.mu.Lock()
+			now := time.Now()
 
-		for key, entry := range rl.fixedWindows {
-			if now.Sub(entry.timestamp) > rl.windowSize*2 {
-				delete(rl.fixedWindows, key)
-			}
-		}
-
-		for key, entries := range rl.slidingWindows {
-			cutoff := now.Add(-rl.windowSize * 2)
-			var valid []time.Time
-			for _, t := range entries {
-				if t.After(cutoff) {
-					valid = append(valid, t)
+			for key, entry := range rl.fixedWindows {
+				if now.Sub(entry.timestamp) > rl.windowSize*2 {
+					delete(rl.fixedWindows, key)
 				}
 			}
-			if len(valid) == 0 {
-				delete(rl.slidingWindows, key)
-			} else {
-				rl.slidingWindows[key] = valid
-			}
-		}
 
-		for key, bucket := range rl.tokenBuckets {
-			bucket.mu.Lock()
-			if now.Sub(bucket.lastRefill) > rl.cleanupTick*2 {
-				delete(rl.tokenBuckets, key)
+			for key, entries := range rl.slidingWindows {
+				cutoff := now.Add(-rl.windowSize * 2)
+				var valid []time.Time
+				for _, t := range entries {
+					if t.After(cutoff) {
+						valid = append(valid, t)
+					}
+				}
+				if len(valid) == 0 {
+					delete(rl.slidingWindows, key)
+				} else {
+					rl.slidingWindows[key] = valid
+				}
 			}
-			bucket.mu.Unlock()
-		}
 
-		for key, bucket := range rl.leakyBuckets {
-			bucket.mu.Lock()
-			if now.Sub(bucket.lastLeak) > rl.cleanupTick*2 && len(bucket.queue) == 0 {
-				delete(rl.leakyBuckets, key)
+			for key, bucket := range rl.tokenBuckets {
+				bucket.mu.Lock()
+				if now.Sub(bucket.lastRefill) > rl.cleanupTick*2 {
+					delete(rl.tokenBuckets, key)
+				}
+				bucket.mu.Unlock()
 			}
-			bucket.mu.Unlock()
-		}
 
-		rl.mu.Unlock()
+			for key, bucket := range rl.leakyBuckets {
+				bucket.mu.Lock()
+				if now.Sub(bucket.lastLeak) > rl.cleanupTick*2 && len(bucket.queue) == 0 {
+					delete(rl.leakyBuckets, key)
+				}
+				bucket.mu.Unlock()
+			}
+
+			rl.mu.Unlock()
+		}
 	}
+}
+
+func (rl *RateLimiter) Close() {
+	close(rl.done)
 }
 
 func (rl *RateLimiter) Allowed(key string, granularity Granularity) (bool, *Decision) {

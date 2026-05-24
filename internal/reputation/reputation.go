@@ -48,6 +48,7 @@ type Engine struct {
 	proxyRanges        []*net.IPNet
 	feedData           map[FeedSource]interface{}
 	updaters           []func()
+	done               chan struct{}
 }
 
 func NewEngine() *Engine {
@@ -64,6 +65,7 @@ func NewEngine() *Engine {
 		vpnRanges:          make([]*net.IPNet, 0),
 		proxyRanges:        make([]*net.IPNet, 0),
 		feedData:           make(map[FeedSource]interface{}),
+		done:               make(chan struct{}),
 	}
 }
 
@@ -289,17 +291,26 @@ func (e *Engine) Cleanup() {
 	go func() {
 		ticker := time.NewTicker(15 * time.Minute)
 		defer ticker.Stop()
-		for range ticker.C {
-			e.mu.Lock()
-			now := time.Now()
-			for ip, record := range e.cache {
-				if now.Sub(record.LastSeen) > e.cacheTTL*2 {
-					delete(e.cache, ip)
+		for {
+			select {
+			case <-e.done:
+				return
+			case <-ticker.C:
+				e.mu.Lock()
+				now := time.Now()
+				for ip, record := range e.cache {
+					if now.Sub(record.LastSeen) > e.cacheTTL*2 {
+						delete(e.cache, ip)
+					}
 				}
+				e.mu.Unlock()
 			}
-			e.mu.Unlock()
 		}
 	}()
+}
+
+func (e *Engine) Close() {
+	close(e.done)
 }
 
 var _ = slog.Debug
