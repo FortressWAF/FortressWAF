@@ -181,10 +181,10 @@ type SIEMExporterConfig struct {
 }
 
 type RewriteRuleConfig struct {
-	Enabled    bool                   `yaml:"enabled"`
-	Name       string                 `yaml:"name"`
+	Enabled    bool                     `yaml:"enabled"`
+	Name       string                   `yaml:"name"`
 	Conditions []RewriteConditionConfig `yaml:"conditions"`
-	Actions    []RewriteActionConfig  `yaml:"actions"`
+	Actions    []RewriteActionConfig    `yaml:"actions"`
 }
 
 type RewriteConditionConfig struct {

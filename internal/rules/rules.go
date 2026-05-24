@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net"
 	"regexp"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -237,7 +238,18 @@ func applyTransforms(value string, transforms []string) string {
 		case "trim":
 			result = strings.TrimSpace(result)
 		case "urldecode":
-			result = strings.ReplaceAll(result, "%", "")
+			result = strings.ReplaceAll(result, "%25", "%")
+			result = strings.ReplaceAll(result, "%20", " ")
+			result = strings.ReplaceAll(result, "%3C", "<")
+			result = strings.ReplaceAll(result, "%3E", ">")
+			result = strings.ReplaceAll(result, "%27", "'")
+			result = strings.ReplaceAll(result, "%22", "\"")
+			result = strings.ReplaceAll(result, "%3B", ";")
+			result = strings.ReplaceAll(result, "%2F", "/")
+			result = strings.ReplaceAll(result, "%3D", "=")
+			result = strings.ReplaceAll(result, "%26", "&")
+			result = strings.ReplaceAll(result, "%23", "#")
+			result = strings.ReplaceAll(result, "%3F", "?")
 		case "remove_null":
 			result = strings.ReplaceAll(result, "\x00", "")
 		case "remove_comments":
@@ -369,14 +381,12 @@ func (e *Engine) LoadRules(rules []Rule) {
 }
 
 func (e *Engine) sortRules() {
-	for i := 0; i < len(e.rules); i++ {
-		for j := i + 1; j < len(e.rules); j++ {
-			if e.rules[i].Priority > e.rules[j].Priority ||
-				(e.rules[i].Priority == e.rules[j].Priority && e.rules[i].ID > e.rules[j].ID) {
-				e.rules[i], e.rules[j] = e.rules[j], e.rules[i]
-			}
+	sort.Slice(e.rules, func(i, j int) bool {
+		if e.rules[i].Priority != e.rules[j].Priority {
+			return e.rules[i].Priority < e.rules[j].Priority
 		}
-	}
+		return e.rules[i].ID < e.rules[j].ID
+	})
 }
 
 func (e *Engine) AtomicSwap(rules []Rule) {
