@@ -148,8 +148,15 @@ func (s *Server) authMiddleware(next http.Handler) http.Handler {
 			token := ""
 			fmt.Sscanf(authHeader, "Bearer %s", &token)
 			if token != "" {
-				next.ServeHTTP(w, r)
-				return
+				// Validate Bearer token against session store
+				s.handlers.sessionsMu.RLock()
+				session, ok := s.handlers.sessions[token]
+				s.handlers.sessionsMu.RUnlock()
+
+				if ok && time.Now().Before(session.ExpiresAt) {
+					next.ServeHTTP(w, r)
+					return
+				}
 			}
 		}
 
