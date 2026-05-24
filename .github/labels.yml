@@ -1,5 +1,34 @@
 # Labels for issues and PRs — fortress- prefix for project-specific labels
 
+# Area
+- name: fortress-engine
+  color: c2e0c6
+  description: Engine inspection
+
+- name: fortress-api
+  color: c2e0c6
+  description: Management API
+
+- name: fortress-config
+  color: c2e0c6
+  description: Configuration
+
+- name: fortress-proxy
+  color: c2e0c6
+  description: Proxy server
+
+- name: fortress-reputation
+  color: c2e0c6
+  description: Reputation system
+
+- name: fortress-ratelimit
+  color: c2e0c6
+  description: Rate limiting
+
+- name: fortress-siem
+  color: c2e0c6
+  description: SIEM logging
+
 # Type
 - name: fortress-bug
   color: d73a4a
