@@ -1,6 +1,5 @@
 # FortressWAF — Web Application Firewall
 
-[![CI](https://github.com/FortressWAF/FortressWAF/actions/workflows/ci.yml/badge.svg)](https://github.com/FortressWAF/FortressWAF/actions)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue)](https://opensource.org/licenses/Apache-2.0)
 [![Go Version](https://img.shields.io/badge/Go-1.22+-00ADD8?logo=go)](https://go.dev/)
 [![OWASP](https://img.shields.io/badge/OWASP-Top%2010-red)](https://owasp.org/www-project-top-ten/)
