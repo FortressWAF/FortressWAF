@@ -28,7 +28,7 @@
     "react-hook-form": "^7.50.0",
     "zod": "^3.22.0",
     "@hookform/resolvers": "^3.3.4",
-    "date-fns": "^3.3.1",
+    "date-fns": "^4.3.0",
     "ws": "^8.16.0"
   },
   "devDependencies": {
