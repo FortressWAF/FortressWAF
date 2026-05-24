@@ -311,6 +311,7 @@ main() {
   fi
 
   setup_dirs
+  gen_config
 
   if [ "$INSTALL_METHOD" = docker ]; then
     install_docker
