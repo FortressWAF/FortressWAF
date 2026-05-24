@@ -118,9 +118,14 @@ func NewRequestContext(r *http.Request) *RequestContext {
 
 	// Read request body so inspectors can inspect it
 	if r.Body != nil {
-		body, err := io.ReadAll(r.Body)
+		const maxBodySize = 10 << 20 // 10MB
+		body, err := io.ReadAll(io.LimitReader(r.Body, maxBodySize+1))
 		if err == nil {
-			ctx.Body = body
+			if len(body) > maxBodySize {
+				ctx.Body = body[:maxBodySize]
+			} else {
+				ctx.Body = body
+			}
 			r.Body = io.NopCloser(bytes.NewReader(body))
 		}
 	}

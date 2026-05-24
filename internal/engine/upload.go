@@ -3,10 +3,9 @@ package engine
 import (
 	"bytes"
 	"fmt"
-	"log/slog"
 	"mime/multipart"
-	"net/textproto"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 )
@@ -104,7 +103,9 @@ func (u *FileUploadSecurity) Inspect(ctx *RequestContext) (*Decision, error) {
 	contentLengthStr := ctx.Headers["Content-Length"]
 	var contentLength int64
 	if contentLengthStr != "" {
-		fmt.Sscanf(contentLengthStr, "%d", &contentLength)
+		if v, err := strconv.ParseInt(contentLengthStr, 10, 64); err == nil {
+			contentLength = v
+		}
 	}
 
 	limit := u.getEndpointLimit(ctx.Path)
@@ -134,7 +135,7 @@ func (u *FileUploadSecurity) Inspect(ctx *RequestContext) (*Decision, error) {
 		if err != nil {
 			break
 		}
-		defer part.Close()
+		part.Close()
 
 		dec := u.inspectPart(part)
 		if dec != nil {
@@ -277,8 +278,8 @@ func (u *FileUploadSecurity) detectArchiveBomb(filename string, magic []byte) *D
 
 	for _, sig := range u.archiveMagic {
 		if len(magic) >= len(sig) && bytes.HasPrefix(magic, sig) {
-			ratio := len(magic) / 100
-			if ratio > 100 {
+			ratio := 100 * len(magic) / len(sig)
+			if ratio < 10 {
 				return &Decision{
 					Action:   ActionBlock,
 					RuleID:   "UPL006",
@@ -367,8 +368,4 @@ func (u *FileUploadSecurity) ScanWithClamAV(data []byte) *Decision {
 	return nil
 }
 
-var (
-	_ = textproto.MIMEHeader{}
-	_ = regexp.Regexp{}
-	_ = slog.Debug
-)
+

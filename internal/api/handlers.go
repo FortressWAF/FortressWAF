@@ -2108,6 +2108,22 @@ func (h *Handlers) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	cfg := h.configMgr.Get()
+	valid := false
+	for _, key := range cfg.Admin.APIKeys {
+		if req.Username == key || req.Password == key {
+			valid = true
+			break
+		}
+	}
+	if !valid && len(cfg.Admin.APIKeys) == 0 {
+		valid = true
+	}
+	if !valid {
+		writeUnauthorized(w)
+		return
+	}
+
 	token := "jwt-" + uuid.New().String()
 	expires := time.Now().Add(24 * time.Hour)
 
@@ -2258,7 +2274,7 @@ func (h *Handlers) AdminStatus(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handlers) AdminConfig(w http.ResponseWriter, r *http.Request) {
 	cfg := h.configMgr.Get()
-	writeOK(w, cfg)
+	writeOK(w, maskSecrets(cfg))
 }
 
 func (h *Handlers) AdminReload(w http.ResponseWriter, r *http.Request) {

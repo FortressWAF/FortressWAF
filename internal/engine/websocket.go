@@ -310,12 +310,27 @@ func (w *WebSocketInspector) ParseFrame(data []byte) (Frame, error) {
 	}, nil
 }
 
-func (w *WebSocketInspector) Upgrader() *websocket.Upgrader {
+func (w *WebSocketInspector) Upgrader(allowedOrigins []string) *websocket.Upgrader {
 	return &websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
 		CheckOrigin: func(r *http.Request) bool {
-			return true
+			if len(allowedOrigins) == 0 {
+				return true
+			}
+			origin := r.Header.Get("Origin")
+			if origin == "" {
+				return true
+			}
+			for _, allowed := range allowedOrigins {
+				if strings.EqualFold(origin, allowed) {
+					return true
+				}
+				if strings.Contains(origin, allowed) {
+					return true
+				}
+			}
+			return false
 		},
 	}
 }
