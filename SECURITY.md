@@ -4,8 +4,8 @@
 
 | Version | Supported |
 |---------|-----------|
-| 1.x (latest) | ✅ Full support, including security patches |
-| 0.x | ❌ End of life, upgrade recommended |
+| 1.1.0 (latest) | ✅ Full support, including security patches |
+| 1.0.0 | ❌ End of life, upgrade recommended |
 
 We recommend all users run the latest stable release. Security patches are backported to the latest minor version only.
 
