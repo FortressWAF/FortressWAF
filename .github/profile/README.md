@@ -51,6 +51,10 @@ Run as a single Go binary behind your load balancer or as a sidecar alongside ap
 docker run -v /path/to/config.yaml:/etc/fortresswaf/config.yaml -p 8080:8080 fortresswaf/proxy
 ```
 
+## Developer
+
+Built and maintained by [@zulfff](https://github.com/zulfff).
+
 ## License
 
 Dual-license. See [LICENSE](LICENSE) for details.
