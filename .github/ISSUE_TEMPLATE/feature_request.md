@@ -2,7 +2,7 @@
 name: Feature Request
 about: Suggest an idea for FortressWAF
 title: "[FEATURE] "
-labels: ["enhancement"]
+labels: ["fortress-enhancement"]
 assignees: ""
 ---
 

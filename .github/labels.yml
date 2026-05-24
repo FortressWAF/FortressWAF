@@ -1,111 +1,51 @@
-# Labels for issues and PRs
+# Labels for issues and PRs — fortress- prefix for project-specific labels
 
 # Type
-- name: bug
+- name: fortress-bug
   color: d73a4a
-  description: Something isn't working
+  description: Bug fix
 
-- name: enhancement
-  color: a2eeef
-  description: New feature or request
-
-- name: security
+- name: fortress-security
   color: e11d21
-  description: Security vulnerability or improvement
+  description: Security vulnerability or fix
 
-- name: documentation
-  color: 0075ca
-  description: Documentation only changes
+- name: fortress-enhancement
+  color: a2eeef
+  description: New feature or improvement
 
-- name: refactoring
+- name: fortress-refactoring
   color: fbca04
-  description: Code restructuring without functional changes
+  description: Code restructure without functional change
 
-- name: performance
+- name: fortress-performance
   color: 0e8a16
-  description: Performance improvement
+  description: Performance optimization
 
-- name: testing
+- name: fortress-docs
+  color: 0075ca
+  description: Documentation
+
+- name: fortress-testing
   color: 5319e7
   description: Adding or fixing tests
 
-- name: ci
+- name: fortress-ci
   color: 1d76db
-  description: CI/CD configuration or scripts
+  description: CI/CD changes
 
 # Severity
-- name: severity/critical
+- name: fortress-critical
   color: b60205
-  description: Critical severity issue
+  description: Critical severity
 
-- name: severity/high
+- name: fortress-high
   color: d93f0b
-  description: High severity issue
+  description: High severity
 
-- name: severity/medium
+- name: fortress-medium
   color: fbca04
-  description: Medium severity issue
+  description: Medium severity
 
-- name: severity/low
+- name: fortress-low
   color: 0e8a16
-  description: Low severity issue
-
-# Area
-- name: area/engine
-  color: c2e0c6
-  description: Related to the inspection engine
-
-- name: area/api
-  color: c2e0c6
-  description: Related to the management API
-
-- name: area/config
-  color: c2e0c6
-  description: Related to configuration loading
-
-- name: area/proxy
-  color: c2e0c6
-  description: Related to the proxy server
-
-- name: area/reputation
-  color: c2e0c6
-  description: Related to reputation system
-
-- name: area/ratelimit
-  color: c2e0c6
-  description: Related to rate limiting
-
-- name: area/siem
-  color: c2e0c6
-  description: Related to SIEM logging
-
-- name: area/cli
-  color: c2e0c6
-  description: Related to CLI tools
-
-# Status
-- name: status/blocked
-  color: 000000
-  description: Blocked by external dependency
-
-- name: status/needs-review
-  color: ffd33d
-  description: Needs code review
-
-- name: status/in-progress
-  color: ffd33d
-  description: Currently being worked on
-
-- name: status/duplicate
-  color: cfd3d7
-  description: Duplicate of another issue
-
-- name: status/wontfix
-  color: ffffff
-  description: Will not be addressed
-
-- name: good-first-issue
-  color: 7057ff
-  description: Good for newcomers
-
-
+  description: Low severity

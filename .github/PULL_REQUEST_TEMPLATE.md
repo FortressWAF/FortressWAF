@@ -6,33 +6,32 @@ Fixes # (issue)
 
 ## Type of change
 
-- [ ] Bug fix (`bug`)
-- [ ] Security fix (`security`)
-- [ ] New feature (`enhancement`)
-- [ ] Refactoring (`refactoring`)
-- [ ] Performance (`performance`)
-- [ ] Documentation (`documentation`)
-- [ ] Testing (`testing`)
-- [ ] CI (`ci`)
+- [ ] Bug fix (`fortress-bug`)
+- [ ] Security fix (`fortress-security`)
+- [ ] New feature (`fortress-enhancement`)
+- [ ] Refactoring (`fortress-refactoring`)
+- [ ] Performance (`fortress-performance`)
+- [ ] Documentation (`fortress-docs`)
+- [ ] Testing (`fortress-testing`)
+- [ ] CI (`fortress-ci`)
 
 ## Severity
 
 <!-- Only for bug/security fixes -->
-- [ ] Critical (`severity/critical`)
-- [ ] High (`severity/high`)
-- [ ] Medium (`severity/medium`)
-- [ ] Low (`severity/low`)
+- [ ] Critical (`fortress-critical`)
+- [ ] High (`fortress-high`)
+- [ ] Medium (`fortress-medium`)
+- [ ] Low (`fortress-low`)
 
 ## Area
 
-- [ ] Engine (`area/engine`)
-- [ ] API (`area/api`)
-- [ ] Config (`area/config`)
-- [ ] Proxy (`area/proxy`)
-- [ ] Reputation (`area/reputation`)
-- [ ] Rate Limit (`area/ratelimit`)
-- [ ] SIEM (`area/siem`)
-- [ ] CLI (`area/cli`)
+- [ ] Engine (`fortress-engine`)
+- [ ] API (`fortress-api`)
+- [ ] Config (`fortress-config`)
+- [ ] Proxy (`fortress-proxy`)
+- [ ] Reputation (`fortress-reputation`)
+- [ ] Rate Limit (`fortress-ratelimit`)
+- [ ] SIEM (`fortress-siem`)
 
 ## Checklist
 

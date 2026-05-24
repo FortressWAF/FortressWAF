@@ -1,41 +1,35 @@
 # Auto-label PRs based on changed files
-area/engine:
+fortress-engine:
   - internal/engine/**/*
 
-area/api:
+fortress-api:
   - internal/api/**/*
 
-area/config:
+fortress-config:
   - internal/config/**/*
 
-area/proxy:
+fortress-proxy:
   - cmd/proxy/**/*
 
-area/reputation:
+fortress-reputation:
   - internal/reputation/**/*
 
-area/ratelimit:
+fortress-ratelimit:
   - internal/ratelimit/**/*
 
-area/siem:
+fortress-siem:
   - internal/siem/**/*
 
-area/cli:
-  - cmd/ctl/**/*
-
-testing:
-  - '**/*_test.go'
-
-ci:
+fortress-ci:
   - .github/workflows/**/*
   - .github/labeler.yml
   - .github/labels.yml
 
-documentation:
+fortress-docs:
   - '**/*.md'
   - '**/docs/**/*'
 
-security:
+fortress-security:
   - '**/auth*.go'
   - '**/mtls*.go'
   - '**/jwt*.go'
