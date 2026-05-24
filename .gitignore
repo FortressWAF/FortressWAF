@@ -12,8 +12,6 @@ target/
 
 # Go
 vendor/
-*.mod
-*.sum
 go.work
 go.work.sum
 
