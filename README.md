@@ -1,15 +1,11 @@
 # FortressWAF — Enterprise Web Application Firewall
 
-[![CI](https://github.com/zulfff/FortressWAF/actions/workflows/ci.yml/badge.svg)](https://github.com/zulfff/FortressWAF/actions/workflows/ci.yml)
-[![Docker Pulls](https://img.shields.io/docker/pulls/zulfff/fortresswaf)](https://hub.docker.com/r/zulfff/fortresswaf)
+[![CI](https://github.com/FortressWAF/FortressWAF/actions/workflows/ci.yml/badge.svg)](https://github.com/FortressWAF/FortressWAF/actions)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue)](https://opensource.org/licenses/Apache-2.0)
-[![Go Report Card](https://goreportcard.com/badge/github.com/zulfff/FortressWAF)](https://goreportcard.com/report/github.com/zulfff/fortresswaf)
-[![Go Version](https://img.shields.io/github/go-mod/go-version/zulfff/FortressWAF)](https://go.dev/)
+[![Go Version](https://img.shields.io/badge/Go-1.22+-00ADD8?logo=go)](https://go.dev/)
 [![OWASP](https://img.shields.io/badge/OWASP-Top%2010-red)](https://owasp.org/www-project-top-ten/)
-[![PCI DSS](https://img.shields.io/badge/PCI%20DSS-Ready-brightgreen)](docs/compliance.md)
-[![Docker](https://img.shields.io/badge/docker-images-blue?logo=docker)](https://hub.docker.com/u/zulfff)
-[![Stars](https://img.shields.io/github/stars/zulfff/FortressWAF?style=social)](https://github.com/zulfff/FortressWAF)
-[![Forks](https://img.shields.io/github/forks/zulfff/FortressWAF?style=social)](https://github.com/zulfff/FortressWAF)
+[![Stars](https://img.shields.io/github/stars/FortressWAF/FortressWAF?style=social)](https://github.com/FortressWAF/FortressWAF)
+[![Forks](https://img.shields.io/github/forks/FortressWAF/FortressWAF?style=social)](https://github.com/FortressWAF/FortressWAF)
 
 **FortressWAF** is a production-grade, enterprise-ready Web Application Firewall that protects web applications and APIs from OWASP Top 10 threats, zero-day attacks, DDoS, and bot abuse. Built in Go with a machine learning sidecar, it provides defense-in-depth with sub-millisecond latency.
 
