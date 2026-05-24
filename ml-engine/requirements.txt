@@ -11,4 +11,4 @@ prometheus-client==0.20.0
 grpcio==1.62.0
 grpcio-health-checking==1.62.0
 grpcio-tools==1.62.0
-protobuf==5.26.0
+protobuf==7.35.0
