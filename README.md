@@ -25,7 +25,7 @@
 
 ```bash
 # One-line install (Linux)
-curl -sSL https://install.fortresswaf.io | bash
+curl -sSL https://github.com/FortressWAF/FortressWAF/blob/main/install.sh | bash
 
 # Or clone and run with Docker Compose
 git clone https://github.com/zulfff/FortressWAF.git
