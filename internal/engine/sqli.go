@@ -45,7 +45,7 @@ type SQLInjectionEngine struct {
 
 func NewSQLInjectionEngine(devMode bool) *SQLInjectionEngine {
 	e := &SQLInjectionEngine{
-		devMode:  devMode,
+		devMode: devMode,
 		dialects: []string{
 			"mysql", "postgresql", "mssql", "oracle", "sqlite",
 			"mariadb", "db2", "informix", "sybase", "access",

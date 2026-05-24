@@ -64,20 +64,20 @@ type MLConfig struct {
 }
 
 type SiteRuleOverride struct {
-	Enabled *bool                `yaml:"enabled,omitempty"`
+	Enabled *bool          `yaml:"enabled,omitempty"`
 	Params  map[string]any `yaml:"params,omitempty"`
 }
 
 type SiteConfig struct {
 	Name          string                      `yaml:"name"`
 	Domains       []string                    `yaml:"domains"`
-	Upstream      string                     `yaml:"upstream"`
+	Upstream      string                      `yaml:"upstream"`
 	Port          int                         `yaml:"port"`
 	TLS           bool                        `yaml:"tls"`
-	CertFile      string                     `yaml:"cert_file"`
-	KeyFile       string                     `yaml:"key_file"`
-	RateLimit     *RateLimitSiteConfig       `yaml:"rate_limit,omitempty"`
-	WAFEnabled   bool                       `yaml:"waf_enabled"`
+	CertFile      string                      `yaml:"cert_file"`
+	KeyFile       string                      `yaml:"key_file"`
+	RateLimit     *RateLimitSiteConfig        `yaml:"rate_limit,omitempty"`
+	WAFEnabled    bool                        `yaml:"waf_enabled"`
 	RuleOverrides map[string]SiteRuleOverride `yaml:"rule_overrides,omitempty"`
 }
 
@@ -87,19 +87,19 @@ type RateLimitSiteConfig struct {
 }
 
 type RuleConfig struct {
-	ID          string            `yaml:"id"`
-	Name        string            `yaml:"name"`
-	Description string            `yaml:"description"`
-	Enabled     bool              `yaml:"enabled"`
-	Severity    string            `yaml:"severity"`
-	Action      string            `yaml:"action"`
-	Phase       string            `yaml:"phase"`
-	Priority    int               `yaml:"priority"`
-	Field       string            `yaml:"field"`
-	Operator    string            `yaml:"operator"`
-	Value       string            `yaml:"value"`
-	Transform   []string          `yaml:"transform"`
-	Tags        []string         `yaml:"tags"`
+	ID          string         `yaml:"id"`
+	Name        string         `yaml:"name"`
+	Description string         `yaml:"description"`
+	Enabled     bool           `yaml:"enabled"`
+	Severity    string         `yaml:"severity"`
+	Action      string         `yaml:"action"`
+	Phase       string         `yaml:"phase"`
+	Priority    int            `yaml:"priority"`
+	Field       string         `yaml:"field"`
+	Operator    string         `yaml:"operator"`
+	Value       string         `yaml:"value"`
+	Transform   []string       `yaml:"transform"`
+	Tags        []string       `yaml:"tags"`
 	Params      map[string]any `yaml:"params,omitempty"`
 }
 
@@ -115,21 +115,21 @@ type JWTConfig struct {
 type OAuthConfig struct {
 	Enabled          bool   `yaml:"enabled"`
 	IntrospectionURL string `yaml:"introspection_url"`
-	ClientID        string `yaml:"client_id"`
-	ClientSecret    string `yaml:"client_secret"`
-	TokenTypeHint   string `yaml:"token_type_hint"`
+	ClientID         string `yaml:"client_id"`
+	ClientSecret     string `yaml:"client_secret"`
+	TokenTypeHint    string `yaml:"token_type_hint"`
 }
 
 type GraphQLConfig struct {
-	Enabled             bool     `yaml:"enabled"`
-	MaxDepth            int      `yaml:"max_depth"`
-	MaxCost             int      `yaml:"max_cost"`
-	MaxAliases          int      `yaml:"max_aliases"`
-	MaxBatchSize        int      `yaml:"max_batch_size"`
-	MaxTokens           int      `yaml:"max_tokens"`
-	BlockIntrospection  bool     `yaml:"block_introspection"`
+	Enabled            bool     `yaml:"enabled"`
+	MaxDepth           int      `yaml:"max_depth"`
+	MaxCost            int      `yaml:"max_cost"`
+	MaxAliases         int      `yaml:"max_aliases"`
+	MaxBatchSize       int      `yaml:"max_batch_size"`
+	MaxTokens          int      `yaml:"max_tokens"`
+	BlockIntrospection bool     `yaml:"block_introspection"`
 	BlockSchema        bool     `yaml:"block_schema"`
-	AllowedOperations   []string `yaml:"allowed_operations"`
+	AllowedOperations  []string `yaml:"allowed_operations"`
 	RestrictedFields   []string `yaml:"restricted_fields"`
 	StrictValidation   bool     `yaml:"strict_validation"`
 }
@@ -141,26 +141,26 @@ type MTLSConfig struct {
 	SkipVerify     bool   `yaml:"skip_verify"`
 	PolicyOID      string `yaml:"policy_oid"`
 	VerifyDepth    int    `yaml:"verify_depth"`
-	FailOnError   bool   `yaml:"fail_on_error"`
-	EarlyAuth     bool   `yaml:"early_auth"`
+	FailOnError    bool   `yaml:"fail_on_error"`
+	EarlyAuth      bool   `yaml:"early_auth"`
 	UsernameHeader string `yaml:"username_header"`
 }
 
 type WebSocketConfig struct {
-	Enabled      bool `yaml:"enabled"`
-	MaxFrameSize int  `yaml:"max_frame_size"`
-	MaxDepth     int  `yaml:"max_depth"`
+	Enabled      bool  `yaml:"enabled"`
+	MaxFrameSize int   `yaml:"max_frame_size"`
+	MaxDepth     int   `yaml:"max_depth"`
 	AllowedTypes []int `yaml:"allowed_types"`
-	StrictMode  bool `yaml:"strict_mode"`
-	EnablePing  bool `yaml:"enable_ping"`
-	EnablePong  bool `yaml:"enable_pong"`
-	EnableClose bool `yaml:"enable_close"`
+	StrictMode   bool  `yaml:"strict_mode"`
+	EnablePing   bool  `yaml:"enable_ping"`
+	EnablePong   bool  `yaml:"enable_pong"`
+	EnableClose  bool  `yaml:"enable_close"`
 }
 
 type SIEMConfig struct {
-	Enabled        bool              `yaml:"enabled"`
-	ExportInterval time.Duration     `yaml:"export_interval"`
-	BatchSize      int               `yaml:"batch_size"`
+	Enabled        bool                 `yaml:"enabled"`
+	ExportInterval time.Duration        `yaml:"export_interval"`
+	BatchSize      int                  `yaml:"batch_size"`
 	Exporters      []SIEMExporterConfig `yaml:"exporters"`
 }
 
@@ -176,9 +176,9 @@ type SIEMExporterConfig struct {
 }
 
 type RewriteRuleConfig struct {
-	Name       string                  `yaml:"name"`
+	Name       string                   `yaml:"name"`
 	Conditions []RewriteConditionConfig `yaml:"conditions"`
-	Actions    []RewriteActionConfig  `yaml:"actions"`
+	Actions    []RewriteActionConfig    `yaml:"actions"`
 }
 
 type RewriteConditionConfig struct {
@@ -191,9 +191,9 @@ type RewriteConditionConfig struct {
 type RewriteActionConfig struct {
 	Type      string `yaml:"type"`
 	Operation string `yaml:"operation"`
-	Name     string `yaml:"name"`
-	Value    string `yaml:"value"`
-	Pattern  string `yaml:"pattern"`
+	Name      string `yaml:"name"`
+	Value     string `yaml:"value"`
+	Pattern   string `yaml:"pattern"`
 }
 
 type Config struct {
@@ -201,19 +201,19 @@ type Config struct {
 	filePath string
 
 	Sites        []SiteConfig        `yaml:"sites"`
-	Rules        []RuleConfig       `yaml:"rules"`
-	ML           MLConfig          `yaml:"ml"`
-	Redis        RedisConfig        `yaml:"redis"`
-	DB           DBConfig         `yaml:"db"`
-	Logging      LoggingConfig      `yaml:"logging"`
-	TLS          TLSConfig         `yaml:"tls"`
-	Admin        AdminConfig       `yaml:"admin"`
-	JWT          JWTConfig         `yaml:"jwt"`
-	OAuth        OAuthConfig       `yaml:"oauth"`
-	GraphQL      GraphQLConfig     `yaml:"graphql"`
-	MTLS         MTLSConfig        `yaml:"mtls"`
-	WebSocket    WebSocketConfig   `yaml:"websocket"`
-	SIEM         SIEMConfig       `yaml:"siem"`
+	Rules        []RuleConfig        `yaml:"rules"`
+	ML           MLConfig            `yaml:"ml"`
+	Redis        RedisConfig         `yaml:"redis"`
+	DB           DBConfig            `yaml:"db"`
+	Logging      LoggingConfig       `yaml:"logging"`
+	TLS          TLSConfig           `yaml:"tls"`
+	Admin        AdminConfig         `yaml:"admin"`
+	JWT          JWTConfig           `yaml:"jwt"`
+	OAuth        OAuthConfig         `yaml:"oauth"`
+	GraphQL      GraphQLConfig       `yaml:"graphql"`
+	MTLS         MTLSConfig          `yaml:"mtls"`
+	WebSocket    WebSocketConfig     `yaml:"websocket"`
+	SIEM         SIEMConfig          `yaml:"siem"`
 	RewriteRules []RewriteRuleConfig `yaml:"rewrite_rules"`
 }
 
@@ -277,14 +277,14 @@ func DefaultConfig() *Config {
 			MaxAliases:        15,
 			MaxBatchSize:      1,
 			MaxTokens:         10000,
-			StrictValidation:   true,
+			StrictValidation:  true,
 			AllowedOperations: []string{"query", "mutation"},
 		},
 		MTLS: MTLSConfig{
 			Enabled:        false,
 			ClientAuth:     "no-client-certs",
 			UsernameHeader: "X-Client-Cert-User",
-			VerifyDepth:   5,
+			VerifyDepth:    5,
 		},
 		WebSocket: WebSocketConfig{
 			Enabled:      false,
@@ -296,9 +296,9 @@ func DefaultConfig() *Config {
 			EnableClose:  true,
 		},
 		SIEM: SIEMConfig{
-			Enabled:       false,
+			Enabled:        false,
 			ExportInterval: 10 * time.Second,
-			BatchSize:     100,
+			BatchSize:      100,
 		},
 	}
 }

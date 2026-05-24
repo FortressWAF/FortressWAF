@@ -201,8 +201,8 @@ func TestDDoSEngineNoPanic(t *testing.T) {
 
 func TestProtocolEngineInitialization(t *testing.T) {
 	cfg := engine.EngineConfig{
-		DevMode:   false,
-		Protocol:  engine.NewProtocolAnomaly(false),
+		DevMode:  false,
+		Protocol: engine.NewProtocolAnomaly(false),
 	}
 	e := engine.New(cfg)
 	if e == nil {
@@ -212,8 +212,8 @@ func TestProtocolEngineInitialization(t *testing.T) {
 
 func TestProtocolEngineNoPanic(t *testing.T) {
 	cfg := engine.EngineConfig{
-		DevMode:   false,
-		Protocol:  engine.NewProtocolAnomaly(false),
+		DevMode:  false,
+		Protocol: engine.NewProtocolAnomaly(false),
 	}
 	e := engine.New(cfg)
 
@@ -361,13 +361,13 @@ func TestEngineAllowAction(t *testing.T) {
 
 func TestFullEngineNoPanic(t *testing.T) {
 	cfg := engine.EngineConfig{
-		DevMode:    false,
-		SQLI:       engine.NewSQLInjectionEngine(false),
-		XSS:        engine.NewXSSEngine(false),
-		RCE:        engine.NewRCEInjection(false),
-		DDoS:       engine.NewDDoSProtection(false),
-		Protocol:   engine.NewProtocolAnomaly(false),
-		Bot:        engine.NewBotDetector(false),
+		DevMode:  false,
+		SQLI:     engine.NewSQLInjectionEngine(false),
+		XSS:      engine.NewXSSEngine(false),
+		RCE:      engine.NewRCEInjection(false),
+		DDoS:     engine.NewDDoSProtection(false),
+		Protocol: engine.NewProtocolAnomaly(false),
+		Bot:      engine.NewBotDetector(false),
 	}
 
 	e := engine.New(cfg)

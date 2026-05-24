@@ -8,14 +8,14 @@ import (
 )
 
 type RCEInjection struct {
-	mu             sync.RWMutex
-	devMode        bool
-	shellPatterns  []*regexp.Regexp
-	sstiPatterns   []*regexp.Regexp
-	elPatterns     []*regexp.Regexp
-	deserPatterns  []*regexp.Regexp
-	log4jPatterns  []*regexp.Regexp
-	fileInclusion  []*regexp.Regexp
+	mu            sync.RWMutex
+	devMode       bool
+	shellPatterns []*regexp.Regexp
+	sstiPatterns  []*regexp.Regexp
+	elPatterns    []*regexp.Regexp
+	deserPatterns []*regexp.Regexp
+	log4jPatterns []*regexp.Regexp
+	fileInclusion []*regexp.Regexp
 }
 
 func NewRCEInjection(devMode bool) *RCEInjection {

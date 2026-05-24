@@ -32,15 +32,15 @@ func newBenchmarkRequest(method, path string, queryParams map[string]string) *ht
 
 func newBenchmarkContext(req *http.Request) *engine.RequestContext {
 	return &engine.RequestContext{
-		Request:   req,
-		RealIP:    "192.168.1.1",
-		UserAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-		Path:      req.URL.Path,
-		Method:    req.Method,
-		Headers:   make(map[string]string),
-		Body:      nil,
+		Request:     req,
+		RealIP:      "192.168.1.1",
+		UserAgent:   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+		Path:        req.URL.Path,
+		Method:      req.Method,
+		Headers:     make(map[string]string),
+		Body:        nil,
 		ContentType: "text/html",
-		Context:   context.Background(),
+		Context:     context.Background(),
 	}
 }
 
@@ -267,13 +267,13 @@ func BenchmarkDDoSSingleRequest(b *testing.B) {
 // Benchmark: Full Engine Inspection
 func BenchmarkFullEngineInspection(b *testing.B) {
 	cfg := engine.EngineConfig{
-		DevMode:    false,
-		SQLI:       engine.NewSQLInjectionEngine(false),
-		XSS:        engine.NewXSSEngine(false),
-		RCE:        engine.NewRCEInjection(false),
-		DDoS:       engine.NewDDoSProtection(false),
-		Protocol:   engine.NewProtocolAnomaly(false),
-		Bot:        engine.NewBotDetector(false),
+		DevMode:  false,
+		SQLI:     engine.NewSQLInjectionEngine(false),
+		XSS:      engine.NewXSSEngine(false),
+		RCE:      engine.NewRCEInjection(false),
+		DDoS:     engine.NewDDoSProtection(false),
+		Protocol: engine.NewProtocolAnomaly(false),
+		Bot:      engine.NewBotDetector(false),
 	}
 	e := engine.New(cfg)
 
@@ -300,13 +300,13 @@ func BenchmarkFullEngineInspection(b *testing.B) {
 
 func BenchmarkFullEngineNormalRequest(b *testing.B) {
 	cfg := engine.EngineConfig{
-		DevMode:    false,
-		SQLI:       engine.NewSQLInjectionEngine(false),
-		XSS:        engine.NewXSSEngine(false),
-		RCE:        engine.NewRCEInjection(false),
-		DDoS:       engine.NewDDoSProtection(false),
-		Protocol:   engine.NewProtocolAnomaly(false),
-		Bot:        engine.NewBotDetector(false),
+		DevMode:  false,
+		SQLI:     engine.NewSQLInjectionEngine(false),
+		XSS:      engine.NewXSSEngine(false),
+		RCE:      engine.NewRCEInjection(false),
+		DDoS:     engine.NewDDoSProtection(false),
+		Protocol: engine.NewProtocolAnomaly(false),
+		Bot:      engine.NewBotDetector(false),
 	}
 	e := engine.New(cfg)
 	req := newBenchmarkRequest("GET", "/api/users", map[string]string{"page": "1", "limit": "10"})
@@ -320,13 +320,13 @@ func BenchmarkFullEngineNormalRequest(b *testing.B) {
 
 func BenchmarkFullEngineAttackRequest(b *testing.B) {
 	cfg := engine.EngineConfig{
-		DevMode:    false,
-		SQLI:       engine.NewSQLInjectionEngine(false),
-		XSS:        engine.NewXSSEngine(false),
-		RCE:        engine.NewRCEInjection(false),
-		DDoS:       engine.NewDDoSProtection(false),
-		Protocol:   engine.NewProtocolAnomaly(false),
-		Bot:        engine.NewBotDetector(false),
+		DevMode:  false,
+		SQLI:     engine.NewSQLInjectionEngine(false),
+		XSS:      engine.NewXSSEngine(false),
+		RCE:      engine.NewRCEInjection(false),
+		DDoS:     engine.NewDDoSProtection(false),
+		Protocol: engine.NewProtocolAnomaly(false),
+		Bot:      engine.NewBotDetector(false),
 	}
 	e := engine.New(cfg)
 	req := newBenchmarkRequest("GET", "/search", map[string]string{"q": "' OR '1'='1 UNION SELECT NULL--"})

@@ -13,16 +13,16 @@ import (
 )
 
 type CredentialProtection struct {
-	mu               sync.RWMutex
-	devMode          bool
-	loginAttempts    map[string]*loginTracker
-	passwordSpray    map[string]*sprayTracker
-	bruteForce       map[string]*bruteForceTracker
-	leakedCreds      map[string]bool
-	hibpEnabled      bool
-	jwtSecret        string
-	lockoutDuration  time.Duration
-	maxAttempts      int
+	mu              sync.RWMutex
+	devMode         bool
+	loginAttempts   map[string]*loginTracker
+	passwordSpray   map[string]*sprayTracker
+	bruteForce      map[string]*bruteForceTracker
+	leakedCreds     map[string]bool
+	hibpEnabled     bool
+	jwtSecret       string
+	lockoutDuration time.Duration
+	maxAttempts     int
 }
 
 type loginTracker struct {

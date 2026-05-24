@@ -10,26 +10,26 @@ import (
 )
 
 type Record struct {
-	CountryCode string `json:"country_code"`
-	CountryName string `json:"country_name"`
-	City        string `json:"city"`
-	ISP         string `json:"isp"`
-	ASN         uint   `json:"asn"`
-	ASOrg       string `json:"as_org"`
-	Timezone    string `json:"timezone"`
-	Latitude    float64 `json:"latitude"`
-	Longitude   float64 `json:"longitude"`
-	IsAnonymousProxy bool `json:"is_anonymous_proxy"`
-	IsSatelliteProvider bool `json:"is_satellite_provider"`
+	CountryCode         string  `json:"country_code"`
+	CountryName         string  `json:"country_name"`
+	City                string  `json:"city"`
+	ISP                 string  `json:"isp"`
+	ASN                 uint    `json:"asn"`
+	ASOrg               string  `json:"as_org"`
+	Timezone            string  `json:"timezone"`
+	Latitude            float64 `json:"latitude"`
+	Longitude           float64 `json:"longitude"`
+	IsAnonymousProxy    bool    `json:"is_anonymous_proxy"`
+	IsSatelliteProvider bool    `json:"is_satellite_provider"`
 }
 
 type Lookup struct {
-	mu          sync.RWMutex
-	db          *geoip2.Reader
-	asnDB       *geoip2.Reader
-	cityDBPath  string
-	asnDBPath   string
-	available   bool
+	mu         sync.RWMutex
+	db         *geoip2.Reader
+	asnDB      *geoip2.Reader
+	cityDBPath string
+	asnDBPath  string
+	available  bool
 }
 
 func NewLookup(cityDBPath, asnDBPath string) *Lookup {

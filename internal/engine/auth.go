@@ -16,14 +16,14 @@ import (
 )
 
 type JWTValidator struct {
-	mu        sync.RWMutex
-	jwksURL   string
-	jwksCache *JWKSCache
-	issuers   []string
-	audiences []string
+	mu         sync.RWMutex
+	jwksURL    string
+	jwksCache  *JWKSCache
+	issuers    []string
+	audiences  []string
 	algorithms []string
-	secret    string
-	client   *http.Client
+	secret     string
+	client     *http.Client
 }
 
 type JWKSCache struct {
@@ -357,11 +357,11 @@ func (j *JWTValidator) HasRole(claims *JWTClaims, role string) bool {
 type OAuthIntrospector struct {
 	mu               sync.RWMutex
 	introspectionURL string
-	clientID        string
-	clientSecret    string
-	tokenTypeHint   string
-	client          *http.Client
-	cache           *tokenCache
+	clientID         string
+	clientSecret     string
+	tokenTypeHint    string
+	client           *http.Client
+	cache            *tokenCache
 }
 
 type tokenCache struct {
@@ -391,9 +391,9 @@ type TokenInfo struct {
 func NewOAuthIntrospector(cfg config.OAuthConfig) *OAuthIntrospector {
 	return &OAuthIntrospector{
 		introspectionURL: cfg.IntrospectionURL,
-		clientID:      cfg.ClientID,
-		clientSecret:   cfg.ClientSecret,
-		tokenTypeHint:  cfg.TokenTypeHint,
+		clientID:         cfg.ClientID,
+		clientSecret:     cfg.ClientSecret,
+		tokenTypeHint:    cfg.TokenTypeHint,
 		client: &http.Client{
 			Timeout: 10 * time.Second,
 		},

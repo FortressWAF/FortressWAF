@@ -12,43 +12,43 @@ import (
 )
 
 type FileUploadSecurity struct {
-	mu                    sync.RWMutex
-	devMode               bool
-	maxFileSize           int64
-	mimeSignatures        map[string][]byte
-	executableExtensions  []string
-	archiveExtensions     []string
-	imageExtensions       []string
-	clamavAvailable       bool
-	perEndpointLimits     map[string]int64
-	executableMagic       [][]byte
-	archiveMagic          [][]byte
+	mu                   sync.RWMutex
+	devMode              bool
+	maxFileSize          int64
+	mimeSignatures       map[string][]byte
+	executableExtensions []string
+	archiveExtensions    []string
+	imageExtensions      []string
+	clamavAvailable      bool
+	perEndpointLimits    map[string]int64
+	executableMagic      [][]byte
+	archiveMagic         [][]byte
 }
 
 func NewFileUploadSecurity(devMode bool) *FileUploadSecurity {
 	u := &FileUploadSecurity{
-		devMode:          devMode,
-		maxFileSize:      10 * 1024 * 1024,
-		clamavAvailable:  false,
+		devMode:           devMode,
+		maxFileSize:       10 * 1024 * 1024,
+		clamavAvailable:   false,
 		perEndpointLimits: make(map[string]int64),
 	}
 
 	u.mimeSignatures = map[string][]byte{
-		"image/jpeg":             {0xFF, 0xD8, 0xFF},
-		"image/png":              {0x89, 0x50, 0x4E, 0x47},
-		"image/gif":             {0x47, 0x49, 0x46, 0x38},
-		"image/webp":            {0x52, 0x49, 0x46, 0x46},
-		"image/tiff":            {0x49, 0x49, 0x2A, 0x00},
-		"image/bmp":             {0x42, 0x4D},
-		"application/pdf":       {0x25, 0x50, 0x44, 0x46},
-		"application/zip":       {0x50, 0x4B, 0x03, 0x04},
-		"application/gzip":      {0x1F, 0x8B},
-		"application/x-bzip2":   {0x42, 0x5A},
-		"application/x-xz":      {0xFD, 0x37, 0x7A, 0x58, 0x5A, 0x00},
-		"text/plain":            {},
-		"text/csv":              {},
-		"application/json":      {},
-		"application/xml":       {},
+		"image/jpeg":               {0xFF, 0xD8, 0xFF},
+		"image/png":                {0x89, 0x50, 0x4E, 0x47},
+		"image/gif":                {0x47, 0x49, 0x46, 0x38},
+		"image/webp":               {0x52, 0x49, 0x46, 0x46},
+		"image/tiff":               {0x49, 0x49, 0x2A, 0x00},
+		"image/bmp":                {0x42, 0x4D},
+		"application/pdf":          {0x25, 0x50, 0x44, 0x46},
+		"application/zip":          {0x50, 0x4B, 0x03, 0x04},
+		"application/gzip":         {0x1F, 0x8B},
+		"application/x-bzip2":      {0x42, 0x5A},
+		"application/x-xz":         {0xFD, 0x37, 0x7A, 0x58, 0x5A, 0x00},
+		"text/plain":               {},
+		"text/csv":                 {},
+		"application/json":         {},
+		"application/xml":          {},
 		"application/octet-stream": {},
 	}
 

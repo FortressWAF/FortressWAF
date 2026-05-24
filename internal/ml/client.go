@@ -13,31 +13,31 @@ import (
 )
 
 type InspectionResult struct {
-	ThreatScore   float64            `json:"threat_score"`
-	IsMalicious   bool               `json:"is_malicious"`
-	Category      string             `json:"category"`
-	Confidence    float64            `json:"confidence"`
-	Features      map[string]float64 `json:"features"`
-	BotScore      float64            `json:"bot_score"`
-	AnomalyScore  float64            `json:"anomaly_score"`
+	ThreatScore  float64            `json:"threat_score"`
+	IsMalicious  bool               `json:"is_malicious"`
+	Category     string             `json:"category"`
+	Confidence   float64            `json:"confidence"`
+	Features     map[string]float64 `json:"features"`
+	BotScore     float64            `json:"bot_score"`
+	AnomalyScore float64            `json:"anomaly_score"`
 }
 
 type ClassificationResult struct {
-	Label       string             `json:"label"`
-	Score       float64            `json:"score"`
+	Label         string             `json:"label"`
+	Score         float64            `json:"score"`
 	Probabilities map[string]float64 `json:"probabilities"`
 }
 
 type FingerprintResult struct {
-	Fingerprint string `json:"fingerprint"`
+	Fingerprint string  `json:"fingerprint"`
 	Confidence  float64 `json:"confidence"`
 	IsKnown     bool    `json:"is_known"`
 }
 
 type BotScoreResult struct {
-	Score       float64 `json:"score"`
-	IsBot       bool    `json:"is_bot"`
-	BotType     string  `json:"bot_type"`
+	Score   float64 `json:"score"`
+	IsBot   bool    `json:"is_bot"`
+	BotType string  `json:"bot_type"`
 }
 
 type Client struct {
@@ -52,23 +52,23 @@ type Client struct {
 }
 
 type circuitBreaker struct {
-	mu         sync.Mutex
-	failures   int
-	lastError  time.Time
-	threshold  int
-	cooldown   time.Duration
-	open       bool
+	mu        sync.Mutex
+	failures  int
+	lastError time.Time
+	threshold int
+	cooldown  time.Duration
+	open      bool
 }
 
 type InspectRequest struct {
-	Method       string            `json:"method"`
-	Path         string            `json:"path"`
-	Headers      map[string]string `json:"headers"`
-	Body         string            `json:"body"`
-	ContentType  string            `json:"content_type"`
-	RealIP       string            `json:"real_ip"`
-	UserAgent    string            `json:"user_agent"`
-	QueryParams  map[string][]string `json:"query_params"`
+	Method      string              `json:"method"`
+	Path        string              `json:"path"`
+	Headers     map[string]string   `json:"headers"`
+	Body        string              `json:"body"`
+	ContentType string              `json:"content_type"`
+	RealIP      string              `json:"real_ip"`
+	UserAgent   string              `json:"user_agent"`
+	QueryParams map[string][]string `json:"query_params"`
 }
 
 func NewClient(endpoint string, timeoutSec, maxRetries int, fallbackMode string) *Client {

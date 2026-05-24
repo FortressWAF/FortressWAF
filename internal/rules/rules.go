@@ -15,27 +15,27 @@ import (
 type Operator string
 
 const (
-	OpEquals     Operator = "equals"
-	OpContains   Operator = "contains"
-	OpRegex      Operator = "regex"
-	OpPrefix     Operator = "prefix"
-	OpSuffix     Operator = "suffix"
-	OpIPMatch    Operator = "ip_match"
-	OpGeoMatch   Operator = "geo_match"
-	OpExists     Operator = "exists"
-	OpGt         Operator = "gt"
-	OpLt         Operator = "lt"
-	OpIn         Operator = "in"
-	OpNotIn      Operator = "not_in"
+	OpEquals   Operator = "equals"
+	OpContains Operator = "contains"
+	OpRegex    Operator = "regex"
+	OpPrefix   Operator = "prefix"
+	OpSuffix   Operator = "suffix"
+	OpIPMatch  Operator = "ip_match"
+	OpGeoMatch Operator = "geo_match"
+	OpExists   Operator = "exists"
+	OpGt       Operator = "gt"
+	OpLt       Operator = "lt"
+	OpIn       Operator = "in"
+	OpNotIn    Operator = "not_in"
 )
 
 type Action string
 
 const (
-	ActionBlock    Action = "block"
-	ActionAllow    Action = "allow"
+	ActionBlock     Action = "block"
+	ActionAllow     Action = "allow"
 	ActionChallenge Action = "challenge"
-	ActionMonitor  Action = "monitor"
+	ActionMonitor   Action = "monitor"
 	ActionRateLimit Action = "rate_limit"
 )
 
@@ -66,38 +66,38 @@ type Rule struct {
 }
 
 type FieldValue struct {
-	QueryParams   map[string][]string
-	FormParams    map[string][]string
-	Headers       map[string]string
-	Cookies       map[string]string
-	Body          []byte
-	Path          string
-	Method        string
-	RealIP        string
-	UserAgent     string
-	ContentType   string
-	Country       string
-	ASN           uint
-	SessionID     string
-	UserID        string
-	Host          string
+	QueryParams map[string][]string
+	FormParams  map[string][]string
+	Headers     map[string]string
+	Cookies     map[string]string
+	Body        []byte
+	Path        string
+	Method      string
+	RealIP      string
+	UserAgent   string
+	ContentType string
+	Country     string
+	ASN         uint
+	SessionID   string
+	UserID      string
+	Host        string
 }
 
 type Decision struct {
-	RuleID    string
-	RuleName  string
-	Action    string
-	Severity  string
-	Score     float64
-	Evidence  string
-	Matched   bool
+	RuleID   string
+	RuleName string
+	Action   string
+	Severity string
+	Score    float64
+	Evidence string
+	Matched  bool
 }
 
 type Engine struct {
-	mu       sync.RWMutex
-	rules    []Rule
-	byID     map[string]*Rule
-	dryRun   bool
+	mu     sync.RWMutex
+	rules  []Rule
+	byID   map[string]*Rule
+	dryRun bool
 }
 
 func NewEngine(dryRun bool) *Engine {
@@ -525,28 +525,28 @@ func DefaultRules() []Rule {
 			Severity: "high", Action: "block", Phase: "request", Priority: 1,
 			Field: "user_agent", Operator: "regex",
 			Value: `(?i)(?:sqlmap|nikto|nmap|masscan|gobuster|dirbuster|wpscan|burpsuite|zap|acunetix|netsparker)`,
-			Tags: []string{"automation", "scanner"},
+			Tags:  []string{"automation", "scanner"},
 		},
 		{
 			ID: "PLATFORM002", Name: "Block Path Traversal", Enabled: true,
 			Severity: "critical", Action: "block", Phase: "request", Priority: 2,
 			Field: "path", Operator: "regex",
 			Value: `(?i)(?:/\.\.|\.\./|\.\.\\|/etc/passwd|/windows/win\.ini)`,
-			Tags: []string{"lfi", "path-traversal"},
+			Tags:  []string{"lfi", "path-traversal"},
 		},
 		{
 			ID: "PLATFORM003", Name: "Block Private IP Ranges", Enabled: true,
 			Severity: "high", Action: "block", Phase: "request", Priority: 3,
 			Field: "headers.X-Forwarded-For", Operator: "regex",
 			Value: `(?i)(?:^127\.|^10\.|^172\.(?:1[6-9]|2[0-9]|3[01])\.|^192\.168\.)`,
-			Tags: []string{"spoofing", "security"},
+			Tags:  []string{"spoofing", "security"},
 		},
 		{
 			ID: "PLATFORM004", Name: "Block Suspicious Methods", Enabled: true,
 			Severity: "high", Action: "block", Phase: "request", Priority: 4,
 			Field: "method", Operator: "in",
 			Value: "CONNECT,TRACE,TRACK,PUT,DELETE,PATCH",
-			Tags: []string{"method", "restriction"},
+			Tags:  []string{"method", "restriction"},
 		},
 	}
 }

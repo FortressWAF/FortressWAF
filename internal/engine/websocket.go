@@ -64,8 +64,8 @@ func NewWebSocketInspector(cfg WebSocketConfig) *WebSocketInspector {
 		allowedTypes:      allowedTypes,
 		strictMode:        cfg.StrictMode,
 		enablePing:        cfg.EnablePing,
-		enablePong:       cfg.EnablePong,
-		enableClose:      cfg.EnableClose,
+		enablePong:        cfg.EnablePong,
+		enableClose:       cfg.EnableClose,
 		connectionTimeout: cfg.ConnectionTimeout,
 	}
 }
@@ -320,7 +320,7 @@ func (w *WebSocketInspector) ParseFrame(data []byte) (Frame, error) {
 
 	return Frame{
 		Type:     opcode,
-		Payload: payload,
+		Payload:  payload,
 		Finished: fin,
 	}, nil
 }

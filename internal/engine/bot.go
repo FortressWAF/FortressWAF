@@ -10,10 +10,10 @@ import (
 )
 
 type BotDetector struct {
-	mu            sync.RWMutex
-	devMode       bool
-	goodBots      map[string]*regexp.Regexp
-	badBots       []*regexp.Regexp
+	mu               sync.RWMutex
+	devMode          bool
+	goodBots         map[string]*regexp.Regexp
+	badBots          []*regexp.Regexp
 	headlessPatterns []*regexp.Regexp
 	honeypotFields   []string
 }
@@ -22,27 +22,27 @@ func NewBotDetector(devMode bool) *BotDetector {
 	d := &BotDetector{
 		devMode: devMode,
 		goodBots: map[string]*regexp.Regexp{
-			"googlebot":      regexp.MustCompile(`(?i)googlebot|google(?:-mobile|bot|adsense|structured-data|cloud-platform)`),
-			"bingbot":        regexp.MustCompile(`(?i)bingbot|msnbot|bingpreview`),
-			"yandexbot":      regexp.MustCompile(`(?i)yandexbot|yandeximages|yandexmetrika|yandexwebmaster`),
-			"slurp":          regexp.MustCompile(`(?i)yahoo!\s+slurp|yahooseeker`),
-			"baiduspider":    regexp.MustCompile(`(?i)baiduspider|baidugame`),
-			"duckduckbot":    regexp.MustCompile(`(?i)duckduckbot`),
-			"facebookbot":    regexp.MustCompile(`(?i)facebookexternalhit|facebookcatalog|facebot`),
-			"twitterbot":     regexp.MustCompile(`(?i)twitterbot`),
-			"linkedinbot":    regexp.MustCompile(`(?i)linkedinbot`),
-			"slackbot":       regexp.MustCompile(`(?i)slackbot|slack-link-expand`),
-			"discordbot":     regexp.MustCompile(`(?i)discordbot`),
-			"telegrambot":    regexp.MustCompile(`(?i)telegrambot`),
-			"applebot":       regexp.MustCompile(`(?i)applebot`),
-			"semrushbot":     regexp.MustCompile(`(?i)semrushbot`),
-			"ahrefsbot":      regexp.MustCompile(`(?i)ahrefsbot`),
-			"majestic":       regexp.MustCompile(`(?i)majestic-seo`),
-			"pinterest":      regexp.MustCompile(`(?i)pinterest`),
-			"cloudflare":     regexp.MustCompile(`(?i)cloudflare`),
-			"adidxbot":       regexp.MustCompile(`(?i)adidxbot`),
-			"apple-pubsub":   regexp.MustCompile(`(?i)apple-pubsub`),
-			"zgrab":          regexp.MustCompile(`(?i)zgrab`),
+			"googlebot":    regexp.MustCompile(`(?i)googlebot|google(?:-mobile|bot|adsense|structured-data|cloud-platform)`),
+			"bingbot":      regexp.MustCompile(`(?i)bingbot|msnbot|bingpreview`),
+			"yandexbot":    regexp.MustCompile(`(?i)yandexbot|yandeximages|yandexmetrika|yandexwebmaster`),
+			"slurp":        regexp.MustCompile(`(?i)yahoo!\s+slurp|yahooseeker`),
+			"baiduspider":  regexp.MustCompile(`(?i)baiduspider|baidugame`),
+			"duckduckbot":  regexp.MustCompile(`(?i)duckduckbot`),
+			"facebookbot":  regexp.MustCompile(`(?i)facebookexternalhit|facebookcatalog|facebot`),
+			"twitterbot":   regexp.MustCompile(`(?i)twitterbot`),
+			"linkedinbot":  regexp.MustCompile(`(?i)linkedinbot`),
+			"slackbot":     regexp.MustCompile(`(?i)slackbot|slack-link-expand`),
+			"discordbot":   regexp.MustCompile(`(?i)discordbot`),
+			"telegrambot":  regexp.MustCompile(`(?i)telegrambot`),
+			"applebot":     regexp.MustCompile(`(?i)applebot`),
+			"semrushbot":   regexp.MustCompile(`(?i)semrushbot`),
+			"ahrefsbot":    regexp.MustCompile(`(?i)ahrefsbot`),
+			"majestic":     regexp.MustCompile(`(?i)majestic-seo`),
+			"pinterest":    regexp.MustCompile(`(?i)pinterest`),
+			"cloudflare":   regexp.MustCompile(`(?i)cloudflare`),
+			"adidxbot":     regexp.MustCompile(`(?i)adidxbot`),
+			"apple-pubsub": regexp.MustCompile(`(?i)apple-pubsub`),
+			"zgrab":        regexp.MustCompile(`(?i)zgrab`),
 		},
 		honeypotFields: []string{
 			"email", "phone", "address", "website",

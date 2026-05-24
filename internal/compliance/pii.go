@@ -6,9 +6,9 @@ import (
 )
 
 type PIIMasker struct {
-	mu        sync.RWMutex
-	patterns  map[string]*regexp.Regexp
-	enabled   bool
+	mu       sync.RWMutex
+	patterns map[string]*regexp.Regexp
+	enabled  bool
 }
 
 func NewPIIMasker() *PIIMasker {

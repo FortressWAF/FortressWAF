@@ -9,17 +9,17 @@ import (
 )
 
 type XSSEngine struct {
-	mu             sync.RWMutex
-	devMode        bool
-	htmlTags       []*regexp.Regexp
-	eventHandlers  []*regexp.Regexp
-	jsProtocols    []*regexp.Regexp
-	polyglot       []*regexp.Regexp
-	svgPatterns    []*regexp.Regexp
-	cssInjection   []*regexp.Regexp
-	encodedXSS     *regexp.Regexp
-	reflectedXSS   *regexp.Regexp
-	customCSP      string
+	mu            sync.RWMutex
+	devMode       bool
+	htmlTags      []*regexp.Regexp
+	eventHandlers []*regexp.Regexp
+	jsProtocols   []*regexp.Regexp
+	polyglot      []*regexp.Regexp
+	svgPatterns   []*regexp.Regexp
+	cssInjection  []*regexp.Regexp
+	encodedXSS    *regexp.Regexp
+	reflectedXSS  *regexp.Regexp
+	customCSP     string
 }
 
 func NewXSSEngine(devMode bool) *XSSEngine {

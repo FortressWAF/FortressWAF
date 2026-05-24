@@ -11,15 +11,15 @@ import (
 )
 
 type SlidingWindowCounter struct {
-	mu        sync.Mutex
+	mu         sync.Mutex
 	timestamps []time.Time
-	window    time.Duration
-	maxCount  int
+	window     time.Duration
+	maxCount   int
 }
 
 type EndpointCounter struct {
-	mu        sync.Mutex
-	counters  map[string]*SlidingWindowCounter
+	mu       sync.Mutex
+	counters map[string]*SlidingWindowCounter
 }
 
 type DDoSProtection struct {
@@ -32,34 +32,34 @@ type DDoSProtection struct {
 	burstAllowance  int
 	windowSize      time.Duration
 
-	ipCounters      map[string]*SlidingWindowCounter
-	sessionCounters map[string]*SlidingWindowCounter
+	ipCounters       map[string]*SlidingWindowCounter
+	sessionCounters  map[string]*SlidingWindowCounter
 	endpointCounters map[string]*SlidingWindowCounter
-	slowLorisTimers map[string]time.Time
-	slowPOSTTimers  map[string]time.Time
+	slowLorisTimers  map[string]time.Time
+	slowPOSTTimers   map[string]time.Time
 
-	globalMu sync.RWMutex
+	globalMu      sync.RWMutex
 	globalCounter *SlidingWindowCounter
 }
 
 func NewDDoSProtection(devMode bool) *DDoSProtection {
 	return &DDoSProtection{
-		devMode:         devMode,
-		globalRate:      10000,
-		perIPRate:       100,
-		perEndpointRate: 500,
-		perSessionRate:  200,
-		burstAllowance:  20,
-		windowSize:      time.Second,
-		ipCounters:      make(map[string]*SlidingWindowCounter),
-		sessionCounters: make(map[string]*SlidingWindowCounter),
+		devMode:          devMode,
+		globalRate:       10000,
+		perIPRate:        100,
+		perEndpointRate:  500,
+		perSessionRate:   200,
+		burstAllowance:   20,
+		windowSize:       time.Second,
+		ipCounters:       make(map[string]*SlidingWindowCounter),
+		sessionCounters:  make(map[string]*SlidingWindowCounter),
 		endpointCounters: make(map[string]*SlidingWindowCounter),
-		slowLorisTimers: make(map[string]time.Time),
-		slowPOSTTimers:  make(map[string]time.Time),
+		slowLorisTimers:  make(map[string]time.Time),
+		slowPOSTTimers:   make(map[string]time.Time),
 		globalCounter: &SlidingWindowCounter{
 			timestamps: make([]time.Time, 0, 10020),
-			window:    time.Second,
-			maxCount:  10020,
+			window:     time.Second,
+			maxCount:   10020,
 		},
 	}
 }
@@ -92,8 +92,8 @@ func (d *DDoSProtection) getOrCreateCounter(counters map[string]*SlidingWindowCo
 	}
 	c := &SlidingWindowCounter{
 		timestamps: make([]time.Time, 0, d.perIPRate+d.burstAllowance),
-		window:    d.windowSize,
-		maxCount:  d.perIPRate + d.burstAllowance,
+		window:     d.windowSize,
+		maxCount:   d.perIPRate + d.burstAllowance,
 	}
 	counters[key] = c
 	return c

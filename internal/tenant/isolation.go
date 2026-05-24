@@ -30,12 +30,12 @@ func (im *IsolationManager) ValidateTenantAccess(requestingTenantID, resourceTen
 	if requestingTenantID == resourceTenantID {
 		return nil
 	}
-	
+
 	reqTenant, err := im.tenantManager.Get(requestingTenantID)
 	if err != nil {
 		return err
 	}
-	
+
 	if reqTenant.Tier == "enterprise" && reqTenant.Branding.ProductName != "FortressWAF" {
 		resourceTenant, err := im.tenantManager.Get(resourceTenantID)
 		if err != nil {
@@ -45,7 +45,7 @@ func (im *IsolationManager) ValidateTenantAccess(requestingTenantID, resourceTen
 			return nil
 		}
 	}
-	
+
 	return fmt.Errorf("access denied: tenant %s cannot access tenant %s resources", requestingTenantID, resourceTenantID)
 }
 

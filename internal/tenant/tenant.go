@@ -7,39 +7,39 @@ import (
 )
 
 type Tenant struct {
-	ID          string    `json:"id"`
-	Name        string    `json:"name"`
-	Org         string    `json:"org"`
-	Status      string    `json:"status"` // active, suspended, canceled
-	Tier        string    `json:"tier"`
-	Plan        string    `json:"plan"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
-	Settings    TenantSettings `json:"settings"`
-	Quotas      Quotas    `json:"quotas"`
-	Branding    Branding  `json:"branding"`
-	ParentID    string    `json:"parent_id,omitempty"` // for MSSP hierarchy
-	Tags        []string  `json:"tags"`
+	ID        string         `json:"id"`
+	Name      string         `json:"name"`
+	Org       string         `json:"org"`
+	Status    string         `json:"status"` // active, suspended, canceled
+	Tier      string         `json:"tier"`
+	Plan      string         `json:"plan"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	Settings  TenantSettings `json:"settings"`
+	Quotas    Quotas         `json:"quotas"`
+	Branding  Branding       `json:"branding"`
+	ParentID  string         `json:"parent_id,omitempty"` // for MSSP hierarchy
+	Tags      []string       `json:"tags"`
 }
 
 type TenantSettings struct {
-	Timezone        string `json:"timezone"`
-	Language        string `json:"language"`
-	DateFormat      string `json:"date_format"`
-	LogRetentionDays int   `json:"log_retention_days"`
-	MaxLogAge       int    `json:"max_log_age"`
-	SIEMExport      bool   `json:"siem_export"`
-	TwoFactorAuth   bool   `json:"two_factor_auth"`
-	SessionTimeoutMins int `json:"session_timeout_mins"`
+	Timezone           string `json:"timezone"`
+	Language           string `json:"language"`
+	DateFormat         string `json:"date_format"`
+	LogRetentionDays   int    `json:"log_retention_days"`
+	MaxLogAge          int    `json:"max_log_age"`
+	SIEMExport         bool   `json:"siem_export"`
+	TwoFactorAuth      bool   `json:"two_factor_auth"`
+	SessionTimeoutMins int    `json:"session_timeout_mins"`
 }
 
 type Quotas struct {
-	MaxSites     int `json:"max_sites"`
-	MaxRules     int `json:"max_rules"`
-	MaxUsers     int `json:"max_users"`
-	MaxAPIKeys   int `json:"max_api_keys"`
+	MaxSites          int   `json:"max_sites"`
+	MaxRules          int   `json:"max_rules"`
+	MaxUsers          int   `json:"max_users"`
+	MaxAPIKeys        int   `json:"max_api_keys"`
 	MaxAPICallsPerDay int64 `json:"max_api_calls_per_day"`
-	MaxStorageGB int `json:"max_storage_gb"`
+	MaxStorageGB      int   `json:"max_storage_gb"`
 }
 
 type Branding struct {
@@ -71,14 +71,14 @@ func NewTenantManager() *TenantManager {
 func (tm *TenantManager) Create(t *Tenant) error {
 	tm.mu.Lock()
 	defer tm.mu.Unlock()
-	
+
 	if t.ID == "" {
 		t.ID = fmt.Sprintf("tenant-%d", time.Now().UnixNano())
 	}
 	t.CreatedAt = time.Now()
 	t.UpdatedAt = time.Now()
 	t.Status = "active"
-	
+
 	tm.tenants[t.ID] = t
 	return nil
 }
@@ -86,7 +86,7 @@ func (tm *TenantManager) Create(t *Tenant) error {
 func (tm *TenantManager) Get(id string) (*Tenant, error) {
 	tm.mu.RLock()
 	defer tm.mu.RUnlock()
-	
+
 	if t, ok := tm.tenants[id]; ok {
 		return t, nil
 	}
@@ -96,7 +96,7 @@ func (tm *TenantManager) Get(id string) (*Tenant, error) {
 func (tm *TenantManager) List(parentID string) []*Tenant {
 	tm.mu.RLock()
 	defer tm.mu.RUnlock()
-	
+
 	var result []*Tenant
 	for _, t := range tm.tenants {
 		if parentID == "" && t.ParentID == "" {
@@ -111,7 +111,7 @@ func (tm *TenantManager) List(parentID string) []*Tenant {
 func (tm *TenantManager) Update(t *Tenant) error {
 	tm.mu.Lock()
 	defer tm.mu.Unlock()
-	
+
 	if _, ok := tm.tenants[t.ID]; !ok {
 		return fmt.Errorf("tenant not found: %s", t.ID)
 	}
@@ -123,7 +123,7 @@ func (tm *TenantManager) Update(t *Tenant) error {
 func (tm *TenantManager) Delete(id string) error {
 	tm.mu.Lock()
 	defer tm.mu.Unlock()
-	
+
 	if _, ok := tm.tenants[id]; !ok {
 		return fmt.Errorf("tenant not found: %s", id)
 	}
@@ -134,7 +134,7 @@ func (tm *TenantManager) Delete(id string) error {
 func (tm *TenantManager) Suspend(id string) error {
 	tm.mu.Lock()
 	defer tm.mu.Unlock()
-	
+
 	if t, ok := tm.tenants[id]; ok {
 		t.Status = "suspended"
 		t.UpdatedAt = time.Now()
@@ -147,11 +147,11 @@ func (tm *TenantManager) ValidateQuota(tenantID string, resource string, current
 	tm.mu.RLock()
 	t, ok := tm.tenants[tenantID]
 	tm.mu.RUnlock()
-	
+
 	if !ok {
 		return fmt.Errorf("tenant not found")
 	}
-	
+
 	switch resource {
 	case "sites":
 		if current >= t.Quotas.MaxSites && t.Quotas.MaxSites != -1 {
@@ -172,7 +172,7 @@ func (tm *TenantManager) ValidateQuota(tenantID string, resource string, current
 func (tm *TenantManager) GetBranding(tenantID string) *Branding {
 	tm.mu.RLock()
 	defer tm.mu.RUnlock()
-	
+
 	if t, ok := tm.tenants[tenantID]; ok {
 		return &t.Branding
 	}

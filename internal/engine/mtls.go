@@ -13,13 +13,13 @@ import (
 )
 
 type MTLSInspector struct {
-	mu              sync.RWMutex
-	config          MTLSConfig
-	caCert          *x509.CertPool
-	verifyDepth     int
-	failOnError     bool
-	earlyAuth       bool
-	usernameHeader  string
+	mu             sync.RWMutex
+	config         MTLSConfig
+	caCert         *x509.CertPool
+	verifyDepth    int
+	failOnError    bool
+	earlyAuth      bool
+	usernameHeader string
 }
 
 type MTLSConfig struct {
@@ -161,9 +161,9 @@ func (m *MTLSInspector) validateCertificatePolicy(cert *x509.Certificate) bool {
 func extractCertInfo(cert *x509.Certificate) ClientCertInfo {
 	return ClientCertInfo{
 		Subject:      cert.Subject.String(),
-		Issuer:      cert.Issuer.String(),
-		NotBefore:   cert.NotBefore,
-		NotAfter:    cert.NotAfter,
+		Issuer:       cert.Issuer.String(),
+		NotBefore:    cert.NotBefore,
+		NotAfter:     cert.NotAfter,
 		SerialNumber: cert.SerialNumber.String(),
 	}
 }

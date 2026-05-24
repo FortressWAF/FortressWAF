@@ -10,15 +10,15 @@ import (
 )
 
 type ProtocolAnomaly struct {
-	mu              sync.RWMutex
-	devMode         bool
-	malformedRE     *regexp.Regexp
-	verbTampering   []string
+	mu            sync.RWMutex
+	devMode       bool
+	malformedRE   *regexp.Regexp
+	verbTampering []string
 }
 
 func NewProtocolAnomaly(devMode bool) *ProtocolAnomaly {
 	return &ProtocolAnomaly{
-		devMode: devMode,
+		devMode:     devMode,
 		malformedRE: regexp.MustCompile(`[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]`),
 		verbTampering: []string{
 			"CONNECT", "TRACE", "TRACK", "PUT", "DELETE",

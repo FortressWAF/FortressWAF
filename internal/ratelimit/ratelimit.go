@@ -11,10 +11,10 @@ import (
 type Algorithm string
 
 const (
-	FixedWindow  Algorithm = "fixed_window"
+	FixedWindow   Algorithm = "fixed_window"
 	SlidingWindow Algorithm = "sliding_window"
-	TokenBucket  Algorithm = "token_bucket"
-	LeakyBucket  Algorithm = "leaky_bucket"
+	TokenBucket   Algorithm = "token_bucket"
+	LeakyBucket   Algorithm = "leaky_bucket"
 )
 
 type Granularity string
@@ -34,32 +34,32 @@ type windowEntry struct {
 }
 
 type tokenBucket struct {
-	mu        sync.Mutex
-	tokens    float64
-	capacity  float64
+	mu         sync.Mutex
+	tokens     float64
+	capacity   float64
 	refillRate float64
 	lastRefill time.Time
 }
 
 type RateLimiter struct {
-	mu             sync.RWMutex
-	algorithm      Algorithm
-	defaultRate    int
-	defaultBurst   int
-	windowSize     time.Duration
-	cleanupTick    time.Duration
+	mu           sync.RWMutex
+	algorithm    Algorithm
+	defaultRate  int
+	defaultBurst int
+	windowSize   time.Duration
+	cleanupTick  time.Duration
 
 	fixedWindows   map[string]*windowEntry
 	slidingWindows map[string][]time.Time
 	tokenBuckets   map[string]*tokenBucket
 	leakyBuckets   map[string]*leakyBucket
 
-	perIPLimits    map[string]int
-	perUserLimits  map[string]int
+	perIPLimits       map[string]int
+	perUserLimits     map[string]int
 	perEndpointLimits map[string]int
-	perGeoLimits   map[string]int
-	perAPIKeyLimits map[string]int
-	priorityQueues map[string]bool
+	perGeoLimits      map[string]int
+	perAPIKeyLimits   map[string]int
+	priorityQueues    map[string]bool
 }
 
 type leakyBucket struct {
@@ -72,21 +72,21 @@ type leakyBucket struct {
 
 func NewRateLimiter(algorithm Algorithm, defaultRate, defaultBurst int) *RateLimiter {
 	rl := &RateLimiter{
-		algorithm:      algorithm,
-		defaultRate:    defaultRate,
-		defaultBurst:   defaultBurst,
-		windowSize:     time.Second,
-		cleanupTick:    5 * time.Minute,
-		fixedWindows:   make(map[string]*windowEntry),
-		slidingWindows: make(map[string][]time.Time),
-		tokenBuckets:   make(map[string]*tokenBucket),
-		leakyBuckets:   make(map[string]*leakyBucket),
-		perIPLimits:    make(map[string]int),
-		perUserLimits:  make(map[string]int),
+		algorithm:         algorithm,
+		defaultRate:       defaultRate,
+		defaultBurst:      defaultBurst,
+		windowSize:        time.Second,
+		cleanupTick:       5 * time.Minute,
+		fixedWindows:      make(map[string]*windowEntry),
+		slidingWindows:    make(map[string][]time.Time),
+		tokenBuckets:      make(map[string]*tokenBucket),
+		leakyBuckets:      make(map[string]*leakyBucket),
+		perIPLimits:       make(map[string]int),
+		perUserLimits:     make(map[string]int),
 		perEndpointLimits: make(map[string]int),
-		perGeoLimits:   make(map[string]int),
-		perAPIKeyLimits: make(map[string]int),
-		priorityQueues: make(map[string]bool),
+		perGeoLimits:      make(map[string]int),
+		perAPIKeyLimits:   make(map[string]int),
+		priorityQueues:    make(map[string]bool),
 	}
 
 	go rl.cleanupLoop()
@@ -114,11 +114,11 @@ func (rl *RateLimiter) Inspect(key string, granularity Granularity) (bool, *Deci
 }
 
 type Decision struct {
-	Allowed       bool
-	RetryAfter    int
-	Remaining     int
-	Limit         int
-	ResetAt       time.Time
+	Allowed    bool
+	RetryAfter int
+	Remaining  int
+	Limit      int
+	ResetAt    time.Time
 }
 
 func (rl *RateLimiter) checkFixedWindow(key string, rate, burst int) (bool, *Decision) {
@@ -202,8 +202,8 @@ func (rl *RateLimiter) checkTokenBucket(key string, rate, burst int) (bool, *Dec
 	bucket, exists := rl.tokenBuckets[key]
 	if !exists {
 		bucket = &tokenBucket{
-			tokens:    float64(burst),
-			capacity:  float64(burst),
+			tokens:     float64(burst),
+			capacity:   float64(burst),
 			refillRate: float64(rate),
 			lastRefill: time.Now(),
 		}

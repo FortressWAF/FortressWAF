@@ -40,25 +40,25 @@ type ExporterConfig struct {
 
 type SIEMEvent struct {
 	Timestamp   time.Time         `json:"timestamp"`
-	EventType  string             `json:"event_type"`
-	Host       string             `json:"host"`
-	Source     string             `json:"source"`
-	EventID    int                `json:"event_id"`
-	Name       string             `json:"name"`
-	Severity   int                `json:"severity"`
-	SrcIP      string             `json:"src_ip"`
-	DstIP      string             `json:"dst_ip"`
-	HttpMethod string             `json:"http_method,omitempty"`
-	HttpURI    string             `json:"http_uri,omitempty"`
-	UserAgent  string             `json:"http_user_agent,omitempty"`
-	AttackType string             `json:"attack_type,omitempty"`
-	RuleID     string             `json:"rule_id,omitempty"`
+	EventType   string            `json:"event_type"`
+	Host        string            `json:"host"`
+	Source      string            `json:"source"`
+	EventID     int               `json:"event_id"`
+	Name        string            `json:"name"`
+	Severity    int               `json:"severity"`
+	SrcIP       string            `json:"src_ip"`
+	DstIP       string            `json:"dst_ip"`
+	HttpMethod  string            `json:"http_method,omitempty"`
+	HttpURI     string            `json:"http_uri,omitempty"`
+	UserAgent   string            `json:"http_user_agent,omitempty"`
+	AttackType  string            `json:"attack_type,omitempty"`
+	RuleID      string            `json:"rule_id,omitempty"`
 	ThreatScore float64           `json:"threat_score"`
-	Blocked    bool               `json:"blocked"`
-	Country    string             `json:"country,omitempty"`
-	Latency    float64            `json:"latency_ms,omitempty"`
-	RawEvent   string             `json:"raw_event,omitempty"`
-	Metadata   map[string]string  `json:"metadata,omitempty"`
+	Blocked     bool              `json:"blocked"`
+	Country     string            `json:"country,omitempty"`
+	Latency     float64           `json:"latency_ms,omitempty"`
+	RawEvent    string            `json:"raw_event,omitempty"`
+	Metadata    map[string]string `json:"metadata,omitempty"`
 }
 
 type Exporter interface {
@@ -182,7 +182,7 @@ func (m *Manager) Stats() map[string]int {
 	defer m.mu.RUnlock()
 	return map[string]int{
 		"buffer_size": len(m.buffer),
-		"exporters":  len(m.exporters),
+		"exporters":   len(m.exporters),
 	}
 }
 

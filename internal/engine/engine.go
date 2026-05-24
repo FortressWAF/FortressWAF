@@ -12,21 +12,21 @@ import (
 type Action string
 
 const (
-	ActionBlock    Action = "block"
-	ActionAllow    Action = "allow"
+	ActionBlock     Action = "block"
+	ActionAllow     Action = "allow"
 	ActionChallenge Action = "challenge"
-	ActionMonitor  Action = "monitor"
+	ActionMonitor   Action = "monitor"
 	ActionRateLimit Action = "rate_limit"
 )
 
 type Decision struct {
-	Action    Action `json:"action"`
-	RuleID    string `json:"rule_id"`
-	RuleName  string `json:"rule_name"`
-	Severity  string `json:"severity"`
-	Score     float64 `json:"score"`
-	Evidence  string `json:"evidence"`
-	Blocked   bool   `json:"blocked"`
+	Action   Action  `json:"action"`
+	RuleID   string  `json:"rule_id"`
+	RuleName string  `json:"rule_name"`
+	Severity string  `json:"severity"`
+	Score    float64 `json:"score"`
+	Evidence string  `json:"evidence"`
+	Blocked  bool    `json:"blocked"`
 }
 
 type RequestContext struct {
@@ -123,29 +123,29 @@ type Inspector interface {
 }
 
 type Engine struct {
-	mu          sync.RWMutex
-	inspectors  []Inspector
-	rules       Inspector
-	ml          Inspector
-	rateLimit   Inspector
-	reputation  Inspector
-	session     Inspector
-	bot         Inspector
-	ddos        Inspector
-	sqli        Inspector
-	xss         Inspector
-	apiProtect  Inspector
-	rce         Inspector
-	protocol    Inspector
-	upload      Inspector
-	credential  Inspector
-	geo         Inspector
-	jwt         Inspector
-	oauth       Inspector
-	graphql     Inspector
-	mtls        Inspector
-	websocket   Inspector
-	devMode     bool
+	mu         sync.RWMutex
+	inspectors []Inspector
+	rules      Inspector
+	ml         Inspector
+	rateLimit  Inspector
+	reputation Inspector
+	session    Inspector
+	bot        Inspector
+	ddos       Inspector
+	sqli       Inspector
+	xss        Inspector
+	apiProtect Inspector
+	rce        Inspector
+	protocol   Inspector
+	upload     Inspector
+	credential Inspector
+	geo        Inspector
+	jwt        Inspector
+	oauth      Inspector
+	graphql    Inspector
+	mtls       Inspector
+	websocket  Inspector
+	devMode    bool
 }
 
 type EngineConfig struct {

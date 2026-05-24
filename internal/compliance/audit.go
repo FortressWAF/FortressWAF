@@ -9,25 +9,25 @@ import (
 )
 
 type AuditEntry struct {
-	ID          string    `json:"id"`
-	Timestamp   time.Time `json:"timestamp"`
-	ActorID     string    `json:"actor_id"`
-	ActorType   string    `json:"actor_type"`
-	ActorIP     string    `json:"actor_ip"`
-	Action      string    `json:"action"`
-	Resource    string    `json:"resource"`
-	ResourceID  string    `json:"resource_id"`
-	Result      string    `json:"result"`
-	Metadata    string    `json:"metadata,omitempty"`
-	Hash        string    `json:"hash"`
-	PrevHash    string    `json:"prev_hash"`
+	ID         string    `json:"id"`
+	Timestamp  time.Time `json:"timestamp"`
+	ActorID    string    `json:"actor_id"`
+	ActorType  string    `json:"actor_type"`
+	ActorIP    string    `json:"actor_ip"`
+	Action     string    `json:"action"`
+	Resource   string    `json:"resource"`
+	ResourceID string    `json:"resource_id"`
+	Result     string    `json:"result"`
+	Metadata   string    `json:"metadata,omitempty"`
+	Hash       string    `json:"hash"`
+	PrevHash   string    `json:"prev_hash"`
 }
 
 type AuditLog struct {
-	mu           sync.RWMutex
-	entries      []AuditEntry
-	lastHash     string
-	immutable    bool
+	mu        sync.RWMutex
+	entries   []AuditEntry
+	lastHash  string
+	immutable bool
 }
 
 func NewAuditLog() *AuditLog {
@@ -89,11 +89,11 @@ func (al *AuditLog) Query(filter AuditFilter) ([]AuditEntry, error) {
 }
 
 type AuditFilter struct {
-	ActorID   string
-	Action    string
-	Resource  string
-	From      time.Time
-	To        time.Time
+	ActorID  string
+	Action   string
+	Resource string
+	From     time.Time
+	To       time.Time
 }
 
 func (al *AuditLog) VerifyIntegrity() (bool, error) {

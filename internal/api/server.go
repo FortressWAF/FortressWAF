@@ -16,15 +16,15 @@ import (
 )
 
 type Server struct {
-	mu       sync.RWMutex
-	router   *mux.Router
+	mu          sync.RWMutex
+	router      *mux.Router
 	adminRouter *mux.Router
-	srv      *http.Server
-	adminSrv *http.Server
-	config   *ServerConfig
-	handlers *Handlers
-	wsUpgrader websocket.Upgrader
-	done     chan struct{}
+	srv         *http.Server
+	adminSrv    *http.Server
+	config      *ServerConfig
+	handlers    *Handlers
+	wsUpgrader  websocket.Upgrader
+	done        chan struct{}
 }
 
 type ServerConfig struct {

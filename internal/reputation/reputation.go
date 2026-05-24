@@ -21,33 +21,33 @@ const (
 )
 
 type IPRecord struct {
-	IP            string    `json:"ip"`
-	Score         float64   `json:"score"`
-	LastSeen      time.Time `json:"last_seen"`
-	AbuseReports  int       `json:"abuse_reports"`
-	Source        FeedSource `json:"source"`
-	Categories    []string  `json:"categories"`
-	IsTor         bool      `json:"is_tor"`
-	IsVPN         bool      `json:"is_vpn"`
-	IsProxy       bool      `json:"is_proxy"`
-	IsDatacenter  bool      `json:"is_datacenter"`
+	IP           string     `json:"ip"`
+	Score        float64    `json:"score"`
+	LastSeen     time.Time  `json:"last_seen"`
+	AbuseReports int        `json:"abuse_reports"`
+	Source       FeedSource `json:"source"`
+	Categories   []string   `json:"categories"`
+	IsTor        bool       `json:"is_tor"`
+	IsVPN        bool       `json:"is_vpn"`
+	IsProxy      bool       `json:"is_proxy"`
+	IsDatacenter bool       `json:"is_datacenter"`
 }
 
 type Engine struct {
-	mu             sync.RWMutex
-	cache          map[string]*IPRecord
-	cacheTTL       time.Duration
-	allowlist      []*net.IPNet
-	blocklist      []*net.IPNet
-	allowlistASNs  map[uint]bool
-	blocklistASNs  map[uint]bool
+	mu                 sync.RWMutex
+	cache              map[string]*IPRecord
+	cacheTTL           time.Duration
+	allowlist          []*net.IPNet
+	blocklist          []*net.IPNet
+	allowlistASNs      map[uint]bool
+	blocklistASNs      map[uint]bool
 	allowlistCountries map[string]bool
 	blocklistCountries map[string]bool
-	torNodes       map[string]bool
-	vpnRanges      []*net.IPNet
-	proxyRanges    []*net.IPNet
-	feedData       map[FeedSource]interface{}
-	updaters       []func()
+	torNodes           map[string]bool
+	vpnRanges          []*net.IPNet
+	proxyRanges        []*net.IPNet
+	feedData           map[FeedSource]interface{}
+	updaters           []func()
 }
 
 func NewEngine() *Engine {
@@ -164,20 +164,20 @@ func (e *Engine) isInRanges(ip net.IP, ranges []*net.IPNet) bool {
 
 func (e *Engine) isDatacenterIP(ip net.IP) bool {
 	datacenterRanges := []string{
-		"13.32.0.0/15",   "13.104.0.0/14",
-		"15.0.0.0/8",     "35.0.0.0/8",
-		"52.0.0.0/8",     "54.0.0.0/8",
-		"63.0.0.0/8",     "64.0.0.0/8",
-		"65.0.0.0/8",     "66.0.0.0/8",
-		"67.0.0.0/8",     "68.0.0.0/8",
-		"69.0.0.0/8",     "70.0.0.0/8",
-		"71.0.0.0/8",     "72.0.0.0/8",
-		"73.0.0.0/8",     "74.0.0.0/8",
-		"75.0.0.0/8",     "76.0.0.0/8",
-		"77.0.0.0/8",     "78.0.0.0/8",
-		"79.0.0.0/8",     "80.0.0.0/5",
-		"96.0.0.0/6",     "100.0.0.0/8",
-		"104.0.0.0/8",    "108.0.0.0/8",
+		"13.32.0.0/15", "13.104.0.0/14",
+		"15.0.0.0/8", "35.0.0.0/8",
+		"52.0.0.0/8", "54.0.0.0/8",
+		"63.0.0.0/8", "64.0.0.0/8",
+		"65.0.0.0/8", "66.0.0.0/8",
+		"67.0.0.0/8", "68.0.0.0/8",
+		"69.0.0.0/8", "70.0.0.0/8",
+		"71.0.0.0/8", "72.0.0.0/8",
+		"73.0.0.0/8", "74.0.0.0/8",
+		"75.0.0.0/8", "76.0.0.0/8",
+		"77.0.0.0/8", "78.0.0.0/8",
+		"79.0.0.0/8", "80.0.0.0/5",
+		"96.0.0.0/6", "100.0.0.0/8",
+		"104.0.0.0/8", "108.0.0.0/8",
 		"128.0.0.0/16",
 	}
 

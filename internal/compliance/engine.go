@@ -9,22 +9,22 @@ import (
 type ComplianceFramework string
 
 const (
-	FrameworkPCI   ComplianceFramework = "pci-dss"
-	FrameworkGDPR  ComplianceFramework = "gdpr"
-	FrameworkHIPAA ComplianceFramework = "hipaa"
-	FrameworkSOC2  ComplianceFramework = "soc2"
+	FrameworkPCI    ComplianceFramework = "pci-dss"
+	FrameworkGDPR   ComplianceFramework = "gdpr"
+	FrameworkHIPAA  ComplianceFramework = "hipaa"
+	FrameworkSOC2   ComplianceFramework = "soc2"
 	FrameworkISO27K ComplianceFramework = "iso-27001"
 )
 
 type Control struct {
-	ID          string   `json:"id"`
+	ID          string              `json:"id"`
 	Framework   ComplianceFramework `json:"framework"`
-	Name        string   `json:"name"`
-	Description string   `json:"description"`
-	Status      string   `json:"status"`
-	LastChecked time.Time `json:"last_checked"`
-	Evidence    []Evidence `json:"evidence"`
-	Remediation string   `json:"remediation,omitempty"`
+	Name        string              `json:"name"`
+	Description string              `json:"description"`
+	Status      string              `json:"status"`
+	LastChecked time.Time           `json:"last_checked"`
+	Evidence    []Evidence          `json:"evidence"`
+	Remediation string              `json:"remediation,omitempty"`
 }
 
 type Evidence struct {
@@ -36,21 +36,21 @@ type Evidence struct {
 }
 
 type ComplianceEngine struct {
-	mu          sync.RWMutex
-	controls    map[ComplianceFramework][]Control
-	config      *ComplianceConfig
+	mu       sync.RWMutex
+	controls map[ComplianceFramework][]Control
+	config   *ComplianceConfig
 }
 
 type ComplianceConfig struct {
-	EnabledFrameworks []ComplianceFramework `json:"enabled_frameworks"`
-	LogRetentionDays int                   `json:"log_retention_days"`
-	PIIMasking       bool                  `json:"pii_masking"`
-	DataResidency    string                `json:"data_residency"`
-	AuditImmutable   bool                  `json:"audit_immutable"`
-	EncryptionAtRest bool                  `json:"encryption_at_rest"`
-	EncryptionInTransit bool               `json:"encryption_in_transit"`
-	MFAEnforced      bool                 `json:"mfa_enforced"`
-	SessionTimeoutMins int                `json:"session_timeout_mins"`
+	EnabledFrameworks   []ComplianceFramework `json:"enabled_frameworks"`
+	LogRetentionDays    int                   `json:"log_retention_days"`
+	PIIMasking          bool                  `json:"pii_masking"`
+	DataResidency       string                `json:"data_residency"`
+	AuditImmutable      bool                  `json:"audit_immutable"`
+	EncryptionAtRest    bool                  `json:"encryption_at_rest"`
+	EncryptionInTransit bool                  `json:"encryption_in_transit"`
+	MFAEnforced         bool                  `json:"mfa_enforced"`
+	SessionTimeoutMins  int                   `json:"session_timeout_mins"`
 }
 
 func NewComplianceEngine(config *ComplianceConfig) *ComplianceEngine {
@@ -93,9 +93,9 @@ func (ce *ComplianceEngine) RunAssessment(framework ComplianceFramework) (*Asses
 	defer ce.mu.Unlock()
 
 	result := &AssessmentResult{
-		Framework:     framework,
-		AssessedAt:    time.Now(),
-		Controls:      []Control{},
+		Framework:  framework,
+		AssessedAt: time.Now(),
+		Controls:   []Control{},
 	}
 
 	for i := range ce.controls[framework] {
@@ -118,11 +118,11 @@ func (ce *ComplianceEngine) RunAssessment(framework ComplianceFramework) (*Asses
 
 type AssessmentResult struct {
 	Framework         ComplianceFramework `json:"framework"`
-	AssessedAt        time.Time          `json:"assessed_at"`
-	CompliantCount    int                `json:"compliant_count"`
-	TotalCount        int                `json:"total_count"`
-	CompliancePercent float64            `json:"compliance_percent"`
-	Controls          []Control          `json:"controls"`
+	AssessedAt        time.Time           `json:"assessed_at"`
+	CompliantCount    int                 `json:"compliant_count"`
+	TotalCount        int                 `json:"total_count"`
+	CompliancePercent float64             `json:"compliance_percent"`
+	Controls          []Control           `json:"controls"`
 }
 
 func (ce *ComplianceEngine) checkControl(ctrl *Control) {

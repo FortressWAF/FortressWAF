@@ -211,11 +211,11 @@ func main() {
 }
 
 type wafHandler struct {
-	mu       sync.RWMutex
-	cfgMgr   *config.Manager
-	engine   *engine.Engine
-	dev      bool
-	proxies  map[string]*httputil.ReverseProxy
+	mu      sync.RWMutex
+	cfgMgr  *config.Manager
+	engine  *engine.Engine
+	dev     bool
+	proxies map[string]*httputil.ReverseProxy
 }
 
 func newWAFHandler(cfgMgr *config.Manager, e *engine.Engine, dev bool) http.Handler {
@@ -363,7 +363,7 @@ func (h *wafHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			"action":     "block",
 			"rule_id":    decision.RuleID,
 			"rule_name":  decision.RuleName,
-			"severity":  decision.Severity,
+			"severity":   decision.Severity,
 			"evidence":   decision.Evidence,
 			"request_id": r.Header.Get("X-Request-ID"),
 		})
@@ -410,8 +410,8 @@ func (h *wafHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-FortressWAF-Action", "rate_limit")
 		w.WriteHeader(http.StatusTooManyRequests)
 		json.NewEncoder(w).Encode(map[string]interface{}{
-			"error":      "rate_limited",
-			"detail":     "too many requests",
+			"error":       "rate_limited",
+			"detail":      "too many requests",
 			"retry_after": 60,
 		})
 
@@ -549,19 +549,19 @@ func handleStatus(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusOK, map[string]interface{}{
-		"version":           Version,
-		"commit":            Commit,
-		"build_date":        BuildDate,
-		"uptime":            uptime.String(),
-		"uptime_seconds":    int(secs),
-		"requests_per_sec":  rps,
-		"total_requests":    totalRequests.Load(),
-		"blocked_requests":  blockedRequests.Load(),
-		"allowed_requests":  allowedRequests.Load(),
+		"version":            Version,
+		"commit":             Commit,
+		"build_date":         BuildDate,
+		"uptime":             uptime.String(),
+		"uptime_seconds":     int(secs),
+		"requests_per_sec":   rps,
+		"total_requests":     totalRequests.Load(),
+		"blocked_requests":   blockedRequests.Load(),
+		"allowed_requests":   allowedRequests.Load(),
 		"active_connections": activeConns.Load(),
-		"challenged":        challengedReqs.Load(),
-		"rate_limited":      rateLimitedReqs.Load(),
-		"monitored":         monitoredReqs.Load(),
+		"challenged":         challengedReqs.Load(),
+		"rate_limited":       rateLimitedReqs.Load(),
+		"monitored":          monitoredReqs.Load(),
 	})
 }
 
@@ -569,19 +569,19 @@ func handleGetConfig(cfgMgr *config.Manager) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cfg := cfgMgr.Get()
 		resp := map[string]interface{}{
-			"sites_count": len(cfg.Sites),
-			"rules_count": len(cfg.Rules),
-			"ml_enabled":  cfg.ML.Enabled,
+			"sites_count":   len(cfg.Sites),
+			"rules_count":   len(cfg.Rules),
+			"ml_enabled":    cfg.ML.Enabled,
 			"redis_enabled": cfg.Redis.Enabled,
-			"admin_port":  cfg.Admin.Port,
-			"sites":       make([]map[string]interface{}, 0, len(cfg.Sites)),
+			"admin_port":    cfg.Admin.Port,
+			"sites":         make([]map[string]interface{}, 0, len(cfg.Sites)),
 		}
 		for _, s := range cfg.Sites {
 			resp["sites"] = append(resp["sites"].([]map[string]interface{}), map[string]interface{}{
-				"name":         s.Name,
-				"domains":      s.Domains,
-				"upstream":     s.Upstream,
-				"waf_enabled":  s.WAFEnabled,
+				"name":        s.Name,
+				"domains":     s.Domains,
+				"upstream":    s.Upstream,
+				"waf_enabled": s.WAFEnabled,
 			})
 		}
 		writeJSON(w, http.StatusOK, resp)
@@ -599,9 +599,9 @@ func handleReload(cfgMgr *config.Manager) http.HandlerFunc {
 		}
 		cfg := cfgMgr.Get()
 		writeJSON(w, http.StatusOK, map[string]interface{}{
-			"status":      "reloaded",
-			"sites":       len(cfg.Sites),
-			"rules":       len(cfg.Rules),
+			"status": "reloaded",
+			"sites":  len(cfg.Sites),
+			"rules":  len(cfg.Rules),
 		})
 	}
 }
@@ -682,5 +682,3 @@ setTimeout(function(){
 </body>
 </html>`, challengeToken, r.URL.Path, time.Now().Unix()))
 }
-
-

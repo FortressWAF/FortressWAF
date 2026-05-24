@@ -13,19 +13,19 @@ import (
 	"sync"
 	"time"
 
-	"github.com/google/uuid"
-	"github.com/gorilla/mux"
 	"github.com/FortressWAF/FortressWAF/internal/config"
 	"github.com/FortressWAF/FortressWAF/internal/rules"
+	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 	"gopkg.in/yaml.v3"
 )
 
 type Handlers struct {
-	mu            sync.RWMutex
-	configMgr     *config.Manager
-	ruleEngine    *rules.Engine
-	startTime     time.Time
-	version       string
+	mu         sync.RWMutex
+	configMgr  *config.Manager
+	ruleEngine *rules.Engine
+	startTime  time.Time
+	version    string
 
 	alerts        []alertRecord
 	alertsMu      sync.RWMutex
@@ -33,20 +33,20 @@ type Handlers struct {
 	alertChannels []alertChannelRecord
 	alertChMu     sync.RWMutex
 
-	tenants       []tenantRecord
-	tenantsMu     sync.RWMutex
+	tenants   []tenantRecord
+	tenantsMu sync.RWMutex
 
-	patches       []patchRecord
-	patchesMu     sync.RWMutex
+	patches   []patchRecord
+	patchesMu sync.RWMutex
 
-	logStore      []logEntry
-	logStoreMu    sync.RWMutex
-	logCh         chan logEntry
+	logStore   []logEntry
+	logStoreMu sync.RWMutex
+	logCh      chan logEntry
 
-	apiKeys       map[string]apiKeyRecord
-	apiKeysMu     sync.RWMutex
-	sessions      map[string]sessionRecord
-	sessionsMu    sync.RWMutex
+	apiKeys    map[string]apiKeyRecord
+	apiKeysMu  sync.RWMutex
+	sessions   map[string]sessionRecord
+	sessionsMu sync.RWMutex
 }
 
 func NewHandlers(cfgMgr *config.Manager, ruleEngine *rules.Engine, version string) *Handlers {
@@ -59,11 +59,11 @@ func NewHandlers(cfgMgr *config.Manager, ruleEngine *rules.Engine, version strin
 		apiKeys:    make(map[string]apiKeyRecord),
 		sessions:   make(map[string]sessionRecord),
 		alertConfig: alertConfigRecord{
-			Threshold:         100,
-			IntervalSeconds:   60,
-			Enabled:           true,
-			Channels:          []string{},
-			Rules:             []string{},
+			Threshold:       100,
+			IntervalSeconds: 60,
+			Enabled:         true,
+			Channels:        []string{},
+			Rules:           []string{},
 		},
 	}
 	go h.drainLogChannel()
@@ -1050,15 +1050,15 @@ func (h *Handlers) TrafficStats(w http.ResponseWriter, r *http.Request) {
 	reqPerSec := float64(totalReqs) / float64(window*60)
 
 	writeOK(w, map[string]interface{}{
-		"window_minutes":  window,
-		"total_requests":  totalReqs,
-		"blocked":         blockedReqs,
+		"window_minutes":   window,
+		"total_requests":   totalReqs,
+		"blocked":          blockedReqs,
 		"requests_per_sec": reqPerSec,
-		"avg_latency_ms":  avgLatency,
-		"bandwidth_bytes": bandwidth,
-		"by_status":       statusCounts,
-		"by_method":       methodCounts,
-		"timeline":        buckets,
+		"avg_latency_ms":   avgLatency,
+		"bandwidth_bytes":  bandwidth,
+		"by_status":        statusCounts,
+		"by_method":        methodCounts,
+		"timeline":         buckets,
 	})
 }
 
@@ -1254,10 +1254,10 @@ func (h *Handlers) GeoStats(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type countryStat struct {
-		Country    string `json:"country"`
-		Requests   int    `json:"requests"`
-		Blocked    int    `json:"blocked"`
-		BlockPct   float64 `json:"block_pct"`
+		Country  string  `json:"country"`
+		Requests int     `json:"requests"`
+		Blocked  int     `json:"blocked"`
+		BlockPct float64 `json:"block_pct"`
 	}
 	results := make([]countryStat, 0, len(byCountry))
 	for country, total := range byCountry {
@@ -1284,15 +1284,15 @@ func (h *Handlers) GeoStats(w http.ResponseWriter, r *http.Request) {
 // --- Virtual Patches ---
 
 type patchRecord struct {
-	ID          string            `json:"id"`
-	Name        string            `json:"name"`
-	Description string            `json:"description"`
-	CVE         string            `json:"cve,omitempty"`
-	Severity    string            `json:"severity"`
+	ID          string              `json:"id"`
+	Name        string              `json:"name"`
+	Description string              `json:"description"`
+	CVE         string              `json:"cve,omitempty"`
+	Severity    string              `json:"severity"`
 	Rules       []config.RuleConfig `json:"rules"`
-	Status      string            `json:"status"`
-	CreatedAt   time.Time         `json:"created_at"`
-	DeployedAt  time.Time         `json:"deployed_at,omitempty"`
+	Status      string              `json:"status"`
+	CreatedAt   time.Time           `json:"created_at"`
+	DeployedAt  time.Time           `json:"deployed_at,omitempty"`
 }
 
 func (h *Handlers) ListPatches(w http.ResponseWriter, r *http.Request) {
@@ -1312,11 +1312,11 @@ func (h *Handlers) ListPatches(w http.ResponseWriter, r *http.Request) {
 }
 
 type createPatchRequest struct {
-	Name        string               `json:"name"`
-	Description string               `json:"description"`
-	CVE         string               `json:"cve,omitempty"`
-	Severity    string               `json:"severity"`
-	Rules       []createRuleRequest  `json:"rules"`
+	Name        string              `json:"name"`
+	Description string              `json:"description"`
+	CVE         string              `json:"cve,omitempty"`
+	Severity    string              `json:"severity"`
+	Rules       []createRuleRequest `json:"rules"`
 }
 
 func (h *Handlers) CreatePatch(w http.ResponseWriter, r *http.Request) {
@@ -1536,15 +1536,15 @@ func maskSecrets(cfg *config.Config) map[string]interface{} {
 			"api_keys": len(cfg.Admin.APIKeys),
 		},
 		"redis": map[string]interface{}{
-			"enabled":  cfg.Redis.Enabled,
-			"addr":     cfg.Redis.Addr,
-			"db":       cfg.Redis.DB,
+			"enabled":   cfg.Redis.Enabled,
+			"addr":      cfg.Redis.Addr,
+			"db":        cfg.Redis.DB,
 			"pool_size": cfg.Redis.PoolSize,
-			"ttl":      cfg.Redis.TTL,
+			"ttl":       cfg.Redis.TTL,
 		},
 		"ml": cfg.ML,
 		"db": map[string]interface{}{
-			"driver":  cfg.DB.Driver,
+			"driver":   cfg.DB.Driver,
 			"max_open": cfg.DB.MaxOpen,
 			"max_idle": cfg.DB.MaxIdle,
 		},
@@ -1691,9 +1691,9 @@ func (h *Handlers) DiffConfig(w http.ResponseWriter, r *http.Request) {
 	current := h.configMgr.Get()
 
 	type diffEntry struct {
-		Field    string      `json:"field"`
-		Old      interface{} `json:"old"`
-		New      interface{} `json:"new"`
+		Field string      `json:"field"`
+		Old   interface{} `json:"old"`
+		New   interface{} `json:"new"`
 	}
 
 	diffs := []diffEntry{}
@@ -2121,9 +2121,9 @@ func (h *Handlers) Login(w http.ResponseWriter, r *http.Request) {
 	h.sessionsMu.Unlock()
 
 	writeOK(w, map[string]interface{}{
-		"token":        token,
-		"expires_at":   expires.Format(time.RFC3339),
-		"token_type":   "bearer",
+		"token":      token,
+		"expires_at": expires.Format(time.RFC3339),
+		"token_type": "bearer",
 	})
 }
 
@@ -2247,12 +2247,12 @@ func (h *Handlers) AdminStatus(w http.ResponseWriter, r *http.Request) {
 	cfg := h.configMgr.Get()
 
 	writeJSON(w, http.StatusOK, map[string]interface{}{
-		"status":     "running",
-		"version":    h.version,
-		"uptime":     uptime.String(),
-		"sites":      len(cfg.Sites),
-		"rules":      len(cfg.Rules),
-		"config":     maskSecrets(cfg),
+		"status":  "running",
+		"version": h.version,
+		"uptime":  uptime.String(),
+		"sites":   len(cfg.Sites),
+		"rules":   len(cfg.Rules),
+		"config":  maskSecrets(cfg),
 	})
 }
 

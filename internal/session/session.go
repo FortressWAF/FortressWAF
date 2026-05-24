@@ -28,9 +28,9 @@ type Session struct {
 }
 
 type sessionDecision struct {
-	RuleID    string  `json:"rule_id"`
-	Action    string  `json:"action"`
-	Score     float64 `json:"score"`
+	RuleID    string    `json:"rule_id"`
+	Action    string    `json:"action"`
+	Score     float64   `json:"score"`
 	Timestamp time.Time `json:"timestamp"`
 }
 
