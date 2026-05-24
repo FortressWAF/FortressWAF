@@ -17,7 +17,7 @@ We take the security of FortressWAF seriously. If you believe you have found a s
 
 Instead, please report them via email to:
 
-**security@fortresswaf.io**
+**arjunaajalahla100@gmail.com**
 
 You should receive a response within 24 hours. If for some reason you do not, please follow up via email to ensure we received your original message.
 
@@ -99,15 +99,6 @@ We offer a bug bounty program for security researchers who responsibly disclose 
 - Denial of service attacks
 - Third-party dependencies (report to the dependency maintainer)
 
-### Rewards
-
-| Severity | Reward |
-|----------|--------|
-| Critical (CVSS 9.0-10.0) | $5,000 |
-| High (CVSS 7.0-8.9) | $2,000 |
-| Medium (CVSS 4.0-6.9) | $500 |
-| Low (CVSS 1.0-3.9) | $100 |
-
 ### Eligibility
 
 - First reporter of a unique vulnerability
@@ -137,7 +128,7 @@ We thank the following researchers for their contributions to FortressWAF securi
 
 - *Your name could be here!*
 
-[Submit a report](mailto:security@fortresswaf.io) to join the hall of fame.
+[Submit a report](https://github.com/FortressWAF/FortressWAF/security/advisories/new) to join the hall of fame.
 
 ## Additional Security Measures
 
@@ -170,4 +161,4 @@ We use automated dependency scanning:
 
 ## Questions
 
-For questions about this security policy, please contact security@fortresswaf.io.
+For questions about this security policy, please contact arjunaajalahla100@gmail.com.
