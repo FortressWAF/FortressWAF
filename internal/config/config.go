@@ -641,10 +641,11 @@ func GetConfig() *Config {
 	return DefaultManager.Get()
 }
 
+var envRefRE = regexp.MustCompile(`\$\{([^}]+)\}`)
+
 func ExpandEnvRefs(data []byte) ([]byte, error) {
 	str := string(data)
-	re := regexp.MustCompile(`\$\{([^}]+)\}`)
-	matches := re.FindAllString(str, -1)
+	matches := envRefRE.FindAllString(str, -1)
 
 	for _, match := range matches {
 		envVar := match[2 : len(match)-1]

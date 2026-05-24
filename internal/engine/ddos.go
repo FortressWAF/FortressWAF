@@ -43,7 +43,7 @@ type DDoSProtection struct {
 }
 
 func NewDDoSProtection(devMode bool) *DDoSProtection {
-	return &DDoSProtection{
+	d := &DDoSProtection{
 		devMode:          devMode,
 		globalRate:       10000,
 		perIPRate:        100,
@@ -62,6 +62,8 @@ func NewDDoSProtection(devMode bool) *DDoSProtection {
 			maxCount:   10020,
 		},
 	}
+	go d.cleanup()
+	return d
 }
 
 func (d *DDoSProtection) Name() string { return "ddos_protection" }
@@ -123,8 +125,8 @@ func (d *DDoSProtection) checkRate(counter *SlidingWindowCounter, limit int) boo
 }
 
 func (d *DDoSProtection) detectHTTPFlood(ctx *RequestContext) *Decision {
-	d.mu.RLock()
-	defer d.mu.RUnlock()
+	d.mu.Lock()
+	defer d.mu.Unlock()
 
 	if dec := d.checkGlobalRate(ctx); dec != nil {
 		return dec
@@ -335,6 +337,7 @@ func (d *DDoSProtection) GetAdaptiveRate(ip string, currentRate int) int {
 func (d *DDoSProtection) cleanup() {
 	ticker := time.NewTicker(5 * time.Minute)
 	go func() {
+		defer ticker.Stop()
 		for range ticker.C {
 			d.mu.Lock()
 			now := time.Now()

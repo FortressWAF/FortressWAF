@@ -286,8 +286,9 @@ func (e *Engine) GetScore(ipStr string) float64 {
 }
 
 func (e *Engine) Cleanup() {
-	ticker := time.NewTicker(15 * time.Minute)
 	go func() {
+		ticker := time.NewTicker(15 * time.Minute)
+		defer ticker.Stop()
 		for range ticker.C {
 			e.mu.Lock()
 			now := time.Now()

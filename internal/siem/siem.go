@@ -18,6 +18,7 @@ type Manager struct {
 	exporters map[string]Exporter
 	buffer    []SIEMEvent
 	flushCh   chan struct{}
+	done      chan struct{}
 }
 
 type SIEMConfig struct {
@@ -72,6 +73,7 @@ func NewManager(cfg SIEMConfig) (*Manager, error) {
 		exporters: make(map[string]Exporter),
 		buffer:    make([]SIEMEvent, 0, cfg.BatchSize),
 		flushCh:   make(chan struct{}, 1),
+		done:      make(chan struct{}),
 	}
 
 	for _, ec := range cfg.Exporters {
@@ -135,6 +137,8 @@ func (m *Manager) flushLoop() {
 
 	for {
 		select {
+		case <-m.done:
+			return
 		case <-ticker.C:
 			m.flush()
 		case <-m.flushCh:
@@ -162,6 +166,7 @@ func (m *Manager) flush() {
 }
 
 func (m *Manager) Close() error {
+	close(m.done)
 	m.flush()
 
 	var errs []string

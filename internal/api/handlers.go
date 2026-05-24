@@ -9,7 +9,6 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 
@@ -209,12 +208,15 @@ func (h *Handlers) CreateSite(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.configMgr.UpdateConfig(func(cfg *config.Config) {
-		for _, s := range cfg.Sites {
-			if s.Name == req.Name {
-				return
-			}
+	cfg := h.configMgr.Get()
+	for _, s := range cfg.Sites {
+		if s.Name == req.Name {
+			writeConflict(w, "site already exists")
+			return
 		}
+	}
+
+	err := h.configMgr.UpdateConfig(func(cfg *config.Config) {
 		site := config.SiteConfig{
 			Name:       req.Name,
 			Domains:    req.Domains,
@@ -229,10 +231,6 @@ func (h *Handlers) CreateSite(w http.ResponseWriter, r *http.Request) {
 		cfg.Sites = append(cfg.Sites, site)
 	})
 	if err != nil {
-		if strings.Contains(err.Error(), "already") {
-			writeConflict(w, "site already exists")
-			return
-		}
 		writeInternalErr(w)
 		return
 	}
@@ -738,9 +736,9 @@ func (h *Handlers) BulkRules(w http.ResponseWriter, r *http.Request) {
 	errs := make([]string, 0)
 
 	err := h.configMgr.UpdateConfig(func(cfg *config.Config) {
-		existing := make(map[string]bool)
-		for _, r := range cfg.Rules {
-			existing[r.ID] = true
+		ruleIndex := make(map[string]int)
+		for i, r := range cfg.Rules {
+			ruleIndex[r.ID] = i
 		}
 
 		for _, rr := range req.Rules {
@@ -763,12 +761,13 @@ func (h *Handlers) BulkRules(w http.ResponseWriter, r *http.Request) {
 				Tags:        rr.Tags,
 				Params:      rr.Params,
 			}
-			if existing[rr.ID] {
+			if idx, ok := ruleIndex[rr.ID]; ok {
+				cfg.Rules[idx] = ruleCfg
 				updated++
 			} else {
+				cfg.Rules = append(cfg.Rules, ruleCfg)
 				created++
 			}
-			cfg.Rules = append(cfg.Rules, ruleCfg)
 		}
 	})
 	if err != nil {

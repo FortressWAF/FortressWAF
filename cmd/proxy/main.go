@@ -757,7 +757,9 @@ func writeJSON(w http.ResponseWriter, status int, v interface{}) {
 
 func challengePage(r *http.Request) []byte {
 	var tokenBytes [16]byte
-	rand.Read(tokenBytes[:])
+	if _, err := rand.Read(tokenBytes[:]); err != nil {
+		return []byte("<h1>Internal error</h1>")
+	}
 	challengeToken := hex.EncodeToString(tokenBytes[:])
 	return []byte(fmt.Sprintf(`<!DOCTYPE html>
 <html>
