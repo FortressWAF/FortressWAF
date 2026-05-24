@@ -17,7 +17,7 @@ Install and configure FortressWAF in under 5 minutes.
 ### Option 1: One-line Install (Recommended)
 
 ```bash
-curl -sSL https://install.fortresswaf.io | bash
+curl -sSL https://github.com/FortressWAF/FortressWAF/install.sh | bash
 ```
 
 This command:
