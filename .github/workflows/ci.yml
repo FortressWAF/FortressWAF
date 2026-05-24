@@ -88,35 +88,7 @@ jobs:
       - name: Test Python imports
         run: |
           cd ml-engine
-          python -c "
-import sys
-try:
-    from api.app import app
-    print('FastAPI app: OK')
-except Exception as e:
-    print(f'FastAPI app: {e}')
-try:
-    from models.anomaly import AnomalyDetector
-    print('AnomalyDetector: OK')
-except Exception as e:
-    print(f'AnomalyDetector: {e}')
-try:
-    from models.classifier import AttackClassifier
-    print('AttackClassifier: OK')
-except Exception as e:
-    print(f'AttackClassifier: {e}')
-try:
-    from models.bot_detector import BotDetector
-    print('BotDetector: OK')
-except Exception as e:
-    print(f'BotDetector: {e}')
-try:
-    from models.risk_scorer import RiskScorer
-    print('RiskScorer: OK')
-except Exception as e:
-    print(f'RiskScorer: {e}')
-print('All imports completed')
-"
+          python tests/test_imports.py
 
   test-frontend:
     name: Test Frontend
