@@ -1,0 +1,42 @@
+# Auto-label PRs based on changed files
+area/engine:
+  - internal/engine/**/*
+
+area/api:
+  - internal/api/**/*
+
+area/config:
+  - internal/config/**/*
+
+area/proxy:
+  - cmd/proxy/**/*
+
+area/reputation:
+  - internal/reputation/**/*
+
+area/ratelimit:
+  - internal/ratelimit/**/*
+
+area/siem:
+  - internal/siem/**/*
+
+area/cli:
+  - cmd/ctl/**/*
+
+testing:
+  - '**/*_test.go'
+
+ci:
+  - .github/workflows/**/*
+  - .github/labeler.yml
+  - .github/labels.yml
+
+documentation:
+  - '**/*.md'
+  - '**/docs/**/*'
+
+security:
+  - '**/auth*.go'
+  - '**/mtls*.go'
+  - '**/jwt*.go'
+  - '**/oauth*.go'

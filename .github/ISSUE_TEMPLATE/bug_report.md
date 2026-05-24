@@ -2,7 +2,7 @@
 name: Bug Report
 about: Report a bug to help us improve FortressWAF
 title: "[BUG] "
-labels: bug
+labels: ["bug"]
 assignees: ""
 ---
 
