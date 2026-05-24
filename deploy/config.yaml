@@ -473,11 +473,161 @@ monitoring:
   # OpenTelemetry tracing
   tracing:
     enabled: false
-    endpoint: "http://jaeger:14268/api/traces"
+    exporter: "otlp"
+    endpoint: "http://otel-collector:4317"
     sample_rate: 0.1
     service_name: "fortresswaf"
+    include_body: false
+    attributes:
+      deployment.environment: "production"
   # Health check endpoint
   health:
     path: "/health"
     # Include detailed component status
     detailed: true
+
+# --- HTTP/3 (QUIC) Support ---
+http3:
+  enabled: false
+  port: 443
+  cert_file: ""
+  key_file: ""
+
+# --- GraphQL Protection ---
+graphql:
+  enabled: true
+  max_depth: 10
+  max_cost: 1000
+  max_aliases: 15
+  max_batch_size: 1
+  max_tokens: 10000
+  block_introspection: false
+  block_schema: true
+  allowed_operations:
+    - "query"
+    - "mutation"
+  strict_validation: true
+
+# --- JWT/OAuth Authentication ---
+jwt:
+  enabled: false
+  jwks_url: ""
+  issuers: []
+  audiences: []
+  algorithms:
+    - "RS256"
+    - "ES256"
+  secret: ""
+
+oauth:
+  enabled: false
+  introspection_url: ""
+  client_id: ""
+  client_secret: ""
+  token_type_hint: "access_token"
+
+# --- mTLS Client Certificate Authentication ---
+mtls:
+  enabled: false
+  cert_file: ""
+  key_file: ""
+  ca_file: ""
+  client_auth: "no-client-certs"
+  skip_verify: false
+  policy_oid: ""
+  verify_depth: 5
+  fail_on_error: true
+  early_auth: false
+  username_header: "X-Client-Cert-User"
+
+# --- Plugin System (WebAssembly) ---
+plugins:
+  enabled: false
+  dir: "./plugins"
+  allowed_apis:
+    - "log"
+    - "get_header"
+    - "set_header"
+    - "block"
+    - "allow"
+
+# --- Traffic Management (Canary/A-B/Shadow) ---
+traffic:
+  canary:
+    - name: ""
+      match:
+        path_prefix: ""
+      primary: ""
+      canary: ""
+      weight: 0
+      sticky_header: ""
+      cookie_name: ""
+      session_ttl: 24h
+  shadow:
+    - name: ""
+      match:
+        path_prefix: ""
+      shadow: ""
+      percent: 0
+      header_injection: true
+      response_timeout: 5s
+      ignore_response: true
+
+# --- Request/Response Rewriting ---
+rewrite_rules:
+  - name: "remove-sensitive-headers"
+    conditions:
+      - field: "headers"
+        name: "X-Internal-Token"
+        operator: "exists"
+    actions:
+      - type: "header"
+        operation: "remove"
+        name: "X-Internal-Token"
+  - name: "redirect-old-paths"
+    conditions:
+      - field: "path"
+        operator: "prefix"
+        value: "/old/"
+    actions:
+      - type: "url"
+        operation: "redirect"
+        redirect_url: "/new{{.path}}"
+        code: 301
+
+# --- Dry-Run / Staging Mode ---
+dry_run:
+  enabled: false
+  log_file: "/var/log/fortresswaf/dryrun.log"
+  output_format: "json"
+  include_body: false
+  silent: false
+
+# --- Secrets Management (Vault) ---
+secrets:
+  provider: "env"
+  vault:
+    address: ""
+    token: "${VAULT_TOKEN}"
+    mount_path: "kv"
+    kv_version: 2
+    namespace: ""
+
+# --- SIEM Integration ---
+siem:
+  enabled: false
+  export_interval: 10s
+  batch_size: 100
+  exporters:
+    - type: "splunk"
+      enabled: false
+      url: ""
+      token: "${SPLUNK_TOKEN}"
+      index: "fortresswaf"
+      verify_ssl: true
+    - type: "elasticsearch"
+      enabled: false
+      url: "https://elk.example.com:9200"
+      index: "fortresswaf-logs"
+      username: ""
+      password: ""
