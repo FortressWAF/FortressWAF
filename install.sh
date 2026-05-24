@@ -288,6 +288,8 @@ main() {
   detect_os
   install_deps
 
+  setup_dirs
+
   if [ -f "$CONFIG_DIR/config.yml" ]; then
     warn "Config already exists: $CONFIG_DIR/config.yml"
     read -rp "Overwrite? [y/N] " yn
@@ -309,9 +311,6 @@ main() {
       warn "Neither Docker nor Go found. Will install Docker first."
     fi
   fi
-
-  setup_dirs
-  gen_config
 
   if [ "$INSTALL_METHOD" = docker ]; then
     install_docker
