@@ -29,7 +29,6 @@ build: ## Build all Go binaries
 	@mkdir -p $(BIN_DIR)
 	$(GO) build $(LDFLAGS) -o $(BIN_DIR)/fortress-proxy ./cmd/proxy
 	$(GO) build $(LDFLAGS) -o $(BIN_DIR)/fortressctl ./cmd/ctl
-	$(GO) build $(LDFLAGS) -o $(BIN_DIR)/fortress-setup ./cmd/setup
 	@echo "Binaries built in $(BIN_DIR)/"
 
 build-all: build ## Build for all platforms
@@ -145,21 +144,8 @@ docs-build: ## Build documentation site
 install: build ## Install binaries to system
 	sudo cp $(BIN_DIR)/fortress-proxy /usr/local/bin/
 	sudo cp $(BIN_DIR)/fortressctl /usr/local/bin/
-	sudo cp $(BIN_DIR)/fortress-setup /usr/local/bin/
 	sudo mkdir -p /etc/fortresswaf/rules
 	@echo "Installed to /usr/local/bin/"
-
-setup: build ## Run interactive setup wizard
-	@echo "Starting FortressWAF Setup Wizard..."
-	$(BIN_DIR)/fortress-setup
-
-setup-generate: build ## Generate config without wizard
-	@mkdir -p generated
-	$(BIN_DIR)/fortress-setup --preset production --output generated/config.yaml
-
-setup-docker-compose: build ## Generate docker-compose.yml
-	@mkdir -p generated
-	$(BIN_DIR)/fortress-setup --preset production --docker-compose generated/docker-compose.yml
 
 uninstall: ## Remove installed binaries
 	sudo rm -f /usr/local/bin/fortress-proxy
