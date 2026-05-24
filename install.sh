@@ -17,6 +17,16 @@ warn()  { echo -e "${YELLOW}[!]${NC} $1"; }
 error() { echo -e "${RED}[x]${NC} $1"; }
 head()  { echo -e "\n${CYAN}━━━ $1 ━━━${NC}"; }
 
+Sudo() {
+  if [ "$(id -u)" = 0 ]; then
+    "$@"
+  elif command -v sudo &>/dev/null && sudo -n true 2>/dev/null; then
+    sudo "$@"
+  else
+    "$@"
+  fi
+}
+
 usage() {
   cat <<EOF
 Usage: curl -sSL https://install.fortresswaf.io | bash [-- [options]]
@@ -81,7 +91,7 @@ install_deps() {
 setup_dirs() {
   head "Creating Directories"
 
-  sudo mkdir -p "$INSTALL_DIR" "$CONFIG_DIR" "$DATA_DIR" 2>/dev/null || {
+  Sudo mkdir -p "$INSTALL_DIR" "$CONFIG_DIR" "$DATA_DIR" 2>/dev/null || {
     error "Failed to create directories. Try with sudo or set --dir to writable path"
     exit 1
   }
@@ -133,7 +143,7 @@ siem:
   enabled: false
 YAML
 
-  sudo mv /tmp/fortresswaf.yml "$CONFIG_DIR/config.yml"
+  Sudo mv /tmp/fortresswaf.yml "$CONFIG_DIR/config.yml"
   info "Config written: $CONFIG_DIR/config.yml"
 }
 
