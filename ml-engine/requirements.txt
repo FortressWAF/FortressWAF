@@ -6,7 +6,7 @@ torch==2.2.0
 transformers==4.38.0
 numpy==1.26.0
 pandas==2.2.0
-redis==5.0.0
+redis==7.4.0
 prometheus-client==0.20.0
 grpcio==1.62.0
 grpcio-health-checking==1.62.0
