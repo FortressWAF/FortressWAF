@@ -259,19 +259,19 @@ show_summary() {
 }
 
 main() {
-  echo ""
-  echo -e "${CYAN}  ______                   _                                        __        _  __${NC}"
-  echo -e "${CYAN} |  ____|                 | |                                      / _|      | |/ _|${NC}"
-  echo -e "${CYAN} | |__ ___  ___ _ __ ___ | |_ ___ _ __  ___    ___ _ __ __ _  ___| |_ ______| | |_ ${NC}"
-  echo -e "${CYAN} |  __/ _ \\/ __| '_ \` _ \\| __/ _ \\ '_ \\/ __|  / __| '__/ _\` |/ _ \\  _|______| |  _|${NC}"
-  echo -e "${CYAN} | | |  __/\\__ \\ | | | | | ||  __/ | | \\__ \\ | (__| | | (_| |  __/ |        | | |${NC}"
-  echo -e "${CYAN} |_|  \\___||___/_| |_| |_|\\__\\___|_| |_|___/  \\___|_|  \\__, |\\___|_|        |_|_|${NC}"
-  echo -e "${CYAN}                                                         __/ |${NC}"
-  echo -e "${CYAN}                                                        |___/ ${NC}"
-  echo ""
-  echo -e "  ${GREEN}Enterprise Web Application Firewall${NC}"
-  echo -e "  Version: ${YELLOW}v1.1.0${NC}"
-  echo ""
+  printf "\n"
+  printf "${CYAN}  ______                   _                                        __        _  __${NC}\n"
+  printf "${CYAN} |  ____|                 | |                                      / _|      | |/ _|${NC}\n"
+  printf "${CYAN} | |__ ___  ___ _ __ ___ | |_ ___ _ __  ___    ___ _ __ __ _  ___| |_ ______| | |_ ${NC}\n"
+  printf "${CYAN} |  __/ _ \\/ __| '_ \\\` _ \\| __/ _ \\ '_ \\/ __|  / __| '__/ _\\\` |/ _ \\  _|______| |  _|${NC}\n"
+  printf "${CYAN} | | |  __/\\__ \\ | | | | | ||  __/ | | \\__ \\ | (__| | | (_| |  __/ |        | | |${NC}\n"
+  printf "${CYAN} |_|  \\___||___/_| |_| |_|\\__\\___|_| |_|___/  \\___|_|  \\__, |\\___|_|        |_|_|${NC}\n"
+  printf "${CYAN}                                                         __/ |${NC}\n"
+  printf "${CYAN}                                                        |___/ ${NC}\n"
+  printf "\n"
+  printf "  ${GREEN}Enterprise Web Application Firewall${NC}\n"
+  printf "  Version: ${YELLOW}v1.1.0${NC}\n"
+  printf "\n"
 
   for arg in "$@"; do
     case "$arg" in
