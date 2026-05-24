@@ -65,6 +65,14 @@ type RequestContext struct {
 	RequestID     string
 	Tags          []string
 	Context       context.Context
+	Host          string
+}
+
+type ResponseContext struct {
+	StatusCode int
+	Headers    map[string]string
+	Body       []byte
+	Request    *RequestContext
 }
 
 func NewRequestContext(r *http.Request) *RequestContext {
@@ -82,6 +90,7 @@ func NewRequestContext(r *http.Request) *RequestContext {
 		UserAgent:   r.UserAgent(),
 		Path:        r.URL.Path,
 		Method:      r.Method,
+		Host:        r.Host,
 		Headers:     make(map[string]string),
 		Cookies:     make(map[string]string),
 		QueryParams: make(map[string][]string),
@@ -114,48 +123,58 @@ type Inspector interface {
 }
 
 type Engine struct {
-	mu         sync.RWMutex
-	inspectors []Inspector
-	rules      Inspector
-	ml         Inspector
-	rateLimit  Inspector
-	reputation Inspector
-	session    Inspector
-	bot        Inspector
-	ddos       Inspector
-	sqli       Inspector
-	xss        Inspector
-	apiProtect Inspector
-	rce        Inspector
-	protocol   Inspector
-	upload     Inspector
-	credential Inspector
-	geo        Inspector
-	devMode    bool
+	mu          sync.RWMutex
+	inspectors  []Inspector
+	rules       Inspector
+	ml          Inspector
+	rateLimit   Inspector
+	reputation  Inspector
+	session     Inspector
+	bot         Inspector
+	ddos        Inspector
+	sqli        Inspector
+	xss         Inspector
+	apiProtect  Inspector
+	rce         Inspector
+	protocol    Inspector
+	upload      Inspector
+	credential  Inspector
+	geo         Inspector
+	jwt         Inspector
+	oauth       Inspector
+	graphql     Inspector
+	mtls        Inspector
+	websocket   Inspector
+	devMode     bool
 }
 
 type EngineConfig struct {
-	DevMode     bool
-	Rules       Inspector
-	ML          Inspector
-	RateLimit   Inspector
-	Reputation  Inspector
-	Session     Inspector
-	Bot         Inspector
-	DDoS        Inspector
-	SQLI        Inspector
-	XSS         Inspector
-	APIProtect  Inspector
-	RCE         Inspector
-	Protocol    Inspector
-	Upload      Inspector
-	Credential  Inspector
-	Geo         Inspector
+	DevMode    bool
+	Rules      Inspector
+	ML         Inspector
+	RateLimit  Inspector
+	Reputation Inspector
+	Session    Inspector
+	Bot        Inspector
+	DDoS       Inspector
+	SQLI       Inspector
+	XSS        Inspector
+	APIProtect Inspector
+	RCE        Inspector
+	Protocol   Inspector
+	Upload     Inspector
+	Credential Inspector
+	Geo        Inspector
+	JWT        Inspector
+	OAuth      Inspector
+	GraphQL    Inspector
+	MTLS       Inspector
+	WebSocket  Inspector
 }
 
 func New(cfg EngineConfig) *Engine {
 	e := &Engine{
-		devMode: cfg.DevMode,
+		devMode:    cfg.DevMode,
 		rules:      cfg.Rules,
 		ml:         cfg.ML,
 		rateLimit:  cfg.RateLimit,
@@ -171,9 +190,18 @@ func New(cfg EngineConfig) *Engine {
 		upload:     cfg.Upload,
 		credential: cfg.Credential,
 		geo:        cfg.Geo,
+		jwt:        cfg.JWT,
+		oauth:      cfg.OAuth,
+		graphql:    cfg.GraphQL,
+		mtls:       cfg.MTLS,
+		websocket:  cfg.WebSocket,
 	}
 
 	e.inspectors = []Inspector{
+		cfg.JWT,
+		cfg.OAuth,
+		cfg.MTLS,
+		cfg.GraphQL,
 		cfg.Reputation,
 		cfg.RateLimit,
 		cfg.Session,
@@ -189,6 +217,7 @@ func New(cfg EngineConfig) *Engine {
 		cfg.Upload,
 		cfg.Credential,
 		cfg.Geo,
+		cfg.WebSocket,
 	}
 
 	return e
@@ -327,6 +356,16 @@ func (e *Engine) UpdateInspector(name string, inspector Inspector) {
 		e.credential = inspector
 	case "geo":
 		e.geo = inspector
+	case "jwt":
+		e.jwt = inspector
+	case "oauth":
+		e.oauth = inspector
+	case "graphql":
+		e.graphql = inspector
+	case "mtls":
+		e.mtls = inspector
+	case "websocket":
+		e.websocket = inspector
 	}
 
 	for i, ins := range e.inspectors {

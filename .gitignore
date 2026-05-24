@@ -186,3 +186,6 @@ id_dsa*
 
 # Ansible
 *.retry
+
+# Benchmark output
+benchmark.txt

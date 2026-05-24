@@ -103,18 +103,118 @@ type RuleConfig struct {
 	Params      map[string]any `yaml:"params,omitempty"`
 }
 
+type JWTConfig struct {
+	Enabled    bool     `yaml:"enabled"`
+	JWKSURL    string   `yaml:"jwks_url"`
+	Issuers    []string `yaml:"issuers"`
+	Audiences  []string `yaml:"audiences"`
+	Algorithms []string `yaml:"algorithms"`
+	Secret     string   `yaml:"secret"`
+}
+
+type OAuthConfig struct {
+	Enabled          bool   `yaml:"enabled"`
+	IntrospectionURL string `yaml:"introspection_url"`
+	ClientID        string `yaml:"client_id"`
+	ClientSecret    string `yaml:"client_secret"`
+	TokenTypeHint   string `yaml:"token_type_hint"`
+}
+
+type GraphQLConfig struct {
+	Enabled             bool     `yaml:"enabled"`
+	MaxDepth            int      `yaml:"max_depth"`
+	MaxCost             int      `yaml:"max_cost"`
+	MaxAliases          int      `yaml:"max_aliases"`
+	MaxBatchSize        int      `yaml:"max_batch_size"`
+	MaxTokens           int      `yaml:"max_tokens"`
+	BlockIntrospection  bool     `yaml:"block_introspection"`
+	BlockSchema        bool     `yaml:"block_schema"`
+	AllowedOperations   []string `yaml:"allowed_operations"`
+	RestrictedFields   []string `yaml:"restricted_fields"`
+	StrictValidation   bool     `yaml:"strict_validation"`
+}
+
+type MTLSConfig struct {
+	Enabled        bool   `yaml:"enabled"`
+	CAFile         string `yaml:"ca_file"`
+	ClientAuth     string `yaml:"client_auth"`
+	SkipVerify     bool   `yaml:"skip_verify"`
+	PolicyOID      string `yaml:"policy_oid"`
+	VerifyDepth    int    `yaml:"verify_depth"`
+	FailOnError   bool   `yaml:"fail_on_error"`
+	EarlyAuth     bool   `yaml:"early_auth"`
+	UsernameHeader string `yaml:"username_header"`
+}
+
+type WebSocketConfig struct {
+	Enabled      bool `yaml:"enabled"`
+	MaxFrameSize int  `yaml:"max_frame_size"`
+	MaxDepth     int  `yaml:"max_depth"`
+	AllowedTypes []int `yaml:"allowed_types"`
+	StrictMode  bool `yaml:"strict_mode"`
+	EnablePing  bool `yaml:"enable_ping"`
+	EnablePong  bool `yaml:"enable_pong"`
+	EnableClose bool `yaml:"enable_close"`
+}
+
+type SIEMConfig struct {
+	Enabled        bool              `yaml:"enabled"`
+	ExportInterval time.Duration     `yaml:"export_interval"`
+	BatchSize      int               `yaml:"batch_size"`
+	Exporters      []SIEMExporterConfig `yaml:"exporters"`
+}
+
+type SIEMExporterConfig struct {
+	Type      string `yaml:"type"`
+	Enabled   bool   `yaml:"enabled"`
+	URL       string `yaml:"url"`
+	Token     string `yaml:"token"`
+	Index     string `yaml:"index"`
+	Username  string `yaml:"username"`
+	Password  string `yaml:"password"`
+	VerifySSL bool   `yaml:"verify_ssl"`
+}
+
+type RewriteRuleConfig struct {
+	Name       string                  `yaml:"name"`
+	Conditions []RewriteConditionConfig `yaml:"conditions"`
+	Actions    []RewriteActionConfig  `yaml:"actions"`
+}
+
+type RewriteConditionConfig struct {
+	Field    string `yaml:"field"`
+	Name     string `yaml:"name"`
+	Operator string `yaml:"operator"`
+	Value    string `yaml:"value"`
+}
+
+type RewriteActionConfig struct {
+	Type      string `yaml:"type"`
+	Operation string `yaml:"operation"`
+	Name     string `yaml:"name"`
+	Value    string `yaml:"value"`
+	Pattern  string `yaml:"pattern"`
+}
+
 type Config struct {
 	mu       sync.RWMutex
 	filePath string
 
-	Sites   []SiteConfig   `yaml:"sites"`
-	Rules   []RuleConfig  `yaml:"rules"`
-	ML      MLConfig      `yaml:"ml"`
-	Redis   RedisConfig   `yaml:"redis"`
-	DB      DBConfig      `yaml:"db"`
-	Logging LoggingConfig `yaml:"logging"`
-	TLS     TLSConfig     `yaml:"tls"`
-	Admin   AdminConfig   `yaml:"admin"`
+	Sites        []SiteConfig        `yaml:"sites"`
+	Rules        []RuleConfig       `yaml:"rules"`
+	ML           MLConfig          `yaml:"ml"`
+	Redis        RedisConfig        `yaml:"redis"`
+	DB           DBConfig         `yaml:"db"`
+	Logging      LoggingConfig      `yaml:"logging"`
+	TLS          TLSConfig         `yaml:"tls"`
+	Admin        AdminConfig       `yaml:"admin"`
+	JWT          JWTConfig         `yaml:"jwt"`
+	OAuth        OAuthConfig       `yaml:"oauth"`
+	GraphQL      GraphQLConfig     `yaml:"graphql"`
+	MTLS         MTLSConfig        `yaml:"mtls"`
+	WebSocket    WebSocketConfig   `yaml:"websocket"`
+	SIEM         SIEMConfig       `yaml:"siem"`
+	RewriteRules []RewriteRuleConfig `yaml:"rewrite_rules"`
 }
 
 type Manager struct {
@@ -162,6 +262,43 @@ func DefaultConfig() *Config {
 		Admin: AdminConfig{
 			Port:    8443,
 			Enabled: true,
+		},
+		JWT: JWTConfig{
+			Enabled:    false,
+			Algorithms: []string{"RS256", "ES256"},
+		},
+		OAuth: OAuthConfig{
+			Enabled: false,
+		},
+		GraphQL: GraphQLConfig{
+			Enabled:           false,
+			MaxDepth:          10,
+			MaxCost:           1000,
+			MaxAliases:        15,
+			MaxBatchSize:      1,
+			MaxTokens:         10000,
+			StrictValidation:   true,
+			AllowedOperations: []string{"query", "mutation"},
+		},
+		MTLS: MTLSConfig{
+			Enabled:        false,
+			ClientAuth:     "no-client-certs",
+			UsernameHeader: "X-Client-Cert-User",
+			VerifyDepth:   5,
+		},
+		WebSocket: WebSocketConfig{
+			Enabled:      false,
+			MaxFrameSize: 65536,
+			MaxDepth:     10,
+			StrictMode:   true,
+			EnablePing:   true,
+			EnablePong:   true,
+			EnableClose:  true,
+		},
+		SIEM: SIEMConfig{
+			Enabled:       false,
+			ExportInterval: 10 * time.Second,
+			BatchSize:     100,
 		},
 	}
 }

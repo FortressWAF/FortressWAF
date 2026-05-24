@@ -73,10 +73,19 @@ nav:
   - Features:
       - features/owasp.md
       - features/api-security.md
+      - features/auth.md
+      - features/graphql.md
+      - features/mtls.md
+      - features/websocket.md
       - features/bot-management.md
       - features/ddos.md
+      - features/credential-protection.md
+      - features/upload-protection.md
+      - features/protocol-compliance.md
       - features/virtual-patching.md
       - features/rate-limiting.md
+      - features/rewrite.md
+      - features/siem.md
   - Deployment:
       - deploy/docker.md
       - deploy/kubernetes.md
