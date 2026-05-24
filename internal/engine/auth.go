@@ -4,12 +4,15 @@ import (
 	"crypto"
 	"crypto/ecdsa"
 	"crypto/elliptic"
+	"crypto/hmac"
 	"crypto/rsa"
-	"crypto/x509"
+	"crypto/sha256"
+	"crypto/sha512"
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	"hash"
 	"math/big"
 	"net/http"
 	"strings"
@@ -160,13 +163,38 @@ func (j *JWTValidator) Validate(tokenString string) (*JWTClaims, error) {
 		return nil, err
 	}
 
-	if headerObj.Kid != "" && j.jwksURL != "" {
-		key, err := j.getKey(headerObj.Kid)
-		if err == nil && key != nil {
-			if err := j.verifySignature(parts, headerObj.Alg, key); err != nil {
-				return nil, fmt.Errorf("verify signature: %w", err)
-			}
+	hasKeySource := j.jwksURL != "" || j.secret != ""
+
+	if headerObj.Kid != "" {
+		if j.jwksURL == "" {
+			return nil, fmt.Errorf("kid present but JWKS URL not configured")
 		}
+		key, err := j.getKey(headerObj.Kid)
+		if err != nil {
+			return nil, fmt.Errorf("get signing key: %w", err)
+		}
+		if err := j.verifySignature(parts, headerObj.Alg, key); err != nil {
+			return nil, fmt.Errorf("verify signature: %w", err)
+		}
+	} else if j.secret != "" {
+		if !strings.EqualFold(headerObj.Alg, "HS256") &&
+			!strings.EqualFold(headerObj.Alg, "HS384") &&
+			!strings.EqualFold(headerObj.Alg, "HS512") {
+			return nil, fmt.Errorf("algorithm %s not compatible with secret key", headerObj.Alg)
+		}
+		signingInput := parts[0] + "." + parts[1]
+		expectedSig := computeHMAC([]byte(j.secret), []byte(signingInput), headerObj.Alg)
+		providedSig, err := j.decodeSegment(parts[2])
+		if err != nil {
+			return nil, fmt.Errorf("decode signature: %w", err)
+		}
+		if !hmac.Equal(expectedSig, providedSig) {
+			return nil, fmt.Errorf("invalid signature")
+		}
+	} else if hasKeySource {
+		return nil, fmt.Errorf("unable to determine signing key for token (kid=%q)", headerObj.Kid)
+	} else {
+		return nil, fmt.Errorf("JWT validation enabled but no signing key configured (jwks_url or secret)")
 	}
 
 	return &claims, nil
@@ -620,4 +648,17 @@ func (o *OAuthIntrospector) HasRole(info *TokenInfo, role string) bool {
 	return false
 }
 
-var _ = x509.Certificate{}
+func computeHMAC(secret, data []byte, alg string) []byte {
+	var h func() hash.Hash
+	switch alg {
+	case "HS384":
+		h = sha512.New384
+	case "HS512":
+		h = sha512.New
+	default:
+		h = sha256.New
+	}
+	mac := hmac.New(h, secret)
+	mac.Write(data)
+	return mac.Sum(nil)
+}

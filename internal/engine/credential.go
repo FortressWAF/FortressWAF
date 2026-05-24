@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"log/slog"
 	"strings"
 	"sync"
 	"time"
@@ -352,10 +351,20 @@ func (c *CredentialProtection) validateJWT(ctx *RequestContext) *Decision {
 		signingInput := parts[0] + "." + parts[1]
 		expectedSig := hmacSHA256([]byte(c.jwtSecret), []byte(signingInput))
 		providedSig, err := base64.RawURLEncoding.DecodeString(parts[2])
-		if err == nil && !hmac.Equal(expectedSig, providedSig) {
+		if err != nil {
 			return &Decision{
 				Action:   ActionBlock,
 				RuleID:   "CRED011",
+				RuleName: "Invalid JWT Signature Encoding",
+				Severity: "high",
+				Score:    75,
+				Evidence: "jwt signature is not valid base64",
+			}
+		}
+		if !hmac.Equal(expectedSig, providedSig) {
+			return &Decision{
+				Action:   ActionBlock,
+				RuleID:   "CRED012",
 				RuleName: "Invalid JWT Signature",
 				Severity: "high",
 				Score:    75,
@@ -382,7 +391,7 @@ func (c *CredentialProtection) validateJWT(ctx *RequestContext) *Decision {
 	if payload.Exp > 0 && now > payload.Exp {
 		return &Decision{
 			Action:   ActionBlock,
-			RuleID:   "CRED012",
+			RuleID:   "CRED013",
 			RuleName: "Expired JWT",
 			Severity: "medium",
 			Score:    40,
@@ -424,5 +433,3 @@ func hmacSHA256(secret, data []byte) []byte {
 	h.Write(data)
 	return h.Sum(nil)
 }
-
-var _ = slog.Debug

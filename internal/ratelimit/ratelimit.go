@@ -2,7 +2,6 @@ package ratelimit
 
 import (
 	"fmt"
-	"log/slog"
 	"math"
 	"sync"
 	"time"
@@ -209,9 +208,9 @@ func (rl *RateLimiter) checkTokenBucket(key string, rate, burst int) (bool, *Dec
 		}
 		rl.tokenBuckets[key] = bucket
 	}
+	bucket.mu.Lock()
 	rl.mu.Unlock()
 
-	bucket.mu.Lock()
 	defer bucket.mu.Unlock()
 
 	now := time.Now()
@@ -248,9 +247,9 @@ func (rl *RateLimiter) checkLeakyBucket(key string, rate, burst int) (bool, *Dec
 		}
 		rl.leakyBuckets[key] = bucket
 	}
+	bucket.mu.Lock()
 	rl.mu.Unlock()
 
-	bucket.mu.Lock()
 	defer bucket.mu.Unlock()
 
 	now := time.Now()
@@ -391,5 +390,3 @@ func (rl *RateLimiter) cleanupLoop() {
 func (rl *RateLimiter) Allowed(key string, granularity Granularity) (bool, *Decision) {
 	return rl.Inspect(key, granularity)
 }
-
-var _ = slog.Debug

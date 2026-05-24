@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"crypto/rand"
 	"crypto/tls"
+	"encoding/hex"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -496,6 +498,7 @@ func newAdminRouter(cfgMgr *config.Manager, e *engine.Engine, adminPort int) htt
 	r.HandleFunc("/live", handleLive).Methods("GET")
 
 	api := r.PathPrefix("/api/v1").Subrouter()
+	api.Use(adminAuthMiddleware(cfgMgr))
 	api.HandleFunc("/health", handleHealth).Methods("GET")
 	api.HandleFunc("/status", handleStatus).Methods("GET")
 	api.HandleFunc("/config", handleGetConfig(cfgMgr)).Methods("GET")
@@ -504,6 +507,56 @@ func newAdminRouter(cfgMgr *config.Manager, e *engine.Engine, adminPort int) htt
 	api.HandleFunc("/rules", handleListRules(cfgMgr)).Methods("GET")
 
 	return r
+}
+
+func adminAuthMiddleware(cfgMgr *config.Manager) mux.MiddlewareFunc {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			cfg := cfgMgr.Get()
+			if len(cfg.Admin.APIKeys) == 0 {
+				writeJSON(w, http.StatusForbidden, map[string]interface{}{
+					"error":  "forbidden",
+					"detail": "admin API not configured with authentication",
+				})
+				return
+			}
+
+			auth := r.Header.Get("Authorization")
+			if auth == "" {
+				writeJSON(w, http.StatusUnauthorized, map[string]interface{}{
+					"error":  "unauthorized",
+					"detail": "missing Authorization header",
+				})
+				return
+			}
+
+			token := strings.TrimPrefix(auth, "Bearer ")
+			if token == auth {
+				writeJSON(w, http.StatusUnauthorized, map[string]interface{}{
+					"error":  "unauthorized",
+					"detail": "Authorization must be Bearer token",
+				})
+				return
+			}
+
+			valid := false
+			for _, key := range cfg.Admin.APIKeys {
+				if token == key {
+					valid = true
+					break
+				}
+			}
+			if !valid {
+				writeJSON(w, http.StatusForbidden, map[string]interface{}{
+					"error":  "forbidden",
+					"detail": "invalid API key",
+				})
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
 }
 
 func handleHealth(w http.ResponseWriter, r *http.Request) {
@@ -703,7 +756,9 @@ func writeJSON(w http.ResponseWriter, status int, v interface{}) {
 }
 
 func challengePage(r *http.Request) []byte {
-	challengeToken := fmt.Sprintf("%x", time.Now().UnixNano())
+	var tokenBytes [16]byte
+	rand.Read(tokenBytes[:])
+	challengeToken := hex.EncodeToString(tokenBytes[:])
 	return []byte(fmt.Sprintf(`<!DOCTYPE html>
 <html>
 <head><title>Security Challenge</title></head>

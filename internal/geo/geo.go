@@ -70,7 +70,13 @@ func (l *Lookup) open() error {
 }
 
 func (l *Lookup) LookupIP(ipStr string) *Record {
-	if !l.available {
+	l.mu.RLock()
+	available := l.available
+	db := l.db
+	asnDB := l.asnDB
+	l.mu.RUnlock()
+
+	if !available {
 		return &Record{CountryCode: "XX", CountryName: "Unknown"}
 	}
 
@@ -81,8 +87,8 @@ func (l *Lookup) LookupIP(ipStr string) *Record {
 
 	record := &Record{}
 
-	if l.db != nil {
-		city, err := l.db.City(ip)
+	if db != nil {
+		city, err := db.City(ip)
 		if err == nil {
 			record.CountryCode = city.Country.IsoCode
 			record.CountryName = city.Country.Names["en"]
@@ -97,8 +103,8 @@ func (l *Lookup) LookupIP(ipStr string) *Record {
 		}
 	}
 
-	if l.asnDB != nil {
-		asn, err := l.asnDB.ASN(ip)
+	if asnDB != nil {
+		asn, err := asnDB.ASN(ip)
 		if err == nil {
 			record.ASN = asn.AutonomousSystemNumber
 			record.ASOrg = asn.AutonomousSystemOrganization
@@ -183,5 +189,3 @@ func (l *Lookup) IsAvailable() bool {
 	defer l.mu.RUnlock()
 	return l.available
 }
-
-var _ = slog.Debug
