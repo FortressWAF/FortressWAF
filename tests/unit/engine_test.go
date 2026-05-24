@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/zulfff/FortressWAF/internal/engine"
+	"github.com/FortressWAF/FortressWAF/internal/engine"
 )
 
 func newTestRequest(method, path string, queryParams map[string]string) *http.Request {

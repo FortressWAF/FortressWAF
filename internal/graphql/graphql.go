@@ -11,7 +11,7 @@ import (
 	"sync"
 	"unicode/utf8"
 
-	"github.com/zulfff/FortressWAF/internal/engine"
+	"github.com/FortressWAF/FortressWAF/internal/engine"
 )
 
 type Inspector struct {

@@ -15,8 +15,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
-	"github.com/zulfff/FortressWAF/internal/config"
-	"github.com/zulfff/FortressWAF/internal/rules"
+	"github.com/FortressWAF/FortressWAF/internal/config"
+	"github.com/FortressWAF/FortressWAF/internal/rules"
 	"gopkg.in/yaml.v3"
 )
 

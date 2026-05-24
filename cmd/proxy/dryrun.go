@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/zulfff/FortressWAF/internal/engine"
+	"github.com/FortressWAF/FortressWAF/internal/engine"
 )
 
 type DryRunMode struct {

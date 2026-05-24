@@ -5,7 +5,7 @@ import (
 	"os"
 	"text/template"
 
-	"github.com/zulfff/FortressWAF/internal/config"
+	"github.com/FortressWAF/FortressWAF/internal/config"
 )
 
 type ConfigGenerator struct {

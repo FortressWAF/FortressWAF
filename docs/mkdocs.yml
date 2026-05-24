@@ -35,9 +35,9 @@ extra:
     - icon: fontawesome/brands/twitter
       link: https://twitter.com/fortresswaf
   generator: false
-repo_url: https://github.com/zulfff/FortressWAF
-repo_name: zulfff/FortressWAF
-edit_url: "https://github.com/zulfff/FortressWAF/edit/main/docs/{path}"
+repo_url: https://github.com/FortressWAF/FortressWAF
+repo_name: FortressWAF/FortressWAF
+edit_url: "https://github.com/FortressWAF/FortressWAF/edit/main/docs/{path}"
 markdown_extensions:
   - admonition
   - pymdownx.details

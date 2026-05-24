@@ -8,7 +8,7 @@ COVERAGE_DIR := coverage
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
 COMMIT ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 BUILD_DATE ?= $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
-LDFLAGS := -ldflags="-s -w -X 'github.com/zulfff/FortressWAF/internal/version.Version=$(VERSION)' -X 'github.com/zulfff/FortressWAF/internal/version.Commit=$(COMMIT)' -X 'github.com/zulfff/FortressWAF/internal/version.BuildDate=$(BUILD_DATE)'"
+LDFLAGS := -ldflags="-s -w -X 'github.com/FortressWAF/FortressWAF/internal/version.Version=$(VERSION)' -X 'github.com/FortressWAF/FortressWAF/internal/version.Commit=$(COMMIT)' -X 'github.com/FortressWAF/FortressWAF/internal/version.BuildDate=$(BUILD_DATE)'"
 
 .PHONY: help dev build build-all test lint lint-go lint-py lint-ts clean docker-build docker-up docker-down docker-logs release install uninstall coverage bench profile format generate docs
 

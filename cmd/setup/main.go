@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/zulfff/FortressWAF/internal/config"
+	"github.com/FortressWAF/FortressWAF/internal/config"
 	"gopkg.in/yaml.v3"
 )
 

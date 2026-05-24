@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/zulfff/FortressWAF/internal/engine"
+	"github.com/FortressWAF/FortressWAF/internal/engine"
 )
 
 //go:embed wasm_examples/*.wasm

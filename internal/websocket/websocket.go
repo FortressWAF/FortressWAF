@@ -16,7 +16,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/zulfff/FortressWAF/internal/engine"
+	"github.com/FortressWAF/FortressWAF/internal/engine"
 	"github.com/gorilla/websocket"
 )
 

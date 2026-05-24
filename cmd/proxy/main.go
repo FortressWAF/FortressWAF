@@ -19,8 +19,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/zulfff/FortressWAF/internal/config"
-	"github.com/zulfff/FortressWAF/internal/engine"
+	"github.com/FortressWAF/FortressWAF/internal/config"
+	"github.com/FortressWAF/FortressWAF/internal/engine"
 	"github.com/gorilla/mux"
 )
 

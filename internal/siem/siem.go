@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/zulfff/FortressWAF/internal/config"
+	"github.com/FortressWAF/FortressWAF/internal/config"
 )
 
 type Exporter interface {
