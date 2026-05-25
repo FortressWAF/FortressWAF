@@ -31,7 +31,7 @@ Before starting, ensure you have the following installed:
 The easiest way to get started is using our official installer script:
 
 ```bash
-curl -sSL https://install.fortresswaf.io | bash
+curl -sSL https://raw.githubusercontent.com/FortressWAF/FortressWAF/refs/heads/main/install.sh | bash
 ```
 
 This script will:
