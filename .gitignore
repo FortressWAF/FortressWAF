@@ -188,3 +188,4 @@ id_dsa*
 # Benchmark output
 benchmark.txt
 proxy
+dashboard/package-lock.json
