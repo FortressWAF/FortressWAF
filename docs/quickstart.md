@@ -6,14 +6,13 @@ This guide will walk you through deploying FortressWAF using Docker Compose in u
 
 Before starting, ensure you have the following installed:
 
-| Requirement | Minimum Version | Recommended |
-|-------------|-----------------|-------------|
-| Docker | 20.10.x | 24.x |
-| Docker Compose | 2.x | 2.x |
+| Requirement | Minimum | Recommended |
+|---|---|---|
+| Docker | 20.10+ | 24+ |
+| Docker Compose | v2 | v2 |
 | RAM | 4 GB | 8 GB |
-| CPU | 2 cores | 4 cores |
-| Disk | 20 GB | 50 GB SSD |
-| OS | Linux/macOS/Windows | Linux (Ubuntu 22.04+) |
+| CPU | 2 cores | 4+ cores |
+| Disk | 20 GB | SSD recommended |
 
 !!! warning "Hardware Requirements"
     The minimum requirements are for evaluation purposes. Production deployments require significantly more resources. See the [Production Docker Deployment](deploy/docker.md) guide for full requirements.
