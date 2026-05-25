@@ -6,15 +6,60 @@ FortressWAF operates as a **reverse proxy** that intercepts HTTP/HTTPS traffic, 
 
 ## Proxy Node Pipeline
 
-```
-Request → TLS Term → HTTP Parse → Rate Limiter → IP Reputation → Rule Engine → Decision → Proxy Forwarder → Origin
+```mermaid
+flowchart LR
+    subgraph Inbound
+        T[TLS Termination<br/>HTTP/2 · ACME · OCSP · mTLS]
+        H[HTTP Parse<br/>1.1 / 2 · Body · Params]
+    end
+
+    subgraph Auth
+        J[JWT]
+        O[OAuth]
+        M[mTLS]
+        C[CAPTCHA]
+    end
+
+    subgraph Protocol
+        GQ[GraphQL]
+        GR[gRPC]
+        S[SOAP]
+        WS[WebSocket]
+    end
+
+    subgraph Detection
+        SQL[SQLi]
+        X[XSS]
+        R[RCE]
+        B[Bot]
+        D[DDoS]
+        CP[Credential]
+        AP[API]
+        PR[Protocol]
+        UF[Upload]
+        RL[Rate Limit]
+        IR[IP Reputation]
+    end
+
+    subgraph Output
+        SC[Scoring]
+        FW[Forwarder]
+    end
+
+    Req[Request] --> T --> H --> Auth --> Protocol --> Detection --> SC --> FW --> Origin[Origin]
+
+    SC -.-> ML[ML Sidecar]
+    SC -.-> P[Prometheus]
+    SC -.-> SIEM[SIEM Export]
 ```
 
 ### Stage 1: TLS Termination
 
 - TLS 1.2 minimum, TLS 1.3 supported
+- HTTP/2 via TLS configuration when `http2_enabled: true`
+- ACME/LetsEncrypt automatic certificate management via autocert
 - mTLS support for API-to-API communication
-- No automatic certificate management; provide certificates via config
+- OCSP stapling placeholder via VerifyConnection hook
 
 ### Stage 2: HTTP Parsing
 
@@ -24,23 +69,42 @@ Request → TLS Term → HTTP Parse → Rate Limiter → IP Reputation → Rule 
 - Header size and count limits enforced
 - HTTP/2 supported via TLS configuration; HTTP/3 not currently supported
 
-### Stage 3: Rate Limiting
+### Stage 3: Authentication & Access Control
 
-- Token bucket and leaky bucket algorithms
-- Per-IP and per-route limits
-- Global rate limits
-- Returns 429 with `Retry-After` header
+- JWT validation with JWKS caching (RS256, ES256, HS256)
+- OAuth 2.0 token introspection (RFC 7662)
+- mTLS certificate validation with configurable CA and policy OID
+- CAPTCHA verification (reCAPTCHA and hCaptcha)
+- API key validation via Bearer token
 
-### Stage 4: IP Reputation
+### Stage 4: Protocol-Specific Inspection
 
-- TOR exit node detection
-- Known proxy/VPN detection via range lists
-- Datacenter IP detection
-- Custom allow/block lists
-- Reputation scoring (0-100)
-- No real-time threat feed integration
+- **GraphQL**: Query depth limiting, cost analysis, alias limit, batch size, restricted fields
+- **gRPC**: Per-service rate limiting, message size limits
+- **SOAP/XML**: XML nesting depth validation
+- **WebSocket**: Frame type validation, rate limiting, origin check
 
-### Stage 5: Rule Engine
+### Stage 5: Detection Pipeline
+
+The detection pipeline runs 11 concurrent inspectors. Each scores the request independently:
+
+| Inspector | What It Checks |
+|---|---|
+| **SQL Injection** | Tautology, UNION, blind, error-based, stacked queries |
+| **XSS** | Stored, reflected, DOM, obfuscated JS |
+| **RCE** | Shell, SSTI, EL, deserialization, Log4Shell |
+| **API Protection** | Schema enforcement, shadow APIs, mass assignment |
+| **Bot Detection** | Known bots, headless browsers, JS challenge |
+| **DDoS Protection** | Slow loris, slow POST, cache busting |
+| **Protocol Anomaly** | Verb tampering, header smuggling, malformed requests |
+| **Upload Security** | MIME validation, magic bytes, extension filtering |
+| **Credential Protection** | Brute force, credential stuffing, password spray |
+| **Rate Limiting** | Token bucket, leaky bucket, sliding window, fixed window |
+| **IP Reputation** | TOR, proxy, VPN, ASN, CIDR allow/block |
+
+Scores accumulate. A block decision from any inspector short-circuits the pipeline. Non-block decisions contribute to a cumulative threat score used by the decision engine.
+
+### Stage 6: Rule Engine
 
 Evaluates requests against a configurable rule set. Each rule specifies:
 
@@ -56,7 +120,7 @@ Available rule phases:
 
 Response inspection is implemented. The `ResponseInspector` middleware wraps the HTTP response writer and captures response bodies for analysis when enabled.
 
-### Stage 6: ML Inference (Enterprise, optional)
+### Stage 7: ML Inference (optional)
 
 The ML sidecar runs as a separate process and provides:
 
@@ -90,6 +154,7 @@ The ML sidecar runs as a separate process and provides:
 ```
 FortressWAF ──► Local filesystem (config files, YAML)
              ──► Redis (rate limit counters, session state, optional)
+             ──► PostgreSQL (event storage, optional)
              ──► Splunk / HTTP endpoint / Slack (SIEM export, optional)
 ```
 
@@ -98,7 +163,7 @@ No built-in database (PostgreSQL, S3, etc.) is required. Config is file-based.
 ## Dashboard
 
 ```
-Proxy Node ──WebSocket──► Dashboard (Go + React)
+Proxy Node ──WebSocket──► Dashboard (Next.js)
                            - Live metrics
                            - Attack visualization
 ```
