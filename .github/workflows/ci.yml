@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 env:
-  GO_VERSION: '1.22'
+  GO_VERSION: '1.25'
   PYTHON_VERSION: '3.12'
   NODE_VERSION: '20'
 
@@ -109,4 +109,4 @@ jobs:
       - name: TypeScript check
         run: |
           cd dashboard
-          npx tsc --noEmit --project tsconfig.json 2>&1 | head -20 || true
+          npx tsc --noEmit --project tsconfig.json 2>&1 | head -20
