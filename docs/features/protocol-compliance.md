@@ -1,6 +1,8 @@
+> **Note:** HTTP/2 and HTTP/3 detection is not implemented. Only HTTP/1.x is supported.
+
 # Protocol Compliance
 
-FortressWAF validates HTTP protocol compliance, detecting and blocking malformed requests, HTTP smuggling, and protocol-level attacks.
+FortressWAF validates HTTP/1.x protocol compliance, detecting and blocking malformed requests, HTTP smuggling, and protocol-level attacks.
 
 ## Configuration
 
@@ -131,7 +133,7 @@ params:
   action: block
   field: request.protocol
   operator: not_in
-  value: "HTTP/1.1,HTTP/2,HTTP/3"
+  value: "HTTP/1.1"
   params:
     allow_http10: false
 ```

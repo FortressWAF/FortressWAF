@@ -1,6 +1,8 @@
+> **Note:** Current DDoS protection covers application-layer rate limiting only. Volumetric (SYN flood, UDP flood) and protocol-level mitigation are not implemented.
+
 # DDoS Protection
 
-FortressWAF provides comprehensive DDoS protection against volumetric attacks, protocol attacks, and application layer attacks.
+FortressWAF provides rate limiting and connection throttling for application-layer attacks.
 
 ## DDoS Protection Overview
 
