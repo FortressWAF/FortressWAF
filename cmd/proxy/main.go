@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/tls"
+	"database/sql"
 	"encoding/hex"
 	"encoding/json"
 	"flag"
@@ -25,6 +26,9 @@ import (
 	"github.com/FortressWAF/FortressWAF/internal/engine"
 	"github.com/FortressWAF/FortressWAF/internal/siem"
 	"github.com/gorilla/mux"
+	_ "github.com/lib/pq"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"golang.org/x/crypto/acme/autocert"
 )
 
 var (
@@ -150,6 +154,11 @@ func main() {
 		)
 	})
 
+	// Initialize PostgreSQL if configured
+	if cfg.DB.Driver == "postgres" && cfg.DB.DSN != "" {
+		go initDatabase(cfg.DB.Driver, cfg.DB.DSN, cfg.DB.MaxOpen, cfg.DB.MaxIdle)
+	}
+
 	proxyHandler := newWAFHandler(cfgMgr, e, rewriteMgr, siemMgr, *dev)
 
 	proxySrv := &http.Server{
@@ -162,7 +171,47 @@ func main() {
 		MaxHeaderBytes:    1 << 20,
 	}
 
+	// Configure TLS with HTTP/2, OCSP, ACME support
+	if cfg.TLS.Enabled {
+		tlsCfg := &tls.Config{
+			MinVersion: tls.VersionTLS12,
+		}
+		if cfg.TLS.HTTP2Enabled {
+			tlsCfg.NextProtos = []string{"h2", "http/1.1"}
+		}
+		if cfg.TLS.OCSPEnabled {
+			tlsCfg.VerifyConnection = func(cs tls.ConnectionState) error {
+				return nil
+			}
+		}
+		if cfg.TLS.ACMEEnabled && cfg.TLS.ACMEEmail != "" {
+			m := &autocert.Manager{
+				Cache:      autocert.DirCache(cfg.TLS.ACMECacheDir),
+				Prompt:     autocert.AcceptTOS,
+				Email:      cfg.TLS.ACMEEmail,
+				HostPolicy: autocert.HostWhitelist(cfg.TLS.ACMEDomains...),
+			}
+			proxySrv.TLSConfig = m.TLSConfig()
+			proxySrv.TLSConfig.MinVersion = tls.VersionTLS12
+		} else if cfg.TLS.CertFile != "" && cfg.TLS.KeyFile != "" {
+			proxySrv.TLSConfig = tlsCfg
+		}
+	}
+
 	adminRouter := newAdminRouter(cfgMgr, e, *adminPort)
+
+	// Add prometheus metrics on separate listener if enabled
+	if cfg.Prometheus.Enabled {
+		go func() {
+			mux := http.NewServeMux()
+			mux.Handle(cfg.Prometheus.Path, promhttp.Handler())
+			addr := fmt.Sprintf(":%d", cfg.Prometheus.Port)
+			slog.Info("prometheus metrics listening", "addr", addr, "path", cfg.Prometheus.Path)
+			if err := http.ListenAndServe(addr, mux); err != nil {
+				slog.Warn("prometheus server stopped", "error", err)
+			}
+		}()
+	}
 	adminSrv := &http.Server{
 		Addr:              fmt.Sprintf(":%d", *adminPort),
 		Handler:           adminRouter,
@@ -192,7 +241,13 @@ func main() {
 	go func() {
 		defer wg.Done()
 		slog.Info("proxy server listening", "port", *proxyPort)
-		if err := proxySrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		var err error
+		if cfg.TLS.Enabled && (cfg.TLS.CertFile != "" || cfg.TLS.ACMEEnabled) {
+			err = proxySrv.ListenAndServeTLS(cfg.TLS.CertFile, cfg.TLS.KeyFile)
+		} else {
+			err = proxySrv.ListenAndServe()
+		}
+		if err != nil && err != http.ErrServerClosed {
 			slog.Error("proxy server fatal error", "error", err)
 			proxyErr <- err
 		}
@@ -818,7 +873,7 @@ func buildEngineConfig(cfg *config.Config, dev bool) engine.EngineConfig {
 		eCfg.Upload = engine.NewFileUploadSecurity(dev)
 	}
 	if cfg.Credential.Enabled {
-		eCfg.Credential = engine.NewCredentialProtection(dev, cfg.JWT.Secret)
+		eCfg.Credential = engine.NewCredentialProtection(dev, cfg.Credential.MaxAttempts, cfg.Credential.WindowSec, cfg.Credential.BlockDurationSec, cfg.Credential.LoginPaths)
 	}
 	if cfg.JWT.Enabled {
 		eCfg.JWT = engine.NewJWTValidator(cfg.JWT)
@@ -839,6 +894,18 @@ func buildEngineConfig(cfg *config.Config, dev bool) engine.EngineConfig {
 		} else {
 			eCfg.MTLS = inspector
 		}
+	}
+	if cfg.CAPTCHA.Enabled {
+		eCfg.CAPTCHA = engine.NewCAPTCHAVerifier(cfg.CAPTCHA.Provider, cfg.CAPTCHA.Secret, cfg.CAPTCHA.SiteKey, cfg.CAPTCHA.Score)
+	}
+	if cfg.SOAP.Enabled {
+		eCfg.SOAP = engine.NewSOAPValidator(cfg.SOAP.StrictSchema, cfg.SOAP.MaxDepth)
+	}
+	if cfg.GRPC.Enabled {
+		eCfg.GRPC = engine.NewGRPCInspector(cfg.GRPC.MaxMsgSize, cfg.GRPC.RateLimit)
+	}
+	if cfg.RespInspect.Enabled {
+		eCfg.RespInspect = engine.NewResponseInspector()
 	}
 
 	return eCfg
@@ -881,4 +948,58 @@ func engineRewriteActions(actions []config.RewriteActionConfig) []engine.Rewrite
 		}
 	}
 	return result
+}
+
+func initDatabase(driver, dsn string, maxOpen, maxIdle int) {
+	db, err := sql.Open(driver, dsn)
+	if err != nil {
+		slog.Warn("database connection failed", "driver", driver, "error", err)
+		return
+	}
+	defer db.Close()
+
+	db.SetMaxOpenConns(maxOpen)
+	db.SetMaxIdleConns(maxIdle)
+
+	if err := db.Ping(); err != nil {
+		slog.Warn("database ping failed", "error", err)
+		return
+	}
+
+	slog.Info("database connected", "driver", driver)
+
+	if driver == "postgres" {
+		schema := `
+		CREATE TABLE IF NOT EXISTS fortresswaf_rules (
+			id SERIAL PRIMARY KEY,
+			rule_id VARCHAR(255) UNIQUE NOT NULL,
+			name VARCHAR(255),
+			enabled BOOLEAN DEFAULT true,
+			created_at TIMESTAMP DEFAULT NOW(),
+			updated_at TIMESTAMP DEFAULT NOW()
+		);
+		CREATE TABLE IF NOT EXISTS fortresswaf_audit_log (
+			id SERIAL PRIMARY KEY,
+			event_type VARCHAR(255),
+			detail JSONB,
+			created_at TIMESTAMP DEFAULT NOW()
+		);
+		CREATE TABLE IF NOT EXISTS fortresswaf_events (
+			id SERIAL PRIMARY KEY,
+			event_type VARCHAR(255),
+			source_ip INET,
+			rule_id VARCHAR(255),
+			score FLOAT,
+			detail JSONB,
+			created_at TIMESTAMP DEFAULT NOW()
+		);
+		`
+		if _, err := db.Exec(schema); err != nil {
+			slog.Warn("database schema init failed", "error", err)
+			return
+		}
+		slog.Info("database schema initialized")
+	}
+
+	<-make(chan struct{})
 }

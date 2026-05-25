@@ -143,86 +143,101 @@ type Inspector interface {
 }
 
 type Engine struct {
-	mu         sync.RWMutex
-	inspectors []Inspector
-	rules      Inspector
-	ml         Inspector
-	rateLimit  Inspector
-	reputation Inspector
-	session    Inspector
-	bot        Inspector
-	ddos       Inspector
-	sqli       Inspector
-	xss        Inspector
-	apiProtect Inspector
-	rce        Inspector
-	protocol   Inspector
-	upload     Inspector
-	credential Inspector
-	geo        Inspector
-	jwt        Inspector
-	oauth      Inspector
-	graphql    Inspector
-	mtls       Inspector
-	websocket  Inspector
-	devMode    bool
+	mu          sync.RWMutex
+	inspectors  []Inspector
+	rules       Inspector
+	ml          Inspector
+	rateLimit   Inspector
+	reputation  Inspector
+	session     Inspector
+	bot         Inspector
+	ddos        Inspector
+	sqli        Inspector
+	xss         Inspector
+	apiProtect  Inspector
+	rce         Inspector
+	protocol    Inspector
+	upload      Inspector
+	credential  Inspector
+	geo         Inspector
+	jwt         Inspector
+	oauth       Inspector
+	graphql     Inspector
+	mtls        Inspector
+	websocket   Inspector
+	captcha     Inspector
+	soap        Inspector
+	grpc        Inspector
+	respInspect Inspector
+	devMode     bool
 }
 
 // EngineConfig configures which inspectors the Engine should use.
 type EngineConfig struct {
-	DevMode    bool
-	Rules      Inspector
-	ML         Inspector
-	RateLimit  Inspector
-	Reputation Inspector
-	Session    Inspector
-	Bot        Inspector
-	DDoS       Inspector
-	SQLI       Inspector
-	XSS        Inspector
-	APIProtect Inspector
-	RCE        Inspector
-	Protocol   Inspector
-	Upload     Inspector
-	Credential Inspector
-	Geo        Inspector
-	JWT        Inspector
-	OAuth      Inspector
-	GraphQL    Inspector
-	MTLS       Inspector
-	WebSocket  Inspector
+	DevMode     bool
+	Rules       Inspector
+	ML          Inspector
+	RateLimit   Inspector
+	Reputation  Inspector
+	Session     Inspector
+	Bot         Inspector
+	DDoS        Inspector
+	SQLI        Inspector
+	XSS         Inspector
+	APIProtect  Inspector
+	RCE         Inspector
+	Protocol    Inspector
+	Upload      Inspector
+	Credential  Inspector
+	Geo         Inspector
+	JWT         Inspector
+	OAuth       Inspector
+	GraphQL     Inspector
+	MTLS        Inspector
+	WebSocket   Inspector
+	CAPTCHA     Inspector
+	SOAP        Inspector
+	GRPC        Inspector
+	RespInspect Inspector
 }
 
 func New(cfg EngineConfig) *Engine {
 	e := &Engine{
-		devMode:    cfg.DevMode,
-		rules:      cfg.Rules,
-		ml:         cfg.ML,
-		rateLimit:  cfg.RateLimit,
-		reputation: cfg.Reputation,
-		session:    cfg.Session,
-		bot:        cfg.Bot,
-		ddos:       cfg.DDoS,
-		sqli:       cfg.SQLI,
-		xss:        cfg.XSS,
-		apiProtect: cfg.APIProtect,
-		rce:        cfg.RCE,
-		protocol:   cfg.Protocol,
-		upload:     cfg.Upload,
-		credential: cfg.Credential,
-		geo:        cfg.Geo,
-		jwt:        cfg.JWT,
-		oauth:      cfg.OAuth,
-		graphql:    cfg.GraphQL,
-		mtls:       cfg.MTLS,
-		websocket:  cfg.WebSocket,
+		devMode:     cfg.DevMode,
+		rules:       cfg.Rules,
+		ml:          cfg.ML,
+		rateLimit:   cfg.RateLimit,
+		reputation:  cfg.Reputation,
+		session:     cfg.Session,
+		bot:         cfg.Bot,
+		ddos:        cfg.DDoS,
+		sqli:        cfg.SQLI,
+		xss:         cfg.XSS,
+		apiProtect:  cfg.APIProtect,
+		rce:         cfg.RCE,
+		protocol:    cfg.Protocol,
+		upload:      cfg.Upload,
+		credential:  cfg.Credential,
+		geo:         cfg.Geo,
+		jwt:         cfg.JWT,
+		oauth:       cfg.OAuth,
+		graphql:     cfg.GraphQL,
+		mtls:        cfg.MTLS,
+		websocket:   cfg.WebSocket,
+		captcha:     cfg.CAPTCHA,
+		soap:        cfg.SOAP,
+		grpc:        cfg.GRPC,
+		respInspect: cfg.RespInspect,
 	}
 
 	e.inspectors = []Inspector{
+		cfg.CAPTCHA,
 		cfg.JWT,
 		cfg.OAuth,
 		cfg.MTLS,
 		cfg.GraphQL,
+		cfg.GRPC,
+		cfg.SOAP,
 		cfg.Reputation,
 		cfg.RateLimit,
 		cfg.Session,
@@ -239,6 +254,7 @@ func New(cfg EngineConfig) *Engine {
 		cfg.Credential,
 		cfg.Geo,
 		cfg.WebSocket,
+		cfg.RespInspect,
 	}
 
 	return e
@@ -390,6 +406,14 @@ func (e *Engine) UpdateInspector(name string, inspector Inspector) {
 		e.mtls = inspector
 	case "websocket":
 		e.websocket = inspector
+	case "captcha":
+		e.captcha = inspector
+	case "soap":
+		e.soap = inspector
+	case "grpc":
+		e.grpc = inspector
+	case "response_inspect":
+		e.respInspect = inspector
 	}
 
 	for i, ins := range e.inspectors {
