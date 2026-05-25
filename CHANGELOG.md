@@ -150,7 +150,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - API authentication with Bearer tokens
   - Request tracing and debugging
   - Audit logging for all configuration changes
-  - FIPS 140-2 ready (Enterprise)
+  - TLS configuration support
 
 ### Changed
 - N/A (initial release)
@@ -171,7 +171,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Beta release with core WAF functionality
-- Initial rule engine with 5,000+ patterns
+- Initial rule engine with rule sets
 - Basic rate limiting
 - CLI tool
 - Docker deployment

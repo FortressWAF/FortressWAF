@@ -1,6 +1,6 @@
 # Kubernetes Deployment
 
-FortressWAF provides a production-grade Helm chart for Kubernetes deployments. This guide covers advanced Kubernetes deployment scenarios including high availability, auto-scaling, and integration with service meshes.
+FortressWAF includes a Helm chart for Kubernetes deployments. This guide covers deployment scenarios including high availability, auto-scaling, and integration with service meshes.
 
 ## Prerequisites
 

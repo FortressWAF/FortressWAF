@@ -2,7 +2,7 @@
 
 ## Overview
 
-FortressWAF operates as a **reverse proxy** that intercepts HTTP/HTTPS traffic, inspects requests through a multi-layered pipeline, and forwards legitimate traffic to upstream origin servers. The system is designed for **high throughput**, **low latency**, and **horizontal scalability**.
+FortressWAF operates as a **reverse proxy** that intercepts HTTP/HTTPS traffic, inspects requests through a multi-layered pipeline, and forwards legitimate traffic to upstream origin servers. The system uses a multi-stage pipeline for request inspection and forwarding.
 
 ## High-Level Architecture
 

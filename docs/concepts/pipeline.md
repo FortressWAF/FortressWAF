@@ -341,7 +341,7 @@ Raw Input → lowercase → url_decode → remove_nulls → normalize_path → M
 
 ### Stage 6: ML Anomaly Scoring
 
-**Purpose**: Detect zero-day and novel attack patterns
+**Purpose**: Score requests for anomaly against learned traffic baselines
 
 **Feature Extraction**:
 ```

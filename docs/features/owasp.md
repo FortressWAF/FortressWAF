@@ -1,21 +1,23 @@
-# OWASP Protection Features
+# OWASP Protection
 
-FortressWAF provides comprehensive protection against the OWASP Top 10 security risks. This document details how each vulnerability class is detected and mitigated.
+FortressWAF includes detection rules for common OWASP Top 10 attack categories. This document shows example rule configurations. Actual coverage depends on the rule set loaded.
 
-## OWASP Top 10 Coverage Overview
+## OWASP Top 10 Coverage
 
-| OWASP Category | Protection Method | Detection Accuracy |
-|----------------|------------------|-------------------|
-| A01 Broken Access Control | Rule engine + ML | 99.5% |
-| A02 Cryptographic Failures | Configuration enforcement | 100% |
-| A03 Injection | Rule engine + ML | 99.8% |
-| A04 Insecure Design | ML anomaly detection | 95% |
-| A05 Security Misconfiguration | Configuration checks | 100% |
-| A06 Vulnerable Components | Virtual patching | 100% |
-| A07 Authentication Failures | Rate limiting + rules | 98% |
-| A08 Software Integrity Failures | Integrity checks | 100% |
-| A09 Logging Failures | Audit logging | 100% |
-| A10 Server-Side Request Forgery | Rule engine + ML | 97% |
+| OWASP Category | Status |
+|----------------|--------|
+| A01 Broken Access Control | Partial — IP/path rules |
+| A02 Cryptographic Failures | TLS enforcement only |
+| A03 Injection | SQLi, XSS, command injection rules |
+| A04 Insecure Design | Rate limiting |
+| A05 Security Misconfiguration | Header checks |
+| A06 Vulnerable Components | Virtual patching |
+| A07 Authentication Failures | Rate limiting |
+| A08 Software Integrity Failures | Request signing |
+| A09 Logging Failures | Audit logging |
+| A10 SSRF | On roadmap |
+
+**Note:** Detection accuracy varies by traffic patterns, rule configuration, and may produce false positives. No WAF achieves 100% detection.
 
 ## A01: Broken Access Control
 

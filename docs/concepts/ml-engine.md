@@ -1,6 +1,6 @@
 # ML Engine Architecture
 
-FortressWAF incorporates a sophisticated machine learning engine that provides real-time anomaly detection, threat classification, and bot identification. This document details the ML architecture, models used, training pipelines, and operational considerations.
+FortressWAF includes an optional ML sidecar for anomaly detection. The ML engine scores requests based on learned patterns and can flag deviations from normal traffic. This document details the ML architecture, models used, training pipelines, and operational considerations.
 
 ## ML Engine Overview
 
