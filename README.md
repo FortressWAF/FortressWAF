@@ -186,6 +186,8 @@ ml-engine/           —  ML sidecar (Python/FastAPI)
 
 ---
 
+---
+
 ## Performance
 
 Measured on a laptop (Intel i5-7200U, 2 cores). Server-grade CPUs typically 2-3x faster.

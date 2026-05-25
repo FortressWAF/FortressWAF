@@ -201,33 +201,6 @@ func main() {
 		}
 	}
 
-	// Configure TLS with HTTP/2, OCSP, ACME support
-	if cfg.TLS.Enabled {
-		tlsCfg := &tls.Config{
-			MinVersion: tls.VersionTLS12,
-		}
-		if cfg.TLS.HTTP2Enabled {
-			tlsCfg.NextProtos = []string{"h2", "http/1.1"}
-		}
-		if cfg.TLS.OCSPEnabled {
-			tlsCfg.VerifyConnection = func(cs tls.ConnectionState) error {
-				return nil
-			}
-		}
-		if cfg.TLS.ACMEEnabled && cfg.TLS.ACMEEmail != "" {
-			m := &autocert.Manager{
-				Cache:      autocert.DirCache(cfg.TLS.ACMECacheDir),
-				Prompt:     autocert.AcceptTOS,
-				Email:      cfg.TLS.ACMEEmail,
-				HostPolicy: autocert.HostWhitelist(cfg.TLS.ACMEDomains...),
-			}
-			proxySrv.TLSConfig = m.TLSConfig()
-			proxySrv.TLSConfig.MinVersion = tls.VersionTLS12
-		} else if cfg.TLS.CertFile != "" && cfg.TLS.KeyFile != "" {
-			proxySrv.TLSConfig = tlsCfg
-		}
-	}
-
 	adminRouter := newAdminRouter(cfgMgr, e, *adminPort)
 
 	// Add prometheus metrics on separate listener if enabled
