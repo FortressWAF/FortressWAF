@@ -22,7 +22,7 @@ Request → TLS Term → HTTP Parse → Rate Limiter → IP Reputation → Rule 
 - URL normalization and path canonicalization
 - Body parsing for `application/x-www-form-urlencoded` and `multipart/form-data`
 - Header size and count limits enforced
-- HTTP/2 and HTTP/3 not currently supported
+- HTTP/2 supported via TLS configuration; HTTP/3 not currently supported
 
 ### Stage 3: Rate Limiting
 
@@ -54,7 +54,7 @@ Available rule phases:
 - **Phase 2**: Request path and query parameters
 - **Phase 3**: Request body
 
-Response inspection is not currently implemented.
+Response inspection is implemented. The `ResponseInspector` middleware wraps the HTTP response writer and captures response bodies for analysis when enabled.
 
 ### Stage 6: ML Inference (Enterprise, optional)
 
