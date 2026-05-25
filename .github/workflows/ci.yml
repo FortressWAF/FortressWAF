@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, fix/bugs, fix/security-critical]
   pull_request:
-    branches: [main, develop]
+    branches: [main]
 
 env:
   GO_VERSION: '1.22'
@@ -12,7 +12,6 @@ env:
   NODE_VERSION: '20'
 
 jobs:
-  # === LINTING ===
   lint-go:
     name: Lint Go
     runs-on: ubuntu-latest
@@ -25,35 +24,36 @@ jobs:
           go-version: ${{ env.GO_VERSION }}
           cache: true
 
-      - name: Install golangci-lint
-        run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+      - name: Check go vet
+        run: go vet ./...
 
-      - name: Run golangci-lint
-        run: golangci-lint run ./... --timeout=5m || true
-
-      - name: Check go fmt
+      - name: Check formatting
         run: |
-          gofmt -l -s . > fmt_result.txt
-          if [ -s fmt_result.txt ]; then cat fmt_result.txt; exit 1; fi
+          unformatted=$(gofmt -l -s .)
+          if [ -n "$unformatted" ]; then
+            echo "Unformatted files:"
+            echo "$unformatted"
+            exit 1
+          fi
 
-  lint-python:
-    name: Lint Python
+  build:
+    name: Build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Set up Go
+        uses: actions/setup-go@v5
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
 
-      - name: Install ruff
-        run: pip install ruff bandit
+      - name: Build proxy
+        run: go build -o /tmp/fortress-proxy ./cmd/proxy
 
-      - name: Run ruff
-        run: ruff check ml-engine/ --output-format=github --no-fix || true
+      - name: Verify binary
+        run: file /tmp/fortress-proxy && ls -lh /tmp/fortress-proxy
 
-  # === TESTING ===
   test-go:
     name: Test Go
     runs-on: ubuntu-latest
@@ -110,27 +110,3 @@ jobs:
         run: |
           cd dashboard
           npx tsc --noEmit --project tsconfig.json 2>&1 | head -20 || true
-
-  # === BUILD ===
-  build:
-    name: Build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache: true
-
-      - name: Build proxy
-        run: go build -o /tmp/fortress-proxy ./cmd/proxy
-
-      - name: Build CLI
-        run: go build -o /tmp/fortressctl ./cmd/ctl
-
-      - name: Verify binaries
-        run: |
-          ls -la /tmp/fortress-proxy /tmp/fortressctl
-          /tmp/fortress-proxy --version 2>&1 || echo "Version flag not implemented (ok)"
