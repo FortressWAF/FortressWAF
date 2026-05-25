@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"flag"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 
@@ -697,7 +697,7 @@ func versionCmd() *cobra.Command {
 			fmt.Printf("fortressctl %s\n", Version)
 			fmt.Printf("  commit:     %s\n", Commit)
 			fmt.Printf("  build date: %s\n", BuildDate)
-			fmt.Printf("  go version: %s\n", strings.TrimPrefix(flag.Lookup("go").Value.String(), "go"))
+			fmt.Printf("  go version: %s\n", runtime.Version()[2:])
 		},
 	}
 }

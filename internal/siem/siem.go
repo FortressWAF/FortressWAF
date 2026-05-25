@@ -2,6 +2,7 @@ package siem
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -18,6 +19,7 @@ type Manager struct {
 	exporters map[string]Exporter
 	buffer    []SIEMEvent
 	flushCh   chan struct{}
+	done      chan struct{}
 }
 
 type SIEMConfig struct {
@@ -72,6 +74,7 @@ func NewManager(cfg SIEMConfig) (*Manager, error) {
 		exporters: make(map[string]Exporter),
 		buffer:    make([]SIEMEvent, 0, cfg.BatchSize),
 		flushCh:   make(chan struct{}, 1),
+		done:      make(chan struct{}),
 	}
 
 	for _, ec := range cfg.Exporters {
@@ -119,6 +122,7 @@ func (m *Manager) Send(event SIEMEvent) {
 		select {
 		case m.flushCh <- struct{}{}:
 		default:
+			slog.Warn("siem flush channel full, signal dropped")
 		}
 	}
 }
@@ -135,6 +139,8 @@ func (m *Manager) flushLoop() {
 
 	for {
 		select {
+		case <-m.done:
+			return
 		case <-ticker.C:
 			m.flush()
 		case <-m.flushCh:
@@ -162,6 +168,7 @@ func (m *Manager) flush() {
 }
 
 func (m *Manager) Close() error {
+	close(m.done)
 	m.flush()
 
 	var errs []string
@@ -195,13 +202,18 @@ type SplunkExporter struct {
 }
 
 func newSplunkExporter(cfg ExporterConfig) (*SplunkExporter, error) {
+	transport := http.DefaultTransport.(*http.Transport).Clone()
+	transport.TLSClientConfig = &tls.Config{
+		InsecureSkipVerify: !cfg.VerifySSL,
+	}
 	return &SplunkExporter{
 		url:       cfg.URL,
 		token:     cfg.Token,
 		index:     cfg.Index,
 		verifySSL: cfg.VerifySSL,
 		client: &http.Client{
-			Timeout: 30 * time.Second,
+			Timeout:   30 * time.Second,
+			Transport: transport,
 		},
 	}, nil
 }

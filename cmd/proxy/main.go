@@ -217,33 +217,33 @@ func main() {
 
 	slog.Info("draining connections...", "active", activeConns.Load())
 
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer shutdownCancel()
+	var wgShutdown sync.WaitGroup
+	wgShutdown.Add(2)
 
-	done := make(chan struct{})
+	proxyCtx, proxyCancel := context.WithTimeout(context.Background(), 30*time.Second)
+	adminCtx, adminCancel := context.WithTimeout(context.Background(), 30*time.Second)
+
 	go func() {
-		if err := proxySrv.Shutdown(shutdownCtx); err != nil {
+		defer wgShutdown.Done()
+		defer proxyCancel()
+		if err := proxySrv.Shutdown(proxyCtx); err != nil {
 			slog.Error("proxy server shutdown error", "error", err)
 		} else {
 			slog.Info("proxy server shut down")
 		}
-		close(done)
 	}()
 
 	go func() {
-		<-done
-		if err := adminSrv.Shutdown(shutdownCtx); err != nil {
+		defer wgShutdown.Done()
+		defer adminCancel()
+		if err := adminSrv.Shutdown(adminCtx); err != nil {
 			slog.Error("admin server shutdown error", "error", err)
 		} else {
 			slog.Info("admin server shut down")
 		}
 	}()
 
-	select {
-	case <-done:
-	case <-shutdownCtx.Done():
-		slog.Error("graceful shutdown timed out, forcing exit")
-	}
+	wgShutdown.Wait()
 
 	wg.Wait()
 
@@ -471,20 +471,19 @@ func (h *wafHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *wafHandler) forwardRequest(w http.ResponseWriter, r *http.Request, site *config.SiteConfig) {
-	h.mu.RLock()
+	h.mu.Lock()
 	proxy, ok := h.proxies[site.Name]
-	h.mu.RUnlock()
 
 	if !ok {
 		if err := h.buildProxy(site); err != nil {
+			h.mu.Unlock()
 			slog.Error("failed to build proxy on-the-fly", "site", site.Name, "error", err)
 			w.WriteHeader(http.StatusBadGateway)
 			return
 		}
-		h.mu.RLock()
 		proxy = h.proxies[site.Name]
-		h.mu.RUnlock()
 	}
+	h.mu.Unlock()
 
 	proxy.ServeHTTP(w, r)
 }
@@ -752,12 +751,16 @@ func handleListRules(cfgMgr *config.Manager) http.HandlerFunc {
 func writeJSON(w http.ResponseWriter, status int, v interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(v)
+	if err := json.NewEncoder(w).Encode(v); err != nil {
+		slog.Warn("json encode failed", "error", err, "status", status)
+	}
 }
 
 func challengePage(r *http.Request) []byte {
 	var tokenBytes [16]byte
-	rand.Read(tokenBytes[:])
+	if _, err := rand.Read(tokenBytes[:]); err != nil {
+		return []byte("<h1>Internal error</h1>")
+	}
 	challengeToken := hex.EncodeToString(tokenBytes[:])
 	return []byte(fmt.Sprintf(`<!DOCTYPE html>
 <html>

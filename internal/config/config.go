@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/fsnotify/fsnotify"
@@ -493,6 +494,7 @@ func (m *Manager) watchLoop(path string) {
 	defer func() {
 		if r := recover(); r != nil {
 			slog.Error("config watcher panic", "recover", r)
+			go m.watchLoop(path)
 		}
 	}()
 
@@ -527,9 +529,10 @@ func (m *Manager) Reload() error {
 
 	m.mu.Lock()
 	m.config = newCfg
+	callbacks := append([]func(*Config){}, m.onChange...)
 	m.mu.Unlock()
 
-	for _, cb := range m.onChange {
+	for _, cb := range callbacks {
 		cb(newCfg)
 	}
 
@@ -628,23 +631,25 @@ func (m *Manager) UpdateConfig(fn func(*Config)) error {
 	return nil
 }
 
-var DefaultManager *Manager
+var DefaultManager atomic.Pointer[Manager]
 
 func SetDefaultManager(m *Manager) {
-	DefaultManager = m
+	DefaultManager.Store(m)
 }
 
 func GetConfig() *Config {
-	if DefaultManager == nil {
+	m := DefaultManager.Load()
+	if m == nil {
 		return DefaultConfig()
 	}
-	return DefaultManager.Get()
+	return m.Get()
 }
+
+var envRefRE = regexp.MustCompile(`\$\{([^}]+)\}`)
 
 func ExpandEnvRefs(data []byte) ([]byte, error) {
 	str := string(data)
-	re := regexp.MustCompile(`\$\{([^}]+)\}`)
-	matches := re.FindAllString(str, -1)
+	matches := envRefRE.FindAllString(str, -1)
 
 	for _, match := range matches {
 		envVar := match[2 : len(match)-1]

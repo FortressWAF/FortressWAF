@@ -48,6 +48,7 @@ type Engine struct {
 	proxyRanges        []*net.IPNet
 	feedData           map[FeedSource]interface{}
 	updaters           []func()
+	done               chan struct{}
 }
 
 func NewEngine() *Engine {
@@ -64,6 +65,7 @@ func NewEngine() *Engine {
 		vpnRanges:          make([]*net.IPNet, 0),
 		proxyRanges:        make([]*net.IPNet, 0),
 		feedData:           make(map[FeedSource]interface{}),
+		done:               make(chan struct{}),
 	}
 }
 
@@ -93,14 +95,17 @@ func (e *Engine) Inspect(ipStr string) (*IPRecord, float64) {
 
 	score := 0.0
 
+	e.mu.RLock()
 	if e.isAllowlisted(ip) {
 		record.Score = 0
+		e.mu.RUnlock()
 		e.setCache(ipStr, record)
 		return record, 0
 	}
 
 	if e.isBlocklisted(ip) {
 		record.Score = 100
+		e.mu.RUnlock()
 		e.setCache(ipStr, record)
 		return record, 100
 	}
@@ -128,6 +133,8 @@ func (e *Engine) Inspect(ipStr string) (*IPRecord, float64) {
 		record.IsDatacenter = true
 		record.Categories = append(record.Categories, "datacenter")
 	}
+
+	e.mu.RUnlock()
 
 	record.Score = score
 	e.setCache(ipStr, record)
@@ -286,19 +293,29 @@ func (e *Engine) GetScore(ipStr string) float64 {
 }
 
 func (e *Engine) Cleanup() {
-	ticker := time.NewTicker(15 * time.Minute)
 	go func() {
-		for range ticker.C {
-			e.mu.Lock()
-			now := time.Now()
-			for ip, record := range e.cache {
-				if now.Sub(record.LastSeen) > e.cacheTTL*2 {
-					delete(e.cache, ip)
+		ticker := time.NewTicker(15 * time.Minute)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-e.done:
+				return
+			case <-ticker.C:
+				e.mu.Lock()
+				now := time.Now()
+				for ip, record := range e.cache {
+					if now.Sub(record.LastSeen) > e.cacheTTL*2 {
+						delete(e.cache, ip)
+					}
 				}
+				e.mu.Unlock()
 			}
-			e.mu.Unlock()
 		}
 	}()
+}
+
+func (e *Engine) Close() {
+	close(e.done)
 }
 
 var _ = slog.Debug

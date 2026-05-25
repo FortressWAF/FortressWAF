@@ -40,10 +40,11 @@ type DDoSProtection struct {
 
 	globalMu      sync.RWMutex
 	globalCounter *SlidingWindowCounter
+	done          chan struct{}
 }
 
 func NewDDoSProtection(devMode bool) *DDoSProtection {
-	return &DDoSProtection{
+	d := &DDoSProtection{
 		devMode:          devMode,
 		globalRate:       10000,
 		perIPRate:        100,
@@ -61,7 +62,10 @@ func NewDDoSProtection(devMode bool) *DDoSProtection {
 			window:     time.Second,
 			maxCount:   10020,
 		},
+		done: make(chan struct{}),
 	}
+	go d.cleanup()
+	return d
 }
 
 func (d *DDoSProtection) Name() string { return "ddos_protection" }
@@ -123,8 +127,8 @@ func (d *DDoSProtection) checkRate(counter *SlidingWindowCounter, limit int) boo
 }
 
 func (d *DDoSProtection) detectHTTPFlood(ctx *RequestContext) *Decision {
-	d.mu.RLock()
-	defer d.mu.RUnlock()
+	d.mu.Lock()
+	defer d.mu.Unlock()
 
 	if dec := d.checkGlobalRate(ctx); dec != nil {
 		return dec
@@ -173,19 +177,18 @@ func (d *DDoSProtection) detectHTTPFlood(ctx *RequestContext) *Decision {
 
 func (d *DDoSProtection) checkGlobalRate(ctx *RequestContext) *Decision {
 	d.globalMu.RLock()
-	count := len(d.globalCounter.timestamps)
-	d.globalMu.RUnlock()
-
-	if int(count) > d.globalRate {
+	if !d.checkRate(d.globalCounter, d.globalRate) {
+		d.globalMu.RUnlock()
 		return &Decision{
 			Action:   ActionRateLimit,
 			RuleID:   "DDoS000",
 			RuleName: "HTTP Flood - Global",
 			Severity: "critical",
 			Score:    90,
-			Evidence: fmt.Sprintf("global rate limit exceeded: %d req/s", count),
+			Evidence: fmt.Sprintf("global rate limit exceeded: %d req/s", d.globalRate),
 		}
 	}
+	d.globalMu.RUnlock()
 	return nil
 }
 
@@ -335,29 +338,39 @@ func (d *DDoSProtection) GetAdaptiveRate(ip string, currentRate int) int {
 func (d *DDoSProtection) cleanup() {
 	ticker := time.NewTicker(5 * time.Minute)
 	go func() {
-		for range ticker.C {
-			d.mu.Lock()
-			now := time.Now()
-			for ip, counter := range d.ipCounters {
-				counter.mu.Lock()
-				if len(counter.timestamps) == 0 || now.Sub(counter.timestamps[len(counter.timestamps)-1]) > 10*time.Minute {
-					delete(d.ipCounters, ip)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-d.done:
+				return
+			case <-ticker.C:
+				d.mu.Lock()
+				now := time.Now()
+				for ip, counter := range d.ipCounters {
+					counter.mu.Lock()
+					if len(counter.timestamps) == 0 || now.Sub(counter.timestamps[len(counter.timestamps)-1]) > 10*time.Minute {
+						delete(d.ipCounters, ip)
+					}
+					counter.mu.Unlock()
 				}
-				counter.mu.Unlock()
-			}
-			for ip, t := range d.slowLorisTimers {
-				if now.Sub(t) > 5*time.Minute {
-					delete(d.slowLorisTimers, ip)
+				for ip, t := range d.slowLorisTimers {
+					if now.Sub(t) > 5*time.Minute {
+						delete(d.slowLorisTimers, ip)
+					}
 				}
-			}
-			for ip, t := range d.slowPOSTTimers {
-				if now.Sub(t) > 5*time.Minute {
-					delete(d.slowPOSTTimers, ip)
+				for ip, t := range d.slowPOSTTimers {
+					if now.Sub(t) > 5*time.Minute {
+						delete(d.slowPOSTTimers, ip)
+					}
 				}
+				d.mu.Unlock()
 			}
-			d.mu.Unlock()
 		}
 	}()
+}
+
+func (d *DDoSProtection) Close() {
+	close(d.done)
 }
 
 var _ = slog.Debug

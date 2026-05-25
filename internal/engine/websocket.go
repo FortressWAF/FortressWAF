@@ -107,10 +107,12 @@ func (w *WebSocketInspector) Inspect(ctx *RequestContext) (*Decision, error) {
 func (w *WebSocketInspector) InspectMessage(ctx *RequestContext, frame Frame) (*Decision, error) {
 	stats := w.getStats(ctx.RealIP)
 
+	w.mu.Lock()
 	stats.Count++
 	stats.Bytes += int64(len(frame.Payload))
 	stats.LastSeen = time.Now()
 	stats.Types[frame.Type]++
+	w.mu.Unlock()
 
 	if frame.Type == int(websocket.CloseMessage) && !w.enableClose {
 		return &Decision{

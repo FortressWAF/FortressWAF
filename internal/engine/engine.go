@@ -11,16 +11,18 @@ import (
 	"time"
 )
 
+// Action represents the enforcement action to take for a request.
 type Action string
 
 const (
-	ActionBlock     Action = "block"
-	ActionAllow     Action = "allow"
-	ActionChallenge Action = "challenge"
-	ActionMonitor   Action = "monitor"
-	ActionRateLimit Action = "rate_limit"
+	ActionBlock     Action = "block"      // BlockAction blocks the request immediately.
+	ActionAllow     Action = "allow"      // ActionAllow permits the request to proceed.
+	ActionChallenge Action = "challenge"  // ActionChallenge requires browser challenge verification.
+	ActionMonitor   Action = "monitor"    // ActionMonitor logs the event without blocking.
+	ActionRateLimit Action = "rate_limit" // ActionRateLimit applies rate limiting to the request.
 )
 
+// Decision is the result of inspecting a request, containing the action, rule match details, and score.
 type Decision struct {
 	Action   Action  `json:"action"`
 	RuleID   string  `json:"rule_id"`
@@ -31,6 +33,7 @@ type Decision struct {
 	Blocked  bool    `json:"blocked"`
 }
 
+// RequestContext holds all request-derived data and inspection state for a single request.
 type RequestContext struct {
 	mu            sync.RWMutex
 	Request       *http.Request
@@ -70,6 +73,7 @@ type RequestContext struct {
 	Host          string
 }
 
+// ResponseContext holds response-level information for post-response inspection.
 type ResponseContext struct {
 	StatusCode int
 	Headers    map[string]string
@@ -164,6 +168,7 @@ type Engine struct {
 	devMode    bool
 }
 
+// EngineConfig configures which inspectors the Engine should use.
 type EngineConfig struct {
 	DevMode    bool
 	Rules      Inspector
@@ -240,6 +245,9 @@ func New(cfg EngineConfig) *Engine {
 }
 
 func (e *Engine) Inspect(ctx *RequestContext) (*Decision, error) {
+	e.mu.RLock()
+	defer e.mu.RUnlock()
+
 	if e.devMode {
 		slog.Debug("inspecting request",
 			"method", ctx.Method,

@@ -40,6 +40,7 @@ type Store struct {
 	byUser   map[string]string
 	byIP     map[string][]string
 	ttl      time.Duration
+	done     chan struct{}
 }
 
 func NewStore(ttl time.Duration) *Store {
@@ -48,6 +49,7 @@ func NewStore(ttl time.Duration) *Store {
 		byUser:   make(map[string]string),
 		byIP:     make(map[string][]string),
 		ttl:      ttl,
+		done:     make(chan struct{}),
 	}
 	go s.cleanupLoop()
 	return s
@@ -222,19 +224,42 @@ func (s *Store) Deserialize(data []byte) error {
 
 func (s *Store) cleanupLoop() {
 	ticker := time.NewTicker(10 * time.Minute)
-	for range ticker.C {
-		s.mu.Lock()
-		now := time.Now()
-		for id, session := range s.sessions {
-			if now.Sub(session.LastSeen) > s.ttl {
-				if userSID, ok := s.byUser[session.UserID]; ok && userSID == id {
-					delete(s.byUser, session.UserID)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-s.done:
+			return
+		case <-ticker.C:
+			s.mu.Lock()
+			now := time.Now()
+			for id, session := range s.sessions {
+				if now.Sub(session.LastSeen) > s.ttl {
+					if userSID, ok := s.byUser[session.UserID]; ok && userSID == id {
+						delete(s.byUser, session.UserID)
+					}
+					if ips, ok := s.byIP[session.RealIP]; ok {
+						filtered := make([]string, 0, len(ips))
+						for _, sid := range ips {
+							if sid != id {
+								filtered = append(filtered, sid)
+							}
+						}
+						if len(filtered) == 0 {
+							delete(s.byIP, session.RealIP)
+						} else {
+							s.byIP[session.RealIP] = filtered
+						}
+					}
+					delete(s.sessions, id)
 				}
-				delete(s.sessions, id)
 			}
+			s.mu.Unlock()
 		}
-		s.mu.Unlock()
 	}
+}
+
+func (s *Store) Close() {
+	close(s.done)
 }
 
 func (s *Store) Count() int {
