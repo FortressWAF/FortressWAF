@@ -1,6 +1,8 @@
+> **Note:** Only REST API and GraphQL features are currently implemented. gRPC and SOAP/XML support are not implemented.
+
 # API Security Features
 
-FortressWAF provides comprehensive security for REST, GraphQL, gRPC, and WebSocket APIs. This document details the API security capabilities and configuration options.
+FortressWAF provides security for REST, GraphQL, and WebSocket APIs. This document details the API security capabilities and configuration options.
 
 ## API Security Overview
 

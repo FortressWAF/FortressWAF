@@ -1,6 +1,8 @@
 # ML Engine Architecture
 
-FortressWAF includes an optional ML sidecar for anomaly detection. The ML engine scores requests based on learned patterns and can flag deviations from normal traffic. This document details the ML architecture, models used, training pipelines, and operational considerations.
+> **Note:** The ML sidecar is experimental. Only basic anomaly scoring is implemented. The ensemble models, continuous learning, A/B testing, and training pipeline described below are aspirational and not yet built.
+
+FortressWAF includes an optional ML sidecar for anomaly detection. The ML engine scores requests based on learned patterns and can flag deviations from normal traffic.
 
 ## ML Engine Overview
 

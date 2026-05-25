@@ -1,6 +1,8 @@
+> **Note:** This document describes the intended architecture. Many components shown here (PostgreSQL, Elasticsearch, Prometheus, CAPTCHA, gRPC, response inspection, HTTP/2, auto-scaling) are not yet implemented. See [architecture.md](../architecture.md) for the current implementation.
+
 # Architecture Deep Dive
 
-This document provides a comprehensive technical overview of FortressWAF's internal architecture, system components, data flows, and deployment topologies.
+This document outlines FortressWAF's target architecture. Current implementation covers only reverse proxy mode with file-based config.
 
 ## System Architecture Overview
 

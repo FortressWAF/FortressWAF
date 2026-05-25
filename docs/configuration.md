@@ -1,6 +1,8 @@
+> **Note:** Some configuration keys shown here are aspirational placeholders (HTTP/2, OCSP, database). Only file-based config is currently supported.
+
 # Configuration Reference
 
-This document provides a comprehensive reference for all FortressWAF configuration options. The configuration file is written in YAML format and is typically located at `/app/config/config.yaml` or specified via the `--config` command-line flag.
+This document provides a reference for FortressWAF configuration options. The configuration file is written in YAML format and is typically located at `/app/config/config.yaml` or specified via the `--config` command-line flag.
 
 ## Configuration File Structure
 

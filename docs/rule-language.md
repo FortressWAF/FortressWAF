@@ -80,7 +80,7 @@ rules:
 | `remote_country` | Client country code | `US` |
 | `headers` | All headers as map | - |
 | `cookies` | All cookies as map | - |
-| `protocol` | HTTP protocol version | `HTTP/2` |
+| `protocol` | HTTP protocol version | `HTTP/1.1` |
 
 ### Response Fields
 

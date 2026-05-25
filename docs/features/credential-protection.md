@@ -1,6 +1,8 @@
+> **Note:** Credential stuffing and brute force detection require Redis for per-IP tracking and are not yet implemented in the default configuration.
+
 # Credential Protection
 
-FortressWAF detects and blocks credential stuffing, brute force login attempts, and password spraying attacks.
+FortressWAF provides rate limiting for login endpoints. Credential stuffing and brute force detection are on the roadmap.
 
 ## Configuration
 
