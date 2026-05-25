@@ -610,21 +610,25 @@ func SaveToFile(path string, cfg *Config) error {
 
 func (m *Manager) UpdateConfig(fn func(*Config)) error {
 	m.mu.Lock()
-	defer m.mu.Unlock()
 
 	fn(m.config)
 
 	if err := m.config.Validate(); err != nil {
+		m.mu.Unlock()
 		return fmt.Errorf("validate updated config: %w", err)
 	}
 
 	if m.config.filePath != "" {
 		if err := SaveToFile(m.config.filePath, m.config); err != nil {
+			m.mu.Unlock()
 			return err
 		}
 	}
 
-	for _, cb := range m.onChange {
+	callbacks := append([]func(*Config){}, m.onChange...)
+	m.mu.Unlock()
+
+	for _, cb := range callbacks {
 		cb(m.config)
 	}
 

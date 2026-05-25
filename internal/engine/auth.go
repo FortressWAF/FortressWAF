@@ -333,7 +333,7 @@ func (j *JWTValidator) verifySignature(parts []string, alg string, key *JWK) err
 	case "ES256", "ES384", "ES512":
 		return j.verifyECSignature([]byte(data), sig, key)
 	default:
-		return nil
+		return fmt.Errorf("unsupported signature algorithm: %s", alg)
 	}
 }
 

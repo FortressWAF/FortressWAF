@@ -4,11 +4,12 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/asn1"
 	"fmt"
+	"log/slog"
 	"net"
 	"net/http"
 	"os"
-	"strings"
 	"sync"
 	"time"
 
@@ -154,7 +155,16 @@ func (m *MTLSInspector) validateCertificatePolicy(cert *x509.Certificate) bool {
 
 	for _, ext := range cert.Extensions {
 		if ext.Id.String() == "2.5.29.32" {
-			return strings.Contains(string(ext.Value), m.mtlsCfg.PolicyOID)
+			var policies []asn1.ObjectIdentifier
+			if _, err := asn1.Unmarshal(ext.Value, &policies); err != nil {
+				slog.Warn("failed to unmarshal certificate policies", "error", err)
+				return false
+			}
+			for _, policy := range policies {
+				if policy.String() == m.mtlsCfg.PolicyOID {
+					return true
+				}
+			}
 		}
 	}
 	return false
