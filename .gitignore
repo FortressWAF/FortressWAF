@@ -155,7 +155,6 @@ vendor/
 *_grpc.pb.go
 
 # Go workspace
-go.work
 
 # Python wheel
 *.whl
