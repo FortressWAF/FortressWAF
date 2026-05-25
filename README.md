@@ -156,11 +156,6 @@ sites:
 
 Full architecture document: [`docs/architecture.md`](docs/architecture.md)
 
-```
-## Architecture
-
-Full architecture document: [`docs/architecture.md`](docs/architecture.md)
-
 ```mermaid
 flowchart LR
     C[Client] --> T[TLS<br/>HTTP/2 · mTLS]
