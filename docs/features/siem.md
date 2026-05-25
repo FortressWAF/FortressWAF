@@ -1,1 +1,1 @@
-> **Note:** Elasticsearch exporter exists. Splunk exporter works. Kibana dashboards and PagerDuty alerts are not implemented but can be configured externally.
+> **Note:** Elasticsearch exporter exists. Splunk exporter works. Kibana dashboard definitions are included in `deploy/monitoring/kibana/`. PagerDuty alerts are not implemented but can be configured externally.

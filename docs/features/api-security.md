@@ -1,4 +1,4 @@
-> **Note:** Only REST API and GraphQL features are currently implemented. gRPC and SOAP/XML support are not implemented.
+> **Note:** REST API, GraphQL, gRPC, and SOAP/XML features are implemented.
 
 # API Security Features
 

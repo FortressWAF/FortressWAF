@@ -23,10 +23,16 @@ type LoggingConfig struct {
 }
 
 type TLSConfig struct {
-	Enabled    bool   `yaml:"enabled"`
-	CertFile   string `yaml:"cert_file"`
-	KeyFile    string `yaml:"key_file"`
-	MinVersion string `yaml:"min_version"`
+	Enabled      bool     `yaml:"enabled"`
+	CertFile     string   `yaml:"cert_file"`
+	KeyFile      string   `yaml:"key_file"`
+	MinVersion   string   `yaml:"min_version"`
+	HTTP2Enabled bool     `yaml:"http2_enabled"`
+	OCSPEnabled  bool     `yaml:"ocsp_enabled"`
+	ACMEEnabled  bool     `yaml:"acme_enabled"`
+	ACMEEmail    string   `yaml:"acme_email"`
+	ACMEDomains  []string `yaml:"acme_domains"`
+	ACMECacheDir string   `yaml:"acme_cache_dir"`
 }
 
 type AdminConfig struct {
@@ -62,6 +68,7 @@ type MLConfig struct {
 	MaxRetries   int     `yaml:"max_retries"`
 	FallbackMode string  `yaml:"fallback_mode"`
 	MinScore     float64 `yaml:"min_score"`
+	ModelName    string  `yaml:"model_name"`
 }
 
 type SiteRuleOverride struct {
@@ -240,7 +247,11 @@ type UploadConfig struct {
 }
 
 type CredentialConfig struct {
-	Enabled bool `yaml:"enabled"`
+	Enabled          bool     `yaml:"enabled"`
+	MaxAttempts      int      `yaml:"max_attempts"`
+	WindowSec        int      `yaml:"window_sec"`
+	BlockDurationSec int      `yaml:"block_duration_sec"`
+	LoginPaths       []string `yaml:"login_paths"`
 }
 
 type GeoConfig struct {
@@ -270,39 +281,76 @@ type RulesConfig struct {
 	DryRun  bool `yaml:"dry_run"`
 }
 
+type CAPTCHAConfig struct {
+	Enabled  bool    `yaml:"enabled"`
+	Provider string  `yaml:"provider"`
+	SiteKey  string  `yaml:"site_key"`
+	Secret   string  `yaml:"secret"`
+	Score    float64 `yaml:"score"`
+}
+
+type ResponseInspectConfig struct {
+	Enabled           bool     `yaml:"enabled"`
+	InspectBody       bool     `yaml:"inspect_body"`
+	SensitivePatterns []string `yaml:"sensitive_patterns"`
+}
+
+type SOAPConfig struct {
+	Enabled      bool `yaml:"enabled"`
+	StrictSchema bool `yaml:"strict_schema"`
+	MaxDepth     int  `yaml:"max_depth"`
+}
+
+type GRPCConfig struct {
+	Enabled    bool `yaml:"enabled"`
+	MaxMsgSize int  `yaml:"max_msg_size"`
+	RateLimit  int  `yaml:"rate_limit"`
+}
+
+type PrometheusConfig struct {
+	Enabled bool   `yaml:"enabled"`
+	Path    string `yaml:"path"`
+	Port    int    `yaml:"port"`
+}
+
 type Config struct {
 	mu       sync.RWMutex
 	filePath string
 
-	Sites        []SiteConfig        `yaml:"sites"`
-	Rules        []RuleConfig        `yaml:"rules"`
-	ML           MLConfig            `yaml:"ml"`
-	Redis        RedisConfig         `yaml:"redis"`
-	DB           DBConfig            `yaml:"db"`
-	Logging      LoggingConfig       `yaml:"logging"`
-	TLS          TLSConfig           `yaml:"tls"`
-	Admin        AdminConfig         `yaml:"admin"`
-	JWT          JWTConfig           `yaml:"jwt"`
-	OAuth        OAuthConfig         `yaml:"oauth"`
-	GraphQL      GraphQLConfig       `yaml:"graphql"`
-	MTLS         MTLSConfig          `yaml:"mtls"`
-	WebSocket    WebSocketConfig     `yaml:"websocket"`
-	SIEM         SIEMConfig          `yaml:"siem"`
-	RewriteRules []RewriteRuleConfig `yaml:"rewrite_rules"`
-	SQLI         SQLIConfig          `yaml:"sqli"`
-	XSS          XSSConfig           `yaml:"xss"`
-	RCE          RCEConfig           `yaml:"rce"`
-	DDoS         DDoSConfig          `yaml:"ddos"`
-	Protocol     ProtocolConfig      `yaml:"protocol"`
-	Bot          BotConfig           `yaml:"bot"`
-	APIProtect   APIProtectConfig    `yaml:"api_protect"`
-	Upload       UploadConfig        `yaml:"upload"`
-	Credential   CredentialConfig    `yaml:"credential"`
-	Geo          GeoConfig           `yaml:"geo"`
-	RateLimit    RateLimitConfig     `yaml:"rate_limit"`
-	Session      SessionConfig       `yaml:"session"`
-	Reputation   ReputationConfig    `yaml:"reputation"`
-	RulesCfg     RulesConfig         `yaml:"rules_cfg"`
+	Sites        []SiteConfig          `yaml:"sites"`
+	Rules        []RuleConfig          `yaml:"rules"`
+	ML           MLConfig              `yaml:"ml"`
+	Redis        RedisConfig           `yaml:"redis"`
+	DB           DBConfig              `yaml:"db"`
+	Logging      LoggingConfig         `yaml:"logging"`
+	TLS          TLSConfig             `yaml:"tls"`
+	Admin        AdminConfig           `yaml:"admin"`
+	JWT          JWTConfig             `yaml:"jwt"`
+	OAuth        OAuthConfig           `yaml:"oauth"`
+	GraphQL      GraphQLConfig         `yaml:"graphql"`
+	MTLS         MTLSConfig            `yaml:"mtls"`
+	WebSocket    WebSocketConfig       `yaml:"websocket"`
+	SIEM         SIEMConfig            `yaml:"siem"`
+	RewriteRules []RewriteRuleConfig   `yaml:"rewrite_rules"`
+	SQLI         SQLIConfig            `yaml:"sqli"`
+	XSS          XSSConfig             `yaml:"xss"`
+	RCE          RCEConfig             `yaml:"rce"`
+	DDoS         DDoSConfig            `yaml:"ddos"`
+	Protocol     ProtocolConfig        `yaml:"protocol"`
+	Bot          BotConfig             `yaml:"bot"`
+	APIProtect   APIProtectConfig      `yaml:"api_protect"`
+	Upload       UploadConfig          `yaml:"upload"`
+	Credential   CredentialConfig      `yaml:"credential"`
+	Geo          GeoConfig             `yaml:"geo"`
+	RateLimit    RateLimitConfig       `yaml:"rate_limit"`
+	Session      SessionConfig         `yaml:"session"`
+	Reputation   ReputationConfig      `yaml:"reputation"`
+	RulesCfg     RulesConfig           `yaml:"rules_cfg"`
+	CAPTCHA      CAPTCHAConfig         `yaml:"captcha"`
+	RespInspect  ResponseInspectConfig `yaml:"response_inspect"`
+	SOAP         SOAPConfig            `yaml:"soap"`
+	GRPC         GRPCConfig            `yaml:"grpc"`
+	Prometheus   PrometheusConfig      `yaml:"prometheus"`
 }
 
 type Manager struct {
@@ -344,8 +392,9 @@ func DefaultConfig() *Config {
 			Output: "stdout",
 		},
 		TLS: TLSConfig{
-			Enabled:    false,
-			MinVersion: "1.2",
+			Enabled:      false,
+			MinVersion:   "1.2",
+			HTTP2Enabled: true,
 		},
 		Admin: AdminConfig{
 			Port:    8443,
@@ -387,6 +436,29 @@ func DefaultConfig() *Config {
 			Enabled:        false,
 			ExportInterval: 10 * time.Second,
 			BatchSize:      100,
+		},
+		Credential: CredentialConfig{
+			Enabled:          false,
+			MaxAttempts:      5,
+			WindowSec:        300,
+			BlockDurationSec: 3600,
+		},
+		CAPTCHA: CAPTCHAConfig{
+			Score: 0.5,
+		},
+		RespInspect: ResponseInspectConfig{
+			InspectBody: true,
+		},
+		SOAP: SOAPConfig{
+			MaxDepth: 10,
+		},
+		GRPC: GRPCConfig{
+			MaxMsgSize: 4194304,
+			RateLimit:  100,
+		},
+		Prometheus: PrometheusConfig{
+			Path: "/metrics",
+			Port: 9090,
 		},
 	}
 }

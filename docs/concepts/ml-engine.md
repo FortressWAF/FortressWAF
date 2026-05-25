@@ -1,6 +1,6 @@
 # ML Engine Architecture
 
-> **Note:** The ML sidecar is experimental. Only basic anomaly scoring is implemented. The ensemble models, continuous learning, A/B testing, and training pipeline described below are aspirational and not yet built.
+> **Note:** The ML sidecar supports four models (anomaly detection, attack classification, bot detection, risk scoring) via separate API endpoints. Continuous learning, A/B testing, and the training pipeline described below require additional infrastructure and are not yet automated.
 
 FortressWAF includes an optional ML sidecar for anomaly detection. The ML engine scores requests based on learned patterns and can flag deviations from normal traffic.
 

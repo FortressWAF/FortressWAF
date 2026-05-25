@@ -1,4 +1,4 @@
-> **Note:** HTTP/2 and HTTP/3 detection is not implemented. Only HTTP/1.x is supported.
+> **Note:** HTTP/2 detection is implemented in TLS mode when `http2_enabled: true` is set. HTTP/3 detection is not implemented. HTTP/1.x is fully supported.
 
 # Protocol Compliance
 

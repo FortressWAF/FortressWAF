@@ -1,4 +1,4 @@
-> **Note:** This document describes the intended architecture. Many components shown here (PostgreSQL, Elasticsearch, Prometheus, CAPTCHA, gRPC, response inspection, HTTP/2, auto-scaling) are not yet implemented. See [architecture.md](../architecture.md) for the current implementation.
+> **Note:** This document describes the intended architecture. Components shown here (auto-scaling, multi-node clustering) are not yet implemented. PostgreSQL, Prometheus, CAPTCHA, gRPC, response inspection, HTTP/2, and credential protection are implemented. See [architecture.md](../architecture.md) for the current implementation.
 
 # Architecture Deep Dive
 

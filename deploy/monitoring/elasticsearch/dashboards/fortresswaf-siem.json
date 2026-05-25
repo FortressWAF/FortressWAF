@@ -1,0 +1,92 @@
+{
+  "version": 1,
+  "id": "fortresswaf-siem",
+  "type": "dashboard",
+  "title": "FortressWAF SIEM Overview",
+  "description": "SIEM dashboards for FortressWAF security events",
+  "panels": [
+    {
+      "title": "Blocked Requests Over Time",
+      "type": "line",
+      "aggregation": "date_histogram",
+      "field": "@timestamp",
+      "interval": "auto",
+      "query": "event_type:block",
+      "size": 0
+    },
+    {
+      "title": "Top Attack Sources",
+      "type": "terms",
+      "field": "source_ip.keyword",
+      "query": "event_type:block OR event_type:rate_limit",
+      "size": 10
+    },
+    {
+      "title": "Rule Trigger Distribution",
+      "type": "pie",
+      "field": "rule_id.keyword",
+      "query": "*",
+      "size": 15
+    },
+    {
+      "title": "Event Severity Breakdown",
+      "type": "terms",
+      "field": "severity.keyword",
+      "query": "*",
+      "size": 5
+    },
+    {
+      "title": "Requests per Second",
+      "type": "line",
+      "aggregation": "date_histogram",
+      "field": "@timestamp",
+      "interval": "auto",
+      "query": "*",
+      "size": 0
+    },
+    {
+      "title": "Top Paths Targeted",
+      "type": "terms",
+      "field": "path.keyword",
+      "query": "event_type:block",
+      "size": 10
+    },
+    {
+      "title": "Attack Map (GeoIP)",
+      "type": "tile_map",
+      "field": "geoip.location",
+      "query": "event_type:block",
+      "size": 100
+    },
+    {
+      "title": "ML Anomaly Scores",
+      "type": "line",
+      "aggregation": "date_histogram",
+      "field": "@timestamp",
+      "interval": "auto",
+      "query": "ml_score:*",
+      "size": 0
+    },
+    {
+      "title": "Credential Attack Attempts",
+      "type": "line",
+      "aggregation": "date_histogram",
+      "field": "@timestamp",
+      "interval": "auto",
+      "query": "event_type:credential_stuffing OR event_type:brute_force",
+      "size": 0
+    },
+    {
+      "title": "Top User Agents (Attackers)",
+      "type": "terms",
+      "field": "user_agent.keyword",
+      "query": "event_type:block",
+      "size": 5
+    }
+  ],
+  "time": {
+    "from": "now-24h",
+    "to": "now",
+    "mode": "quick"
+  }
+}

@@ -45,7 +45,17 @@ type bruteForceTracker struct {
 	firstSeen time.Time
 }
 
-func NewCredentialProtection(devMode bool, jwtSecret string) *CredentialProtection {
+func NewCredentialProtection(devMode bool, maxAttempts int, windowSec, blockDurationSec int, loginPaths []string) *CredentialProtection {
+	paths := loginPaths
+	if len(paths) == 0 {
+		paths = []string{"/login", "/signin", "/auth", "/api/login"}
+	}
+	if maxAttempts <= 0 {
+		maxAttempts = 5
+	}
+	if blockDurationSec <= 0 {
+		blockDurationSec = 3600
+	}
 	return &CredentialProtection{
 		devMode:         devMode,
 		loginAttempts:   make(map[string]*loginTracker),
@@ -53,9 +63,8 @@ func NewCredentialProtection(devMode bool, jwtSecret string) *CredentialProtecti
 		bruteForce:      make(map[string]*bruteForceTracker),
 		leakedCreds:     make(map[string]bool),
 		hibpEnabled:     false,
-		jwtSecret:       jwtSecret,
-		lockoutDuration: 15 * time.Minute,
-		maxAttempts:     5,
+		lockoutDuration: time.Duration(blockDurationSec) * time.Second,
+		maxAttempts:     maxAttempts,
 	}
 }
 

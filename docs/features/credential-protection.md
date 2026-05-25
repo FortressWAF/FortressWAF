@@ -1,4 +1,4 @@
-> **Note:** Credential stuffing and brute force detection require Redis for per-IP tracking and are not yet implemented in the default configuration.
+> **Note:** Credential stuffing and brute force detection use in-memory per-IP tracking by default. For multi-node deployments, consider a shared Redis-backed implementation.
 
 # Credential Protection
 
