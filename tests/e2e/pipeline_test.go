@@ -393,9 +393,9 @@ func TestAPIProtection(t *testing.T) {
 
 func TestWebSocketProtection(t *testing.T) {
 	wsCfg := config.WebSocketConfig{
-		Enabled:        true,
-		MaxFrameSize:   65536,
-		StrictMode:     true,
+		Enabled:           true,
+		MaxFrameSize:      65536,
+		StrictMode:        true,
 		ConnectionTimeout: 0,
 	}
 	e := engine.New(engine.EngineConfig{
