@@ -12,6 +12,7 @@ target/
 
 # Go
 vendor/
+go.work
 go.work.sum
 
 # Python
