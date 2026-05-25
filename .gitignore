@@ -12,7 +12,6 @@ target/
 
 # Go
 vendor/
-go.work
 go.work.sum
 
 # Python
@@ -155,7 +154,6 @@ vendor/
 *_grpc.pb.go
 
 # Go workspace
-go.work
 
 # Python wheel
 *.whl
