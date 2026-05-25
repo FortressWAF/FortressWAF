@@ -70,6 +70,9 @@ nav:
       - concepts/rules.md
       - concepts/pipeline.md
       - concepts/ml-engine.md
+      - concepts/components.md
+  - Development:
+      - development.md
   - Features:
       - features/owasp.md
       - features/api-security.md
