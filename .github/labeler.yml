@@ -1,36 +1,56 @@
-# Auto-label PRs based on changed files
+# Auto-label PRs based on changed files (v5+ format)
 fortress-engine:
-  - internal/engine/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - internal/engine/**/*
 
 fortress-api:
-  - internal/api/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - internal/api/**/*
 
 fortress-config:
-  - internal/config/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - internal/config/**/*
 
 fortress-proxy:
-  - cmd/proxy/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - cmd/proxy/**/*
 
 fortress-reputation:
-  - internal/reputation/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - internal/reputation/**/*
 
 fortress-ratelimit:
-  - internal/ratelimit/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - internal/ratelimit/**/*
 
 fortress-siem:
-  - internal/siem/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - internal/siem/**/*
 
 fortress-ci:
-  - .github/workflows/**/*
-  - .github/labeler.yml
-  - .github/labels.yml
+  - changed-files:
+    - any-glob-to-any-file:
+      - .github/workflows/**/*
+      - .github/labeler.yml
+      - .github/labels.yml
 
 fortress-docs:
-  - '**/*.md'
-  - '**/docs/**/*'
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/*.md'
+      - '**/docs/**/*'
 
 fortress-security:
-  - '**/auth*.go'
-  - '**/mtls*.go'
-  - '**/jwt*.go'
-  - '**/oauth*.go'
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/auth*.go'
+      - '**/mtls*.go'
+      - '**/jwt*.go'
+      - '**/oauth*.go'
