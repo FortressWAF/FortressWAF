@@ -34,7 +34,7 @@ curl http://localhost:8080/api/v1/health
 
 ```
 Request -> TLS Term -> HTTP Parse -> Rate Limiter -> IP Reputation
-                                                          |
+                                |
                     Rule Engine Pipeline                     
            SQLi -> XSS -> RCE/LFI -> API Schema             
                                 |                           
