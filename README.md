@@ -1,32 +1,27 @@
 # FortressWAF — Web Application Firewall
 
-[![License](https://img.shields.io/badge/license-Apache%202.0-blue)](https://opensource.org/licenses/Apache-2.0)
+[![License](https://img.shields.io/badge/license-AGPL--3.0-blue)](LICENSE)
 [![Go Version](https://img.shields.io/badge/Go-1.22+-00ADD8?logo=go)](https://go.dev/)
-[![OWASP](https://img.shields.io/badge/OWASP-Top%2010-red)](https://owasp.org/www-project-top-ten/)
 
-**FortressWAF** is a production-grade, enterprise-ready Web Application Firewall that protects web applications and APIs from OWASP Top 10 threats, zero-day attacks, DDoS, and bot abuse. Built in Go with a machine learning sidecar, it provides defense-in-depth with sub-millisecond latency.
+**FortressWAF** is a Go-based Web Application Firewall with rule-based detection, rate limiting, IP reputation, and an optional ML sidecar. It proxies traffic to upstream services and can block or monitor requests based on configurable rules.
 
 ## Features
 
 | Category | Details |
 |----------|---------|
-| **OWASP Top 10** | SQLi, XSS, RCE, API protection — LFI, SSRF, XXE on roadmap |
-| **Detection Engine** | Pattern-based detection with ML anomaly detection client |
-| **Bot Management** | Behavior-based detection with signature matching |
-| **API Security** | Schema validation, JWT introspection, GraphQL depth limiting, OWASP API Top 10 |
-| **IP Reputation** | Real-time threat intel feeds, geo-blocking, TOR/VPN/proxy detection |
-| **Real-time Dashboard** | Live metrics, attack visualization, top targets, latency heatmaps, WebSocket feed |
-| **Virtual Patching** | Deploy WAF rules instantly without modifying application code |
-| **Multi-Tenancy** | Isolated workspaces, custom rulesets, per-tenant analytics (Enterprise) |
-| **Compliance Ready** | PCI DSS, GDPR, HIPAA, SOC 2, ISO 27001, FIPS 140-2 |
+| **OWASP Detection** | SQLi, XSS, RCE, API protection rules (LFI, SSRF, XXE on roadmap) |
+| **Rule Engine** | Pattern-based detection with YAML rules |
+| **Rate Limiting** | Token bucket and leaky bucket per-IP and global |
+| **IP Reputation** | Allow/block lists, TOR/VPN/proxy detection, datacenter IP ranges |
+| **Dashboard** | Live metrics via WebSocket feed |
+| **Virtual Patching** | Deploy WAF rules without modifying application code |
+| **API Security** | JWT introspection, GraphQL depth limiting |
+| **Multi-Tenancy** | Isolated workspaces per-site (Enterprise) |
 
 ## Quick Start
 
 ```bash
-# One-line install (Linux)
-curl -sSL https://github.com/FortressWAF/FortressWAF/blob/main/install.sh | bash
-
-# Or clone and run with Docker Compose
+# Clone and run with Docker Compose
 git clone https://github.com/FortressWAF/FortressWAF.git
 cd FortressWAF
 docker compose -f deploy/docker-compose.yml up -d
@@ -38,80 +33,38 @@ curl http://localhost:8080/api/v1/health
 ## Architecture
 
 ```
-                    ┌─────────────────────────────────────┐
-                    │         Internet / Clients           │
-                    └──────────────┬──────────────────────┘
-                                   │
-                    ┌──────────────▼──────────────────────┐
-                    │        Global Load Balancer          │
-                    └──────────────┬──────────────────────┘
-                                   │
-              ┌────────────────────┼────────────────────┐
-              │                    │                    │
-              ▼                    ▼                    ▼
-     ┌────────────────┐  ┌────────────────┐  ┌────────────────┐
-     │ FortressWAF     │  │ FortressWAF     │  │ FortressWAF     │
-     │ Node 1          │  │ Node 2          │  │ Node N          │
-     │ (Active)        │  │ (Active)        │  │ (Active)        │
-     └────────┬────────┘  └────────┬────────┘  └────────┬────────┘
-              │                    │                    │
-              └────────────────────┼────────────────────┘
-                                   │
-                    ┌──────────────▼──────────────────────┐
-                    │        Backend Services             │
-                    │   (App Servers / APIs / CDN)        │
-                    └─────────────────────────────────────┘
-```
-
-**Inside each node:**
-
-```
-Request ──► TLS Term ──► HTTP Parse ──► Rate Limiter ──► IP Reputation
-                                                              │
-                    ┌─────────────────────────────────────────┘
-                    ▼
-           Rule Engine Pipeline
-     ┌──────────┬──────────┬──────────┬──────────┐
-     │ SQLi     │ XSS      │ RCE/LFI  │ API      │
-     │ Detector │ Detector │ Detector │ Schema   │
-     └──────────┴──────────┴──────────┴──────────┘
-                              │
-                    ┌─────────▼─────────┐
-                    │ ML Inference       │
-                    │ (optional sidecar) │
-                    └─────────┬─────────┘
-                              │
-                    ┌─────────▼─────────┐
-                    │ Decision Engine    │
-                    │ Allow/Block/Challenge│
-                    └─────────┬─────────┘
-                              │
-                    ┌─────────▼─────────┐
-                    │ Proxy Forwarder   │──► Origin
-                    └───────────────────┘
+Request -> TLS Term -> HTTP Parse -> Rate Limiter -> IP Reputation
+                                                          |
+                    Rule Engine Pipeline                     
+           SQLi -> XSS -> RCE/LFI -> API Schema             
+                                |                           
+                        Decision Engine               
+                     Allow / Block / Challenge              
+                                |                           
+                        Proxy Forwarder -> Origin            
 ```
 
 ## Performance
 
-| Metric | Without ML | With ML |
-|--------|-----------|---------|
-| Throughput | 85,000 req/s | 45,000 req/s |
-| P99 Latency | 3.8ms | 12ms |
-| Memory | 150MB | 1.2GB |
+Performance varies by hardware, rule count, and configuration. Rough benchmarks on reference hardware (4 vCPU, 8GB RAM):
+
+| Scenario | Throughput (approx) |
+|----------|-------------------|
+| No rules (passthrough) | ~85,000 req/s |
+| Full rule set, no ML | ~45,000 req/s |
+| With ML sidecar | lower (varies) |
 
 ## Documentation
 
-Full documentation is available at [https://docs.fortresswaf.io](https://docs.fortresswaf.io).
-
 | Document | Description |
 |----------|-------------|
-| [Getting Started](docs/getting-started.md) | Install and configure in 5 minutes |
-| [Architecture](docs/architecture.md) | System architecture deep dive |
-| [Rule Language](docs/rule-language.md) | YAML-based rule DSL reference |
-| [API Reference](docs/api-reference.md) | Full REST API documentation |
-| [Deployment](docs/deployment.md) | Docker, K8s, bare metal, cloud guides |
-| [Compliance](docs/compliance.md) | PCI DSS, GDPR, HIPAA, SOC 2 |
-| [Troubleshooting](docs/troubleshooting.md) | Common issues and solutions |
+| [Getting Started](docs/getting-started.md) | Install and configure |
+| [Architecture](docs/architecture.md) | System architecture |
+| [Rule Language](docs/rule-language.md) | YAML-based rule DSL |
+| [API Reference](docs/api-reference.md) | REST API documentation |
+| [Deployment](docs/deployment.md) | Docker, K8s, cloud guides |
+| [Compliance](docs/compliance.md) | Compliance reference docs |
+| [Troubleshooting](docs/troubleshooting.md) | Common issues |
 
 ## Community vs Enterprise
 
@@ -122,14 +75,11 @@ Full documentation is available at [https://docs.fortresswaf.io](https://docs.fo
 | Rate Limiting | ✅ | ✅ |
 | Dashboard | ✅ | ✅ |
 | REST API | ✅ | ✅ |
-| 5,000+ Rule Corpus | ✅ | ✅ |
 | IP Reputation | ✅ | ✅ |
 | Bot Detection | ✅ | ✅ |
 | ML Anomaly Detection | ❌ | ✅ |
 | Multi-Tenancy | ❌ | ✅ |
-| Compliance Modes (PCI/GDPR/HIPAA) | ❌ | ✅ |
-| FIPS 140-2 | ❌ | ✅ |
-| SLA Support (24/7) | ❌ | ✅ |
+| Compliance Documentation | ❌ | ✅ |
 | SSO/SAML | ❌ | ✅ |
 | Audit Logs | ❌ | ✅ |
 | Dedicated Support | ❌ | ✅ |
@@ -155,21 +105,15 @@ curl -X POST -H "Authorization: Bearer $TOKEN" /api/v1/rules    # Add rule
 
 ## Contributing
 
-Contributions are welcome! Please read our guidelines and submit PRs to [github.com/FortressWAF/FortressWAF](https://github.com/FortressWAF/FortressWAF/pulls).
+Contributions welcome. Submit PRs to [github.com/FortressWAF/FortressWAF](https://github.com/FortressWAF/FortressWAF/pulls).
 
 ## Security
 
-Please see [SECURITY.md](SECURITY.md) for our security policy and vulnerability reporting process.
+See [SECURITY.md](SECURITY.md) for security policy and vulnerability reporting.
 
 ## License
 
-- **Community Edition**: Apache 2.0 - Free for production use
-- **Enterprise Edition**: Commercial license with additional features
+- **Community Edition**: AGPL-3.0
+- **Enterprise Edition**: Commercial license
 
-Copyright © 2024-2025 FortressWAF. Open-core security for the modern web.
-
----
-
-<p align="center">
-  <strong>Built to compete with Cloudflare. Priced for the mid-market.</strong>
-</p>
+Copyright © 2024-2026 FortressWAF.

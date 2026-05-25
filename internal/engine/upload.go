@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"mime/multipart"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -189,7 +190,7 @@ func (u *FileUploadSecurity) verifyMIMEType(filename, declaredType string, magic
 		return nil
 	}
 
-	_ = strings.ToLower(filename[strings.LastIndex(filename, "."):])
+	_ = strings.ToLower(filepath.Ext(filename))
 
 	for _, sig := range u.mimeSignatures {
 		if len(sig) > 0 && len(magic) >= len(sig) {
@@ -231,7 +232,7 @@ func (u *FileUploadSecurity) verifyMIMEType(filename, declaredType string, magic
 }
 
 func (u *FileUploadSecurity) detectExecutable(filename string, magic []byte) *Decision {
-	ext := strings.ToLower(filename[strings.LastIndex(filename, "."):])
+	ext := strings.ToLower(filepath.Ext(filename))
 	for _, execExt := range u.executableExtensions {
 		if ext == execExt {
 			return &Decision{
@@ -262,7 +263,7 @@ func (u *FileUploadSecurity) detectExecutable(filename string, magic []byte) *De
 }
 
 func (u *FileUploadSecurity) detectArchiveBomb(filename string, magic []byte, bodySize int) *Decision {
-	ext := strings.ToLower(filename[strings.LastIndex(filename, "."):])
+	ext := strings.ToLower(filepath.Ext(filename))
 	for _, archExt := range u.archiveExtensions {
 		if ext == archExt {
 			return &Decision{
@@ -295,7 +296,7 @@ func (u *FileUploadSecurity) detectArchiveBomb(filename string, magic []byte, bo
 }
 
 func (u *FileUploadSecurity) detectImagePolyglot(filename string, magic []byte) *Decision {
-	ext := strings.ToLower(filename[strings.LastIndex(filename, "."):])
+	ext := strings.ToLower(filepath.Ext(filename))
 
 	isImageExt := false
 	for _, ie := range u.imageExtensions {

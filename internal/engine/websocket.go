@@ -274,9 +274,6 @@ func (w *WebSocketInspector) ParseFrame(data []byte) (Frame, error) {
 	payloadLen := int(data[1] & 0x7f)
 
 	idx := 2
-	if mask {
-		idx += 4
-	}
 
 	if payloadLen == 126 {
 		if len(data) < 4 {
@@ -288,9 +285,13 @@ func (w *WebSocketInspector) ParseFrame(data []byte) (Frame, error) {
 		if len(data) < 10 {
 			return Frame{}, fmt.Errorf("invalid extended length")
 		}
-		payloadLen = int(data[6])<<56 | int(data[7])<<48 | int(data[8])<<40 | int(data[9])<<32 |
-			int(data[10])<<24 | int(data[11])<<16 | int(data[12])<<8 | int(data[13])
+		payloadLen = int(data[2])<<56 | int(data[3])<<48 | int(data[4])<<40 | int(data[5])<<32 |
+			int(data[6])<<24 | int(data[7])<<16 | int(data[8])<<8 | int(data[9])
 		idx = 10
+	}
+
+	if mask {
+		idx += 4
 	}
 
 	if len(data) < idx+payloadLen {

@@ -189,6 +189,27 @@ func (g *GraphQLInspector) isSchemaQuery(body []byte) bool {
 }
 
 func (g *GraphQLInspector) parseQuery(body []byte) (*GraphQLQuery, error) {
+	// Handle JSON arrays (batch queries) by parsing the first element
+	if bytes.HasPrefix(bytes.TrimSpace(body), []byte("[")) {
+		var batch []map[string]interface{}
+		if err := json.Unmarshal(body, &batch); err != nil {
+			return nil, fmt.Errorf("json batch unmarshal: %w", err)
+		}
+		if len(batch) == 0 {
+			return nil, fmt.Errorf("empty batch query")
+		}
+		// Parse only the first query for depth/cost/alias checks
+		first := batch[0]
+		query := &GraphQLQuery{}
+		if v, ok := first["query"].(string); ok {
+			g.analyzeQueryString(v, query)
+		}
+		if v, ok := first["operationName"].(string); ok {
+			query.Operation = v
+		}
+		return query, nil
+	}
+
 	var parsed map[string]interface{}
 	if err := json.Unmarshal(body, &parsed); err != nil {
 		return nil, fmt.Errorf("json unmarshal: %w", err)

@@ -92,6 +92,7 @@ func NewRequestContext(r *http.Request) *RequestContext {
 
 	ctx := &RequestContext{
 		Request:     r,
+		Context:     r.Context(),
 		RealIP:      realIP,
 		UserAgent:   r.UserAgent(),
 		Path:        r.URL.Path,
@@ -342,7 +343,9 @@ func (e *Engine) InspectRequest(r *http.Request) (*Decision, error) {
 }
 
 func (e *Engine) InspectContext(ctx context.Context, r *http.Request) (*Decision, error) {
-	return e.InspectRequest(r)
+	rc := NewRequestContext(r)
+	rc.Context = ctx
+	return e.Inspect(rc)
 }
 
 func (e *Engine) UpdateInspector(name string, inspector Inspector) {

@@ -150,6 +150,8 @@ func main() {
 		)
 	})
 
+	ctx, cancel := context.WithCancel(context.Background())
+
 	proxyHandler := newWAFHandler(cfgMgr, e, rewriteMgr, siemMgr, *dev)
 
 	proxySrv := &http.Server{
@@ -160,6 +162,7 @@ func main() {
 		IdleTimeout:       120 * time.Second,
 		ReadHeaderTimeout: 10 * time.Second,
 		MaxHeaderBytes:    1 << 20,
+		BaseContext:       func(_ net.Listener) context.Context { return ctx },
 	}
 
 	adminRouter := newAdminRouter(cfgMgr, e, *adminPort)
@@ -171,9 +174,8 @@ func main() {
 		IdleTimeout:       60 * time.Second,
 		ReadHeaderTimeout: 10 * time.Second,
 		MaxHeaderBytes:    1 << 20,
+		BaseContext:       func(_ net.Listener) context.Context { return ctx },
 	}
-
-	ctx, cancel := context.WithCancel(context.Background())
 
 	go func() {
 		sigCh := make(chan os.Signal, 1)

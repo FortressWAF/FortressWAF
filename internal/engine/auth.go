@@ -15,6 +15,7 @@ import (
 	"hash"
 	"math/big"
 	"net/http"
+	"net/url"
 	"strings"
 	"sync"
 	"time"
@@ -332,7 +333,7 @@ func (j *JWTValidator) verifySignature(parts []string, alg string, key *JWK) err
 	case "ES256", "ES384", "ES512":
 		return j.verifyECSignature([]byte(data), sig, key)
 	default:
-		return nil
+		return fmt.Errorf("unsupported signature algorithm: %s", alg)
 	}
 }
 
@@ -561,7 +562,7 @@ func (o *OAuthIntrospector) Introspect(token string) (*TokenInfo, error) {
 		return nil, fmt.Errorf("introspection URL not configured")
 	}
 
-	req, err := http.NewRequest("POST", o.introspectionURL, strings.NewReader("token="+token))
+	req, err := http.NewRequest("POST", o.introspectionURL, strings.NewReader(url.Values{"token": {token}}.Encode()))
 	if err != nil {
 		return nil, err
 	}

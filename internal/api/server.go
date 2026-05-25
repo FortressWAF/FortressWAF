@@ -6,6 +6,7 @@ import (
 	"crypto/x509"
 	"fmt"
 	"log/slog"
+	"net"
 	"net/http"
 	"os"
 	"sync"
@@ -25,6 +26,8 @@ type Server struct {
 	handlers    *Handlers
 	wsUpgrader  websocket.Upgrader
 	done        chan struct{}
+	baseCtx     context.Context
+	cancel      context.CancelFunc
 }
 
 type ServerConfig struct {
@@ -148,8 +151,15 @@ func (s *Server) authMiddleware(next http.Handler) http.Handler {
 			token := ""
 			fmt.Sscanf(authHeader, "Bearer %s", &token)
 			if token != "" {
-				next.ServeHTTP(w, r)
-				return
+				// Validate Bearer token against session store
+				s.handlers.sessionsMu.RLock()
+				session, ok := s.handlers.sessions[token]
+				s.handlers.sessionsMu.RUnlock()
+
+				if ok && time.Now().Before(session.ExpiresAt) {
+					next.ServeHTTP(w, r)
+					return
+				}
 			}
 		}
 
@@ -204,12 +214,14 @@ func (s *Server) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) Start() error {
+	s.baseCtx, s.cancel = context.WithCancel(context.Background())
 	s.srv = &http.Server{
 		Addr:         fmt.Sprintf(":%d", s.config.Port),
 		Handler:      s.router,
 		ReadTimeout:  15 * time.Second,
 		WriteTimeout: 15 * time.Second,
 		IdleTimeout:  60 * time.Second,
+		BaseContext:  func(_ net.Listener) context.Context { return s.baseCtx },
 	}
 
 	go func() {
@@ -226,8 +238,8 @@ func (s *Server) Start() error {
 			ReadTimeout:  15 * time.Second,
 			WriteTimeout: 15 * time.Second,
 			IdleTimeout:  60 * time.Second,
+			BaseContext:  func(_ net.Listener) context.Context { return s.baseCtx },
 		}
-
 		go func() {
 			slog.Info("admin server starting", "port", s.config.AdminPort)
 			var err error
@@ -265,6 +277,10 @@ func (s *Server) startMTLSServer() error {
 
 func (s *Server) Shutdown(ctx context.Context) error {
 	var errs []error
+
+	if s.cancel != nil {
+		s.cancel()
+	}
 
 	if s.srv != nil {
 		if err := s.srv.Shutdown(ctx); err != nil {

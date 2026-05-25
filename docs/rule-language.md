@@ -2,6 +2,8 @@
 
 FortressWAF uses a **YAML-based Domain Specific Language (DSL)** for defining security rules. Rules are compiled into an efficient trie-based matcher at startup and can be hot-reloaded without service interruption.
 
+**Note:** The exact number of pre-built rules varies by release. Rule coverage is documented in the release notes.
+
 ## Rule Structure
 
 ```yaml
@@ -379,20 +381,14 @@ rules:
 
 ## Templates Library
 
-FortressWAF ships with 10,000+ pre-built rules organized into:
+FortressWAF organizes rules into template sets. The available sets and approximate rule counts vary by release.
 
-| Template Set | Rules | Description |
-|-------------|-------|-------------|
-| `base/owasp-sqli` | 1,200 | SQL injection patterns |
-| `base/owasp-xss` | 1,500 | Cross-site scripting patterns |
-| `base/owasp-rce` | 800 | Remote code execution patterns |
-| `base/owasp-lfi` | 400 | Path traversal patterns |
-| `base/owasp-ssrf` | 200 | Server-side request forgery |
-| `base/bot-block` | 500 | Bad bot signatures |
-| `base/scanner-block` | 300 | Scanner detection |
-| `base/api-protect` | 600 | API-specific protections |
-| `base/ddos` | 100 | DDoS mitigation rules |
-| `compliance/pci` | 400 | PCI DSS requirements |
-| `compliance/hipaa` | 300 | HIPAA requirements |
-| `compliance/gdpr` | 200 | GDPR requirements |
-| `custom/tuning` | Variable | False positive tuning |
+| Template Set | Description |
+|-------------|-------------|
+| `base/owasp-sqli` | SQL injection patterns |
+| `base/owasp-xss` | Cross-site scripting patterns |
+| `base/owasp-rce` | Remote code execution patterns |
+| `base/owasp-lfi` | Path traversal patterns |
+| `base/bot-block` | Bad bot signatures |
+| `base/scanner-block` | Scanner detection |
+| `base/api-protect` | API-specific protections |
