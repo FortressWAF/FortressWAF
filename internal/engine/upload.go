@@ -19,7 +19,6 @@ type FileUploadSecurity struct {
 	executableExtensions []string
 	archiveExtensions    []string
 	imageExtensions      []string
-	clamavAvailable      bool
 	perEndpointLimits    map[string]int64
 	executableMagic      [][]byte
 	archiveMagic         [][]byte
@@ -29,7 +28,6 @@ func NewFileUploadSecurity(devMode bool) *FileUploadSecurity {
 	u := &FileUploadSecurity{
 		devMode:           devMode,
 		maxFileSize:       10 * 1024 * 1024,
-		clamavAvailable:   false,
 		perEndpointLimits: make(map[string]int64),
 	}
 
@@ -359,11 +357,4 @@ func (u *FileUploadSecurity) SetEndpointLimit(path string, limit int64) {
 	u.mu.Lock()
 	defer u.mu.Unlock()
 	u.perEndpointLimits[path] = limit
-}
-
-func (u *FileUploadSecurity) ScanWithClamAV(data []byte) *Decision {
-	if !u.clamavAvailable {
-		return nil
-	}
-	return nil
 }

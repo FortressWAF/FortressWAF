@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
@@ -19,7 +18,6 @@ type CredentialProtection struct {
 	bruteForce      map[string]*bruteForceTracker
 	leakedCreds     map[string]bool
 	hibpEnabled     bool
-	jwtSecret       string
 	lockoutDuration time.Duration
 	maxAttempts     int
 }
@@ -356,32 +354,6 @@ func (c *CredentialProtection) validateJWT(ctx *RequestContext) *Decision {
 		}
 	}
 
-	if c.jwtSecret != "" {
-		signingInput := parts[0] + "." + parts[1]
-		expectedSig := hmacSHA256([]byte(c.jwtSecret), []byte(signingInput))
-		providedSig, err := base64.RawURLEncoding.DecodeString(parts[2])
-		if err != nil {
-			return &Decision{
-				Action:   ActionBlock,
-				RuleID:   "CRED011",
-				RuleName: "Invalid JWT Signature Encoding",
-				Severity: "high",
-				Score:    75,
-				Evidence: "jwt signature is not valid base64",
-			}
-		}
-		if !hmac.Equal(expectedSig, providedSig) {
-			return &Decision{
-				Action:   ActionBlock,
-				RuleID:   "CRED012",
-				RuleName: "Invalid JWT Signature",
-				Severity: "high",
-				Score:    75,
-				Evidence: "jwt signature validation failed",
-			}
-		}
-	}
-
 	payloadJSON, err := base64.RawURLEncoding.DecodeString(parts[1])
 	if err != nil {
 		return nil
@@ -435,10 +407,4 @@ func (c *CredentialProtection) detectOAuthAbuse(ctx *RequestContext) *Decision {
 	}
 
 	return nil
-}
-
-func hmacSHA256(secret, data []byte) []byte {
-	h := hmac.New(sha256.New, secret)
-	h.Write(data)
-	return h.Sum(nil)
 }

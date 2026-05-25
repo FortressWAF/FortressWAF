@@ -414,25 +414,6 @@ func (j *JWTValidator) verifyECSignature(data []byte, sig []byte, key *JWK) erro
 	return nil
 }
 
-func (j *JWTValidator) parseRSAPublicKey(key *JWK) (*rsa.PublicKey, error) {
-	nBytes, err := base64.RawURLEncoding.DecodeString(key.N)
-	if err != nil {
-		return nil, err
-	}
-	eBytes, err := base64.RawURLEncoding.DecodeString(key.E)
-	if err != nil {
-		return nil, err
-	}
-
-	n := new(big.Int).SetBytes(nBytes)
-	e := 0
-	for _, b := range eBytes {
-		e = e<<8 + int(b)
-	}
-
-	return &rsa.PublicKey{N: n, E: e}, nil
-}
-
 func (j *JWTValidator) HasScope(claims *JWTClaims, scope string) bool {
 	if claims.Scope == "" {
 		return false

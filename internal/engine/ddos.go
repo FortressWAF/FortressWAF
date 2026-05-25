@@ -2,7 +2,6 @@ package engine
 
 import (
 	"fmt"
-	"log/slog"
 	"math"
 	"net/http"
 	"strings"
@@ -15,11 +14,6 @@ type SlidingWindowCounter struct {
 	timestamps []time.Time
 	window     time.Duration
 	maxCount   int
-}
-
-type EndpointCounter struct {
-	mu       sync.Mutex
-	counters map[string]*SlidingWindowCounter
 }
 
 type DDoSProtection struct {
@@ -372,5 +366,3 @@ func (d *DDoSProtection) cleanup() {
 func (d *DDoSProtection) Close() {
 	close(d.done)
 }
-
-var _ = slog.Debug

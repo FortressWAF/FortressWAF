@@ -2,7 +2,6 @@ package engine
 
 import (
 	"fmt"
-	"log/slog"
 	"regexp"
 	"strings"
 	"sync"
@@ -262,5 +261,3 @@ func (p *APIProtection) LoadOpenAPISpec(spec map[string]interface{}) {
 	defer p.mu.Unlock()
 	p.openAPISpecs = spec
 }
-
-var _ = slog.Debug
