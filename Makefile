@@ -50,6 +50,9 @@ test-unit: ## Run unit tests only
 test-integration: ## Run integration tests
 	$(GO) test -tags=integration ./tests/... -v -count=1 -coverprofile=$(COVERAGE_DIR)/integration.out
 
+train-ml: ## Train ML models with attack corpus
+	cd ml-engine && pip install -r requirements.txt && python -m training.train --data-dir training/data
+
 test-ml: ## Run ML engine tests
 	cd ml-engine && pip install -r requirements-dev.txt && python -m pytest test_api.py -v
 

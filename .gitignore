@@ -98,6 +98,7 @@ logs/
 
 # Data
 data/
+!ml-engine/training/data/
 /var/lib/fortresswaf/
 redis-data/
 postgres-data/
@@ -186,3 +187,5 @@ id_dsa*
 
 # Benchmark output
 benchmark.txt
+proxy
+dashboard/package-lock.json

