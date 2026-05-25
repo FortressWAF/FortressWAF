@@ -5,7 +5,36 @@ All notable changes to FortressWAF are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.1.0] - 2026-05-24
+## [1.2.0] - 2026-05-25
+
+### Added
+- HTTP/2 support via TLS configuration (`http2_enabled: true`)
+- ACME/LetsEncrypt automatic certificate management (autocert)
+- OCSP stapling placeholder via TLS VerifyConnection hook
+- Prometheus metrics endpoint on configurable port/path
+- PostgreSQL event storage with schema auto-init (rules, audit log, events tables)
+- CAPTCHA verification (reCAPTCHA v2/v3, hCaptcha) with configurable score threshold
+- gRPC inspector with per-service rate limiting and message size limits
+- SOAP/XML validator with nesting depth enforcement
+- Response inspector middleware (body capture via ResponseWriter wrapper)
+- Credential protection: brute force, credential stuffing, password spray detection with configurable thresholds
+- Elasticsearch SIEM dashboard definitions (`deploy/monitoring/elasticsearch/`)
+- Kibana security dashboard definitions (`deploy/monitoring/kibana/`)
+- Config fields for all new features in `internal/config/config.go`
+
+### Changed
+- Engine refactor: removed 6 unused Inspector fields (Rules, ML, RateLimit, Reputation, Session, Geo) that were never assigned
+- RequestContext: removed 8 unused fields (AnomalyScore, RiskScore, IsMobile, IsTor, IsProxy, TLSVersion, Fingerprint, Tags)
+- Removed dead code: custom min(), slog import suppression in 5 files, unused EndpointCounter, parseRSAPublicKey, ScanWithClamAV, jwtSecret/hmacSHA256
+- README rewritten with positioning, Mermaid architecture diagram, accurate feature list
+- architecture.md updated with Mermaid pipeline diagram, Auth and Protocol stages
+- CI workflow fixed (branch targets, build paths, lint accuracy)
+- Benchmark workflow fixed (correct test package path)
+
+### Removed
+- Fake "Community vs Enterprise" feature table from README
+- Fake CLI commands that referenced non-existent fortressctl subcommands
+- Always-nil ScanWithClamAV method and clamavAvailable flag
 
 ### Added
 - JWT/OAuth authentication and token validation

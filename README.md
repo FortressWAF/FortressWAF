@@ -193,15 +193,18 @@ ml-engine/           —  ML sidecar (Python/FastAPI)
 
 ## Performance
 
-Measured on 4 vCPU / 8 GB RAM:
+Measured on a laptop (Intel i5-7200U, 2 cores). Server-grade CPUs typically 2-3x faster.
 
-| Scenario | Throughput |
+| Setup | Per-core throughput |
 |---|---|
-| Passthrough (no inspection) | ~85,000 req/s |
-| Full rule set | ~40,000 req/s |
-| With ML sidecar | Varies by model |
+| Passthrough (no inspectors) | ~80,000 req/s |
+| Single inspector (SQLi/XSS/RCE) | ~5,000,000 inspections/s |
+| Full engine (6+ inspectors) | ~2,500 req/s |
+| RequestContext creation | ~80,000 ctx/s |
 
-Latency overhead per request: ~200μs average with default rules.
+Full benchmark: [`benchmark.txt`](benchmark.txt)
+
+Latency overhead per request: ~400μs average with full engine on laptop hardware.
 
 ---
 
