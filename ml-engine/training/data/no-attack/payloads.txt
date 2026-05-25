@@ -1,0 +1,110 @@
+GET / HTTP/1.1
+GET /index.html HTTP/1.1
+GET /about HTTP/1.1
+GET /contact HTTP/1.1
+GET /products HTTP/1.1
+GET /products?id=123 HTTP/1.1
+GET /products?category=electronics&page=2 HTTP/1.1
+GET /blog HTTP/1.1
+GET /blog/2024/01/hello-world HTTP/1.1
+GET /search?q=welcome HTTP/1.1
+GET /search?q=hello+world HTTP/1.1
+GET /faq HTTP/1.1
+GET /pricing HTTP/1.1
+GET /docs HTTP/1.1
+GET /docs/getting-started HTTP/1.1
+GET /api/v1/health HTTP/1.1
+GET /api/v1/status HTTP/1.1
+GET /api/v1/users HTTP/1.1
+GET /api/v1/users/42 HTTP/1.1
+GET /assets/style.css HTTP/1.1
+GET /assets/app.js HTTP/1.1
+GET /assets/logo.png HTTP/1.1
+GET /favicon.ico HTTP/1.1
+GET /robots.txt HTTP/1.1
+GET /sitemap.xml HTTP/1.1
+POST /api/v1/users HTTP/1.1 Body: {"name":"John","email":"john@example.com"}
+POST /api/v1/login HTTP/1.1 Body: {"username":"admin","password":"Secret123!"}
+POST /api/v1/comments HTTP/1.1 Body: {"post_id":42,"content":"Great article!"}
+POST /api/v1/orders HTTP/1.1 Body: {"product_id":5,"quantity":2,"shipping_address":"123 Main St"}
+POST /api/v1/contact HTTP/1.1 Body: {"name":"Alice","email":"alice@test.com","message":"Hello"}
+POST /api/v1/subscribe HTTP/1.1 Body: {"email":"user@example.com"}
+POST /api/v1/feedback HTTP/1.1 Body: {"rating":5,"comment":"Excellent service"}
+POST /api/v1/webhook HTTP/1.1 Body: {"event":"payment.success","data":{"txn_id":"abc123"}}
+POST /api/v1/upload HTTP/1.1 Body: (multipart file upload - resume.pdf)
+POST /api/v1/settings HTTP/1.1 Body: {"theme":"dark","notifications":true}
+PUT /api/v1/users/42 HTTP/1.1 Body: {"name":"John Updated"}
+PUT /api/v1/products/5 HTTP/1.1 Body: {"price":29.99,"stock":100}
+PUT /api/v1/settings/profile HTTP/1.1 Body: {"bio":"Software engineer from SF"}
+PUT /api/v1/orders/123/status HTTP/1.1 Body: {"status":"shipped"}
+PUT /api/v1/config HTTP/1.1 Body: {"rate_limit":200}
+DELETE /api/v1/users/42 HTTP/1.1
+DELETE /api/v1/sessions/current HTTP/1.1
+DELETE /api/v1/cache/entry/abc HTTP/1.1
+DELETE /api/v1/notifications/5 HTTP/1.1
+GET / HTTP/1.1 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
+GET / HTTP/1.1 Accept: application/json, text/plain, */*
+GET / HTTP/1.1 Accept-Language: en-US,en;q=0.9
+GET / HTTP/1.1 Content-Type: application/x-www-form-urlencoded
+GET / HTTP/1.1 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+GET / HTTP/1.1 Cookie: session=abc123; theme=dark
+GET / HTTP/1.1
+GET /api/v1/products?page=1 HTTP/1.1
+GET /api/v1/products?page=2 HTTP/1.1
+GET /api/v1/products?page=3 HTTP/1.1
+GET /api/v1/products/42 HTTP/1.1
+GET /api/v1/products/42/reviews HTTP/1.1
+GET /api/v1/categories HTTP/1.1
+GET /api/v1/tags HTTP/1.1
+POST /api/v1/cart/add HTTP/1.1 Body: {"product_id":42,"quantity":1}
+POST /api/v1/cart/checkout HTTP/1.1 Body: {}
+DELETE /api/v1/cart/item/5 HTTP/1.1
+PATCH /api/v1/users/42/profile HTTP/1.1 Body: {"bio":"Updated bio"}
+OPTIONS /api/v1/users HTTP/1.1
+HEAD /api/v1/health HTTP/1.1
+GET / HTTP/1.1 Host: example.com
+GET / HTTP/1.1 Host: www.example.com
+GET / HTTP/1.1 Accept-Encoding: gzip, deflate, br
+GET / HTTP/1.1 Cache-Control: no-cache
+GET / HTTP/1.1 Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+GET / HTTP/1.1 Connection: keep-alive
+GET / HTTP/1.1 Upgrade-Insecure-Requests: 1
+GET / HTTP/1.1 Sec-Fetch-Dest: document
+GET / HTTP/1.1 Sec-Fetch-Mode: navigate
+GET / HTTP/1.1 Sec-Fetch-Site: none
+GET / HTTP/1.1 Sec-Fetch-User: ?1
+GET / HTTP/1.1 DNT: 1
+GET /api/v1/posts?search=how+to+code HTTP/1.1
+GET /api/v1/posts?tag=javascript HTTP/1.1
+GET /api/v1/posts?author=1 HTTP/1.1
+GET /api/v1/comments?post_id=42 HTTP/1.1
+POST /api/v1/posts HTTP/1.1 Body: {"title":"Hello World","content":"This is my first post","tags":["hello","world"]}
+PUT /api/v1/posts/42 HTTP/1.1 Body: {"title":"Updated Title"}
+PATCH /api/v1/posts/42 HTTP/1.1 Body: {"views":1000}
+DELETE /api/v1/posts/42 HTTP/1.1
+GET /api/v1/users/me HTTP/1.1 Authorization: Bearer token123
+GET /api/v1/users/me/settings HTTP/1.1 Authorization: Bearer token123
+PUT /api/v1/users/me/settings HTTP/1.1 Body: {"theme":"light","locale":"en-US"}
+GET /api/v1/users/me/notifications HTTP/1.1 Authorization: Bearer token123
+PATCH /api/v1/users/me/notifications/5 HTTP/1.1 Body: {"read":true}
+GET / HTTP/1.1 User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36
+GET / HTTP/1.1 User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36
+GET / HTTP/1.1 User-Agent: Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15
+GET / HTTP/1.1 User-Agent: Mozilla/5.0 (iPad; CPU OS 17_0 like Mac OS X) AppleWebKit/605.1.15
+GET / HTTP/1.1 Accept-Language: en-US,en;q=0.9,fr;q=0.8,de;q=0.7
+GET / HTTP/1.1 Accept-Language: id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7
+GET / HTTP/1.1 Accept-Language: ja-JP,ja;q=0.9,en;q=0.8
+GET / HTTP/1.1 Accept-Language: es-ES,es;q=0.9,en;q=0.8
+GET /docs/tutorials/getting-started HTTP/1.1
+GET /docs/tutorials/advanced HTTP/1.1
+GET /docs/api HTTP/1.1
+GET /docs/api/authentication HTTP/1.1
+GET /docs/api/endpoints HTTP/1.1
+GET /assets/images/banner.jpg HTTP/1.1
+GET /assets/images/logo.svg HTTP/1.1
+GET /assets/fonts/inter.woff2 HTTP/1.1
+GET /assets/fonts/jetbrains-mono.woff2 HTTP/1.1
+GET /manifest.json HTTP/1.1
+GET /sw.js HTTP/1.1
+GET /.well-known/security.txt HTTP/1.1
+GET /humans.txt HTTP/1.1

