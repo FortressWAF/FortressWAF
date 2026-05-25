@@ -2,7 +2,6 @@ package engine
 
 import (
 	"fmt"
-	"log/slog"
 	"regexp"
 	"strings"
 	"sync"
@@ -413,12 +412,3 @@ func (e *SQLInjectionEngine) analyzeTokens(tokens []Token, original, source stri
 
 	return nil
 }
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
-
-var _ = slog.Debug

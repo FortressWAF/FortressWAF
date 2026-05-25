@@ -2,7 +2,6 @@ package engine
 
 import (
 	"fmt"
-	"log/slog"
 	"net/http"
 	"regexp"
 	"strings"
@@ -276,5 +275,3 @@ func (p *ProtocolAnomaly) detectCookieSecurity(ctx *RequestContext) *Decision {
 func (p *ProtocolAnomaly) SanitizeHeaders(r *http.Request) {
 	r.Header.Del("X-Forwarded-For")
 }
-
-var _ = slog.Debug

@@ -2,7 +2,6 @@ package engine
 
 import (
 	"fmt"
-	"log/slog"
 	"regexp"
 	"strings"
 	"sync"
@@ -268,5 +267,3 @@ func (e *XSSEngine) ScanResponse(body []byte) *Decision {
 
 	return nil
 }
-
-var _ = slog.Debug

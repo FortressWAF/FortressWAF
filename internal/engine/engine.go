@@ -56,19 +56,11 @@ type RequestContext struct {
 	ASN           uint
 	BotScore      float64
 	ThreatScore   float64
-	AnomalyScore  float64
 	Decisions     []Decision
-	RiskScore     float64
-	IsMobile      bool
 	IsBot         bool
-	IsTor         bool
-	IsProxy       bool
 	IsKnownAttack bool
 	StartedAt     time.Time
-	TLSVersion    string
-	Fingerprint   string
 	RequestID     string
-	Tags          []string
 	Context       context.Context
 	Host          string
 }
@@ -145,11 +137,6 @@ type Inspector interface {
 type Engine struct {
 	mu          sync.RWMutex
 	inspectors  []Inspector
-	rules       Inspector
-	ml          Inspector
-	rateLimit   Inspector
-	reputation  Inspector
-	session     Inspector
 	bot         Inspector
 	ddos        Inspector
 	sqli        Inspector
@@ -159,7 +146,6 @@ type Engine struct {
 	protocol    Inspector
 	upload      Inspector
 	credential  Inspector
-	geo         Inspector
 	jwt         Inspector
 	oauth       Inspector
 	graphql     Inspector
@@ -175,11 +161,6 @@ type Engine struct {
 // EngineConfig configures which inspectors the Engine should use.
 type EngineConfig struct {
 	DevMode     bool
-	Rules       Inspector
-	ML          Inspector
-	RateLimit   Inspector
-	Reputation  Inspector
-	Session     Inspector
 	Bot         Inspector
 	DDoS        Inspector
 	SQLI        Inspector
@@ -189,7 +170,6 @@ type EngineConfig struct {
 	Protocol    Inspector
 	Upload      Inspector
 	Credential  Inspector
-	Geo         Inspector
 	JWT         Inspector
 	OAuth       Inspector
 	GraphQL     Inspector
@@ -204,11 +184,6 @@ type EngineConfig struct {
 func New(cfg EngineConfig) *Engine {
 	e := &Engine{
 		devMode:     cfg.DevMode,
-		rules:       cfg.Rules,
-		ml:          cfg.ML,
-		rateLimit:   cfg.RateLimit,
-		reputation:  cfg.Reputation,
-		session:     cfg.Session,
 		bot:         cfg.Bot,
 		ddos:        cfg.DDoS,
 		sqli:        cfg.SQLI,
@@ -218,7 +193,6 @@ func New(cfg EngineConfig) *Engine {
 		protocol:    cfg.Protocol,
 		upload:      cfg.Upload,
 		credential:  cfg.Credential,
-		geo:         cfg.Geo,
 		jwt:         cfg.JWT,
 		oauth:       cfg.OAuth,
 		graphql:     cfg.GraphQL,
@@ -238,11 +212,6 @@ func New(cfg EngineConfig) *Engine {
 		cfg.GraphQL,
 		cfg.GRPC,
 		cfg.SOAP,
-		cfg.Reputation,
-		cfg.RateLimit,
-		cfg.Session,
-		cfg.Rules,
-		cfg.ML,
 		cfg.Bot,
 		cfg.DDoS,
 		cfg.SQLI,
@@ -252,7 +221,6 @@ func New(cfg EngineConfig) *Engine {
 		cfg.Protocol,
 		cfg.Upload,
 		cfg.Credential,
-		cfg.Geo,
 		cfg.WebSocket,
 		cfg.RespInspect,
 	}
@@ -366,16 +334,6 @@ func (e *Engine) UpdateInspector(name string, inspector Inspector) {
 	defer e.mu.Unlock()
 
 	switch name {
-	case "rules":
-		e.rules = inspector
-	case "ml":
-		e.ml = inspector
-	case "rate_limit":
-		e.rateLimit = inspector
-	case "reputation":
-		e.reputation = inspector
-	case "session":
-		e.session = inspector
 	case "bot":
 		e.bot = inspector
 	case "ddos":
@@ -394,8 +352,6 @@ func (e *Engine) UpdateInspector(name string, inspector Inspector) {
 		e.upload = inspector
 	case "credential":
 		e.credential = inspector
-	case "geo":
-		e.geo = inspector
 	case "jwt":
 		e.jwt = inspector
 	case "oauth":
