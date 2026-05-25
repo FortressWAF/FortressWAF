@@ -285,6 +285,9 @@ func (g *GraphQLInspector) countPageSize(q string) int {
 	firstPos := strings.Index(strings.ToLower(q), "first:")
 	if firstPos != -1 {
 		endPos := firstPos + 6
+		for endPos < len(q) && (q[endPos] == ' ' || q[endPos] == '\t') {
+			endPos++
+		}
 		start := endPos
 		for endPos < len(q) && q[endPos] >= '0' && q[endPos] <= '9' {
 			endPos++

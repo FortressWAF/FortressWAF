@@ -95,14 +95,17 @@ func (e *Engine) Inspect(ipStr string) (*IPRecord, float64) {
 
 	score := 0.0
 
+	e.mu.RLock()
 	if e.isAllowlisted(ip) {
 		record.Score = 0
+		e.mu.RUnlock()
 		e.setCache(ipStr, record)
 		return record, 0
 	}
 
 	if e.isBlocklisted(ip) {
 		record.Score = 100
+		e.mu.RUnlock()
 		e.setCache(ipStr, record)
 		return record, 100
 	}
@@ -130,6 +133,8 @@ func (e *Engine) Inspect(ipStr string) (*IPRecord, float64) {
 		record.IsDatacenter = true
 		record.Categories = append(record.Categories, "datacenter")
 	}
+
+	e.mu.RUnlock()
 
 	record.Score = score
 	e.setCache(ipStr, record)

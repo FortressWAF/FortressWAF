@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/fsnotify/fsnotify"
@@ -528,9 +529,10 @@ func (m *Manager) Reload() error {
 
 	m.mu.Lock()
 	m.config = newCfg
+	callbacks := append([]func(*Config){}, m.onChange...)
 	m.mu.Unlock()
 
-	for _, cb := range m.onChange {
+	for _, cb := range callbacks {
 		cb(newCfg)
 	}
 
@@ -629,17 +631,18 @@ func (m *Manager) UpdateConfig(fn func(*Config)) error {
 	return nil
 }
 
-var DefaultManager *Manager
+var DefaultManager atomic.Pointer[Manager]
 
 func SetDefaultManager(m *Manager) {
-	DefaultManager = m
+	DefaultManager.Store(m)
 }
 
 func GetConfig() *Config {
-	if DefaultManager == nil {
+	m := DefaultManager.Load()
+	if m == nil {
 		return DefaultConfig()
 	}
-	return DefaultManager.Get()
+	return m.Get()
 }
 
 var envRefRE = regexp.MustCompile(`\$\{([^}]+)\}`)

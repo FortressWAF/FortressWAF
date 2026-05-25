@@ -137,7 +137,7 @@ func (u *FileUploadSecurity) Inspect(ctx *RequestContext) (*Decision, error) {
 		}
 		part.Close()
 
-		dec := u.inspectPart(part)
+		dec := u.inspectPart(part, len(ctx.Body))
 		if dec != nil {
 			return dec, nil
 		}
@@ -146,7 +146,7 @@ func (u *FileUploadSecurity) Inspect(ctx *RequestContext) (*Decision, error) {
 	return nil, nil
 }
 
-func (u *FileUploadSecurity) inspectPart(part *multipart.Part) *Decision {
+func (u *FileUploadSecurity) inspectPart(part *multipart.Part, bodySize int) *Decision {
 	filename := part.FileName()
 	if filename == "" {
 		return nil
@@ -171,7 +171,7 @@ func (u *FileUploadSecurity) inspectPart(part *multipart.Part) *Decision {
 		return dec
 	}
 
-	dec = u.detectArchiveBomb(filename, buf.Bytes())
+	dec = u.detectArchiveBomb(filename, buf.Bytes(), bodySize)
 	if dec != nil {
 		return dec
 	}
@@ -261,7 +261,7 @@ func (u *FileUploadSecurity) detectExecutable(filename string, magic []byte) *De
 	return nil
 }
 
-func (u *FileUploadSecurity) detectArchiveBomb(filename string, magic []byte) *Decision {
+func (u *FileUploadSecurity) detectArchiveBomb(filename string, magic []byte, bodySize int) *Decision {
 	ext := strings.ToLower(filename[strings.LastIndex(filename, "."):])
 	for _, archExt := range u.archiveExtensions {
 		if ext == archExt {
@@ -278,15 +278,14 @@ func (u *FileUploadSecurity) detectArchiveBomb(filename string, magic []byte) *D
 
 	for _, sig := range u.archiveMagic {
 		if len(magic) >= len(sig) && bytes.HasPrefix(magic, sig) {
-			ratio := 100 * len(magic) / len(sig)
-			if ratio < 10 {
+			if bodySize > 50*1024*1024 && len(magic) < 512 {
 				return &Decision{
 					Action:   ActionBlock,
 					RuleID:   "UPL006",
 					RuleName: "Archive Bomb Detected",
 					Severity: "high",
 					Score:    75,
-					Evidence: fmt.Sprintf("potential archive bomb: compression ratio %d:1", ratio),
+					Evidence: fmt.Sprintf("potential archive bomb: body size %d bytes with only %d bytes inspected", bodySize, 512),
 				}
 			}
 		}

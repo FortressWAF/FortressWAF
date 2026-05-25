@@ -2,6 +2,7 @@ package siem
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -201,13 +202,18 @@ type SplunkExporter struct {
 }
 
 func newSplunkExporter(cfg ExporterConfig) (*SplunkExporter, error) {
+	transport := http.DefaultTransport.(*http.Transport).Clone()
+	transport.TLSClientConfig = &tls.Config{
+		InsecureSkipVerify: !cfg.VerifySSL,
+	}
 	return &SplunkExporter{
 		url:       cfg.URL,
 		token:     cfg.Token,
 		index:     cfg.Index,
 		verifySSL: cfg.VerifySSL,
 		client: &http.Client{
-			Timeout: 30 * time.Second,
+			Timeout:   30 * time.Second,
+			Transport: transport,
 		},
 	}, nil
 }

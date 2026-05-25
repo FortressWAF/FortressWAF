@@ -46,6 +46,9 @@ type Handlers struct {
 	apiKeysMu  sync.RWMutex
 	sessions   map[string]sessionRecord
 	sessionsMu sync.RWMutex
+	done       chan struct{}
+	logMu      sync.RWMutex
+	logClients []chan logEntry
 }
 
 func NewHandlers(cfgMgr *config.Manager, ruleEngine *rules.Engine, version string) *Handlers {
@@ -55,12 +58,13 @@ func NewHandlers(cfgMgr *config.Manager, ruleEngine *rules.Engine, version strin
 		startTime:  time.Now(),
 		version:    version,
 		logCh:      make(chan logEntry, 10000),
+		done:       make(chan struct{}),
 		apiKeys:    make(map[string]apiKeyRecord),
 		sessions:   make(map[string]sessionRecord),
 		alertConfig: alertConfigRecord{
 			Threshold:       100,
 			IntervalSeconds: 60,
-			Enabled:         true,
+			Enabled:         boolPtr(true),
 			Channels:        []string{},
 			Rules:           []string{},
 		},
@@ -70,13 +74,30 @@ func NewHandlers(cfgMgr *config.Manager, ruleEngine *rules.Engine, version strin
 }
 
 func (h *Handlers) drainLogChannel() {
-	for entry := range h.logCh {
-		h.logStoreMu.Lock()
-		h.logStore = append(h.logStore, entry)
-		if len(h.logStore) > 100000 {
-			h.logStore = h.logStore[len(h.logStore)-50000:]
+	for {
+		select {
+		case <-h.done:
+			return
+		case entry, ok := <-h.logCh:
+			if !ok {
+				return
+			}
+			h.logStoreMu.Lock()
+			h.logStore = append(h.logStore, entry)
+			if len(h.logStore) > 100000 {
+				h.logStore = h.logStore[len(h.logStore)-50000:]
+			}
+			h.logStoreMu.Unlock()
+
+			h.logMu.RLock()
+			for _, client := range h.logClients {
+				select {
+				case client <- entry:
+				default:
+				}
+			}
+			h.logMu.RUnlock()
 		}
-		h.logStoreMu.Unlock()
 	}
 }
 
@@ -143,6 +164,10 @@ func writeConflict(w http.ResponseWriter, msg string) {
 
 func writeInternalErr(w http.ResponseWriter) {
 	writeErr(w, http.StatusInternalServerError, "INTERNAL_ERROR", "internal server error")
+}
+
+func boolPtr(b bool) *bool {
+	return &b
 }
 
 func readJSONStrict(r *http.Request, v interface{}) error {
@@ -582,6 +607,30 @@ func (h *Handlers) UpdateRule(w http.ResponseWriter, r *http.Request) {
 		writeNotFound(w, "rule not found")
 		return
 	}
+
+	cfg := h.configMgr.Get()
+	ruleCfg := cfg.GetRule(id)
+	if ruleCfg != nil {
+		rule := rules.Rule{
+			ID:        ruleCfg.ID,
+			Name:      ruleCfg.Name,
+			Severity:  ruleCfg.Severity,
+			Action:    ruleCfg.Action,
+			Phase:     ruleCfg.Phase,
+			Priority:  ruleCfg.Priority,
+			Field:     ruleCfg.Field,
+			Operator:  ruleCfg.Operator,
+			Value:     ruleCfg.Value,
+			Transform: ruleCfg.Transform,
+			Tags:      ruleCfg.Tags,
+			Params:    ruleCfg.Params,
+			Enabled:   ruleCfg.Enabled,
+		}
+		if err := h.ruleEngine.UpdateRule(id, rule); err != nil {
+			slog.Warn("failed to update rule in engine", "error", err)
+		}
+	}
+
 	writeOK(w, map[string]string{"id": id, "updated": "true"})
 }
 
@@ -633,7 +682,35 @@ func (h *Handlers) EnableRule(w http.ResponseWriter, r *http.Request) {
 		writeNotFound(w, "rule not found")
 		return
 	}
+
+	h.syncRuleToEngine(id)
 	writeOK(w, map[string]string{"id": id, "enabled": "true"})
+}
+
+func (h *Handlers) syncRuleToEngine(id string) {
+	cfg := h.configMgr.Get()
+	ruleCfg := cfg.GetRule(id)
+	if ruleCfg == nil {
+		return
+	}
+	rule := rules.Rule{
+		ID:        ruleCfg.ID,
+		Name:      ruleCfg.Name,
+		Severity:  ruleCfg.Severity,
+		Action:    ruleCfg.Action,
+		Phase:     ruleCfg.Phase,
+		Priority:  ruleCfg.Priority,
+		Field:     ruleCfg.Field,
+		Operator:  ruleCfg.Operator,
+		Value:     ruleCfg.Value,
+		Transform: ruleCfg.Transform,
+		Tags:      ruleCfg.Tags,
+		Params:    ruleCfg.Params,
+		Enabled:   ruleCfg.Enabled,
+	}
+	if err := h.ruleEngine.UpdateRule(id, rule); err != nil {
+		slog.Warn("failed to sync rule to engine", "error", err)
+	}
 }
 
 func (h *Handlers) DisableRule(w http.ResponseWriter, r *http.Request) {
@@ -656,6 +733,8 @@ func (h *Handlers) DisableRule(w http.ResponseWriter, r *http.Request) {
 		writeNotFound(w, "rule not found")
 		return
 	}
+
+	h.syncRuleToEngine(id)
 	writeOK(w, map[string]string{"id": id, "enabled": "false"})
 }
 
@@ -770,6 +849,32 @@ func (h *Handlers) BulkRules(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		writeBadRequest(w, err.Error())
 		return
+	}
+
+	for _, rr := range req.Rules {
+		cfg := h.configMgr.Get()
+		ruleCfg := cfg.GetRule(rr.ID)
+		if ruleCfg == nil {
+			continue
+		}
+		rule := rules.Rule{
+			ID:        ruleCfg.ID,
+			Name:      ruleCfg.Name,
+			Severity:  ruleCfg.Severity,
+			Action:    ruleCfg.Action,
+			Phase:     ruleCfg.Phase,
+			Priority:  ruleCfg.Priority,
+			Field:     ruleCfg.Field,
+			Operator:  ruleCfg.Operator,
+			Value:     ruleCfg.Value,
+			Transform: ruleCfg.Transform,
+			Tags:      ruleCfg.Tags,
+			Params:    ruleCfg.Params,
+			Enabled:   ruleCfg.Enabled,
+		}
+		if err := h.ruleEngine.UpdateRule(rr.ID, rule); err != nil {
+			slog.Warn("failed to sync bulk rule to engine", "error", err)
+		}
 	}
 
 	writeOK(w, map[string]interface{}{
@@ -891,6 +996,22 @@ func (h *Handlers) TailLogs(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Connection", "keep-alive")
 	w.Header().Set("X-Accel-Buffering", "no")
 
+	clientCh := make(chan logEntry, 100)
+	h.logMu.Lock()
+	h.logClients = append(h.logClients, clientCh)
+	h.logMu.Unlock()
+
+	defer func() {
+		h.logMu.Lock()
+		for i, c := range h.logClients {
+			if c == clientCh {
+				h.logClients = append(h.logClients[:i], h.logClients[i+1:]...)
+				break
+			}
+		}
+		h.logMu.Unlock()
+	}()
+
 	ctx := r.Context()
 	ticker := time.NewTicker(2 * time.Second)
 	defer ticker.Stop()
@@ -899,7 +1020,7 @@ func (h *Handlers) TailLogs(w http.ResponseWriter, r *http.Request) {
 		select {
 		case <-ctx.Done():
 			return
-		case entry, ok := <-h.logCh:
+		case entry, ok := <-clientCh:
 			if !ok {
 				return
 			}
@@ -1511,9 +1632,14 @@ func (h *Handlers) PatchCoverage(w http.ResponseWriter, r *http.Request) {
 		"total_rules":     totalRules,
 		"patched_rules":   patchedRules,
 		"unpatched_rules": totalRules - patchedRules,
-		"coverage_pct":    float64(0),
-		"deployed":        deployedPatches,
-		"draft":           draftPatches,
+		"coverage_pct": func() float64 {
+			if totalRules > 0 {
+				return float64(patchedRules) / float64(totalRules) * 100
+			}
+			return 0
+		}(),
+		"deployed": deployedPatches,
+		"draft":    draftPatches,
 	})
 }
 
@@ -1853,7 +1979,7 @@ type alertRecord struct {
 type alertConfigRecord struct {
 	Threshold       int      `json:"threshold"`
 	IntervalSeconds int      `json:"interval_seconds"`
-	Enabled         bool     `json:"enabled"`
+	Enabled         *bool    `json:"enabled"`
 	Channels        []string `json:"channels"`
 	Rules           []string `json:"rules"`
 }
@@ -1978,7 +2104,9 @@ func (h *Handlers) UpdateAlertConfig(w http.ResponseWriter, r *http.Request) {
 	if req.Rules != nil {
 		h.alertConfig.Rules = req.Rules
 	}
-	h.alertConfig.Enabled = req.Enabled
+	if req.Enabled != nil {
+		h.alertConfig.Enabled = req.Enabled
+	}
 	h.alertsMu.Unlock()
 
 	writeOK(w, h.alertConfig)

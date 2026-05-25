@@ -177,19 +177,18 @@ func (d *DDoSProtection) detectHTTPFlood(ctx *RequestContext) *Decision {
 
 func (d *DDoSProtection) checkGlobalRate(ctx *RequestContext) *Decision {
 	d.globalMu.RLock()
-	count := len(d.globalCounter.timestamps)
-	d.globalMu.RUnlock()
-
-	if int(count) > d.globalRate {
+	if !d.checkRate(d.globalCounter, d.globalRate) {
+		d.globalMu.RUnlock()
 		return &Decision{
 			Action:   ActionRateLimit,
 			RuleID:   "DDoS000",
 			RuleName: "HTTP Flood - Global",
 			Severity: "critical",
 			Score:    90,
-			Evidence: fmt.Sprintf("global rate limit exceeded: %d req/s", count),
+			Evidence: fmt.Sprintf("global rate limit exceeded: %d req/s", d.globalRate),
 		}
 	}
+	d.globalMu.RUnlock()
 	return nil
 }
 

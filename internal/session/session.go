@@ -237,6 +237,19 @@ func (s *Store) cleanupLoop() {
 					if userSID, ok := s.byUser[session.UserID]; ok && userSID == id {
 						delete(s.byUser, session.UserID)
 					}
+					if ips, ok := s.byIP[session.RealIP]; ok {
+						filtered := make([]string, 0, len(ips))
+						for _, sid := range ips {
+							if sid != id {
+								filtered = append(filtered, sid)
+							}
+						}
+						if len(filtered) == 0 {
+							delete(s.byIP, session.RealIP)
+						} else {
+							s.byIP[session.RealIP] = filtered
+						}
+					}
 					delete(s.sessions, id)
 				}
 			}

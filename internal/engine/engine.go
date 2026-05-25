@@ -245,6 +245,9 @@ func New(cfg EngineConfig) *Engine {
 }
 
 func (e *Engine) Inspect(ctx *RequestContext) (*Decision, error) {
+	e.mu.RLock()
+	defer e.mu.RUnlock()
+
 	if e.devMode {
 		slog.Debug("inspecting request",
 			"method", ctx.Method,

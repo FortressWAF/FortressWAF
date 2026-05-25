@@ -471,20 +471,19 @@ func (h *wafHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *wafHandler) forwardRequest(w http.ResponseWriter, r *http.Request, site *config.SiteConfig) {
-	h.mu.RLock()
+	h.mu.Lock()
 	proxy, ok := h.proxies[site.Name]
-	h.mu.RUnlock()
 
 	if !ok {
 		if err := h.buildProxy(site); err != nil {
+			h.mu.Unlock()
 			slog.Error("failed to build proxy on-the-fly", "site", site.Name, "error", err)
 			w.WriteHeader(http.StatusBadGateway)
 			return
 		}
-		h.mu.RLock()
 		proxy = h.proxies[site.Name]
-		h.mu.RUnlock()
 	}
+	h.mu.Unlock()
 
 	proxy.ServeHTTP(w, r)
 }

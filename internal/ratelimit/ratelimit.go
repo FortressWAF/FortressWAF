@@ -198,6 +198,9 @@ func (rl *RateLimiter) checkSlidingWindow(key string, rate, burst int) (bool, *D
 }
 
 func (rl *RateLimiter) checkTokenBucket(key string, rate, burst int) (bool, *Decision) {
+	if rate <= 0 {
+		rate = 1
+	}
 	rl.mu.Lock()
 
 	bucket, exists := rl.tokenBuckets[key]
@@ -237,6 +240,9 @@ func (rl *RateLimiter) checkTokenBucket(key string, rate, burst int) (bool, *Dec
 }
 
 func (rl *RateLimiter) checkLeakyBucket(key string, rate, burst int) (bool, *Decision) {
+	if rate <= 0 {
+		rate = 1
+	}
 	rl.mu.Lock()
 
 	bucket, exists := rl.leakyBuckets[key]
