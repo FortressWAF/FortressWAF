@@ -189,12 +189,14 @@ func doReq(base, method, path, body, ua string) (*resp, error) {
 	url := base + path
 	if method == "POST" && body != "" {
 		req, err = http.NewRequest(method, url, bytes.NewBufferString(body))
-		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		if err == nil {
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		}
 	} else {
 		req, err = http.NewRequest(method, url, nil)
 	}
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%s %s: %w", method, url, err)
 	}
 	req.Header.Set("User-Agent", ua)
 

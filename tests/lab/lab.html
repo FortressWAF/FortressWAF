@@ -139,9 +139,9 @@ const attacks = [
   {group:"SQL Injection",name:"UNION SELECT",method:"GET",path:"/search?q=' UNION SELECT * FROM users",body:""},
   {group:"SQL Injection",name:"DROP TABLE",method:"GET",path:"/search?q=';DROP TABLE users",body:""},
   {group:"SQL Injection",name:"Comment (#)",method:"GET",path:"/search?q=admin'--",body:""},
-  {group:"XSS",name:"&lt;script&gt; in search",method:"GET",path:"/search?q=<script>alert(1)</script>",body:""},
-  {group:"XSS",name:"&lt;script&gt; in comment",method:"POST",path:"/comment",body:"author=XSS&message=<script>alert('x')</script>"},
-  {group:"XSS",name:"onerror payload",method:"GET",path:"/search?q=<img src=x onerror=alert(1)>",body:""},
+  {group:"XSS",name:"<script> in search",method:"GET",path:"/search?q=%3Cscript%3Ealert(1)%3C/script%3E",body:""},
+  {group:"XSS",name:"<script> in comment",method:"POST",path:"/comment",body:"author=XSS&message=%3Cscript%3Ealert('x')%3C/script%3E"},
+  {group:"XSS",name:"onerror payload",method:"GET",path:"/search?q=%3Cimg%20src=x%20onerror=alert(1)%3E",body:""},
   {group:"XSS",name:"prompt() attack",method:"POST",path:"/comment",body:"author=XSS&message=prompt('x')"},
   {group:"RCE/LFI",name:"; cat /etc/passwd",method:"POST",path:"/ping",body:"addr=8.8.8.8; cat /etc/passwd"},
   {group:"RCE/LFI",name:"; ls -la",method:"POST",path:"/ping",body:"addr=8.8.8.8; ls -la"},
@@ -155,6 +155,11 @@ const attacks = [
 
 const scannerUA = {"sqlmap UA":true,"nikto UA":true,"nmap UA":true,"curl (default)":true};
 
+function esc(s) {
+  const d=document.createElement('div');
+  d.textContent=s||'';
+  return d.innerHTML;
+}
 function codeClass(code) {
   if (code>=200&&code<300) return 'code-2xx';
   if (code>=300&&code<400) return 'code-3xx';
@@ -196,7 +201,7 @@ function render() {
       row.innerHTML=`
         <div class="attack-info">
           <span class="method">${a.method}</span>
-          <span class="name" title="${a.path}">${a.name}</span>
+          <span class="name" title="${esc(a.path)}">${a.name}</span>
           <button class="btn" style="padding:4px 10px;font-size:11px;background:#2a2a4a;color:#aaa;margin-left:auto" onclick="runOne(${idx})">▶</button>
         </div>
         <div class="results">
@@ -228,8 +233,9 @@ function render() {
 
 function updateResult(idx, side, data) {
   const panel=document.getElementById(`${side}-${idx}`);
+  if(!data) return;
   const code=data.statusCode||0;
-  const body=((data.body||data.body==='') ? data.body.substring(0,80) : '');
+  const body=data.body||'';
   const dur=data.duration||'';
   const header=statusLabel(code);
   panel.innerHTML=`
@@ -237,13 +243,14 @@ function updateResult(idx, side, data) {
       <span class="label">${side==='direct'?'Direct (no WAF)':'Via FortressWAF'}</span>
       <span style="display:flex;align-items:center;gap:8px">
         <span class="code ${codeClass(code)}">${code}</span>
-        <span class="detail" title="${body.replace(/"/g,'&quot;')}">${header}${dur?' · '+dur:''}</span>
+        <span class="detail" title="${esc(body.substring(0,80))}">${header}${dur?' · '+dur:''}</span>
       </span>
     </div>
   `;
 }
 
 function addFeed(entry) {
+  if(!entry) return;
   const feed=document.getElementById('feedItems');
   const empty=feed.querySelector('.empty-state');
   if(empty) empty.remove();
@@ -251,21 +258,19 @@ function addFeed(entry) {
   const div=document.createElement('div');
   div.className='feed-item';
   const time=new Date().toLocaleTimeString();
-  const directCode=entry.direct?entry.direct.statusCode:0;
-  const proxyCode=entry.proxy?entry.proxy.statusCode:0;
-  const dLabel=entry.directErr?'err':(directCode>=200&&directCode<400?'✅':'❌');
-  const pLabel=entry.proxyErr?'err':(proxyCode===403?'🚫':(proxyCode>=200&&proxyCode<400?'✅':'❌'));
+  const dc=(entry.direct&&entry.direct.statusCode)||0;
+  const pc=(entry.proxy&&entry.proxy.statusCode)||0;
+  const dLabel=entry.directErr?'err':(dc>=200&&dc<400?'✅':'❌');
+  const pLabel=entry.proxyErr?'err':(pc===403?'🚫':(pc>=200&&pc<400?'✅':'❌'));
   div.innerHTML=`
     <span class="time">${time}</span>
-    <span style="min-width:80px;font-weight:500">${entry.name}</span>
-    <span class="s-info">Direct: ${dLabel} ${directCode}</span>
+    <span style="min-width:80px;font-weight:500">${esc(entry.name)}</span>
+    <span class="s-info">Direct: ${dLabel} ${dc}</span>
     <span class="s-info">|</span>
-    <span class="${proxyCode===403?'s-waf':'s-pass'}">WAF: ${pLabel} ${proxyCode}</span>
+    <span class="${pc===403?'s-waf':'s-pass'}">WAF: ${pLabel} ${pc}</span>
     <span style="color:#555;margin-left:auto;font-size:11px">${entry.duration||''}</span>
   `;
   feed.prepend(div);
-
-  // Keep feed manageable
   while(feed.children.length>100) feed.removeChild(feed.lastChild);
 }
 
@@ -279,17 +284,15 @@ async function runOne(idx) {
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({idx})
     });
+    if(!res.ok) { console.error('API error', res.status); return; }
     const data=await res.json();
-
     if(data.direct) updateResult(idx,'direct',data.direct);
     if(data.proxy) updateResult(idx,'proxy',data.proxy);
-
     addFeed(data);
     updateStats();
   } catch(e) {
-    console.error(e);
+    console.error('runOne error:', e);
   }
-
   if(btn) btn.disabled=false;
 }
 
