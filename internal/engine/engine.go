@@ -11,6 +11,7 @@ import (
 	"time"
 )
 
+
 // Action represents the enforcement action to take for a request.
 type Action string
 
@@ -24,13 +25,16 @@ const (
 
 // Decision is the result of inspecting a request, containing the action, rule match details, and score.
 type Decision struct {
-	Action   Action  `json:"action"`
-	RuleID   string  `json:"rule_id"`
-	RuleName string  `json:"rule_name"`
-	Severity string  `json:"severity"`
-	Score    float64 `json:"score"`
-	Evidence string  `json:"evidence"`
-	Blocked  bool    `json:"blocked"`
+	Action          Action  `json:"action"`
+	RuleID          string  `json:"rule_id"`
+	RuleName        string  `json:"rule_name"`
+	Severity        string  `json:"severity"`
+	Score           float64 `json:"score"`
+	Evidence        string  `json:"evidence"`
+	Blocked         bool    `json:"blocked"`
+	ConfidenceScore float64 `json:"confidence_score,omitempty"`
+	Explainability  string  `json:"explainability,omitempty"`
+	InspectorName   string  `json:"inspector_name,omitempty"`
 }
 
 // RequestContext holds all request-derived data and inspection state for a single request.
@@ -63,6 +67,9 @@ type RequestContext struct {
 	RequestID     string
 	Context       context.Context
 	Host          string
+	TLSVersion    string
+	TLSCipherSuite string
+	JA3Hash       string
 }
 
 // ResponseContext holds response-level information for post-response inspection.
@@ -156,12 +163,30 @@ type Engine struct {
 	soap        Inspector
 	grpc        Inspector
 	respInspect Inspector
+	ja3         Inspector
+	behavioral  Inspector
+	wasm        Inspector
+	desync      Inspector
+	adaptive    Inspector
+	ebpf        Inspector
+	parser      Inspector
 	devMode     bool
+	shadowMode  bool
+	learningMode bool
+	perfMgmt    *PerformanceManager
+	learner     *LearningEngine
+	confScorer  *ConfidenceScorer
 }
 
 // EngineConfig configures which inspectors the Engine should use.
 type EngineConfig struct {
 	DevMode     bool
+	ShadowMode  bool
+	LearningMode bool
+	MaxRegexDuration   int64
+	MaxWASMDuration    int64
+	PerformanceIsolation bool
+
 	Bot         Inspector
 	DDoS        Inspector
 	SQLI        Inspector
@@ -180,11 +205,20 @@ type EngineConfig struct {
 	SOAP        Inspector
 	GRPC        Inspector
 	RespInspect Inspector
+	JA3         Inspector
+	Behavioral  Inspector
+	WASM        Inspector
+	Desync      Inspector
+	Adaptive    Inspector
+	EBPF        Inspector
+	Parser      Inspector
 }
 
 func New(cfg EngineConfig) *Engine {
 	e := &Engine{
-		devMode:     cfg.DevMode,
+		devMode:      cfg.DevMode,
+		shadowMode:   cfg.ShadowMode,
+		learningMode: cfg.LearningMode,
 		bot:         cfg.Bot,
 		ddos:        cfg.DDoS,
 		sqli:        cfg.SQLI,
@@ -203,9 +237,32 @@ func New(cfg EngineConfig) *Engine {
 		soap:        cfg.SOAP,
 		grpc:        cfg.GRPC,
 		respInspect: cfg.RespInspect,
+		ja3:         cfg.JA3,
+		behavioral:  cfg.Behavioral,
+		wasm:        cfg.WASM,
+		desync:      cfg.Desync,
+		adaptive:    cfg.Adaptive,
+		ebpf:        cfg.EBPF,
+		parser:      cfg.Parser,
 	}
 
+	if cfg.PerformanceIsolation {
+		e.perfMgmt = NewPerformanceManager(
+			cfg.MaxRegexDuration,
+			cfg.MaxWASMDuration,
+		)
+	}
+
+	e.confScorer = NewConfidenceScorer()
+	e.learner = NewLearningEngine()
+
 	e.inspectors = []Inspector{
+		cfg.Parser,
+		cfg.Desync,
+		cfg.JA3,
+		cfg.Behavioral,
+		cfg.Adaptive,
+		cfg.WASM,
 		cfg.CAPTCHA,
 		cfg.JWT,
 		cfg.OAuth,
@@ -224,6 +281,7 @@ func New(cfg EngineConfig) *Engine {
 		cfg.Credential,
 		cfg.WebSocket,
 		cfg.RespInspect,
+		cfg.EBPF,
 	}
 
 	return e
@@ -247,7 +305,15 @@ func (e *Engine) Inspect(ctx *RequestContext) (*Decision, error) {
 			continue
 		}
 
-		dec, err := inspector.Inspect(ctx)
+		var dec *Decision
+		var err error
+
+		if e.perfMgmt != nil {
+			dec, err = e.perfMgmt.Inspect(inspector, ctx)
+		} else {
+			dec, err = inspector.Inspect(ctx)
+		}
+
 		if err != nil {
 			slog.Error("inspector error",
 				"inspector", inspector.Name(),
@@ -260,6 +326,18 @@ func (e *Engine) Inspect(ctx *RequestContext) (*Decision, error) {
 		if dec == nil {
 			continue
 		}
+
+		dec.InspectorName = inspector.Name()
+
+		if e.confScorer != nil {
+			e.confScorer.ScoreDecision(dec)
+		}
+
+		if e.learningMode && e.learner != nil {
+			e.learner.Record(inspector.Name(), ctx, dec)
+		}
+
+		e.enrichExplainability(ctx, dec)
 
 		ctx.mu.Lock()
 		ctx.Decisions = append(ctx.Decisions, *dec)
@@ -282,11 +360,48 @@ func (e *Engine) Inspect(ctx *RequestContext) (*Decision, error) {
 		}
 
 		if dec.Action == ActionBlock {
+			if e.shadowMode {
+				dec.Action = ActionMonitor
+				dec.Blocked = false
+				slog.Info("shadow mode: would have blocked",
+					"rule_id", dec.RuleID,
+					"score", dec.Score,
+					"request_id", ctx.RequestID,
+				)
+				continue
+			}
 			return dec, nil
 		}
 	}
 
 	return e.finalDecision(ctx), nil
+}
+
+func (e *Engine) enrichExplainability(ctx *RequestContext, dec *Decision) {
+	if dec.Explainability != "" {
+		return
+	}
+	switch {
+	case dec.Action == ActionBlock && dec.Score >= 90:
+		dec.Explainability = "Critical threat detected with high confidence. Immediate blocking required."
+	case dec.Action == ActionBlock:
+		dec.Explainability = "Request matched blocking rule pattern with sufficient certainty."
+	case dec.Action == ActionChallenge:
+		dec.Explainability = "Request exhibits suspicious characteristics requiring additional verification."
+	case dec.Action == ActionMonitor:
+		dec.Explainability = "Request flagged for observation. No action taken."
+	case dec.Action == ActionRateLimit:
+		dec.Explainability = "Request rate exceeds configured threshold for this endpoint."
+	default:
+		dec.Explainability = "No actionable threat detected."
+	}
+	if e.learningMode && e.learner != nil && dec.Action == ActionAllow {
+		bsl := e.learner.Baseline(ctx.Path)
+		if bsl != nil {
+			dec.Explainability = fmt.Sprintf("Request matches learned baseline for %s (mean=%.2f, std=%.2f)",
+				ctx.Path, bsl.meanRate, bsl.stdDev)
+		}
+	}
 }
 
 func (e *Engine) finalDecision(ctx *RequestContext) *Decision {
@@ -373,6 +488,20 @@ func (e *Engine) UpdateInspector(name string, inspector Inspector) {
 		e.grpc = inspector
 	case "response_inspect":
 		e.respInspect = inspector
+	case "ja3":
+		e.ja3 = inspector
+	case "behavioral":
+		e.behavioral = inspector
+	case "wasm":
+		e.wasm = inspector
+	case "desync":
+		e.desync = inspector
+	case "adaptive":
+		e.adaptive = inspector
+	case "ebpf":
+		e.ebpf = inspector
+	case "parser_hardener":
+		e.parser = inspector
 	}
 
 	for i, ins := range e.inspectors {

@@ -1,0 +1,2 @@
+This is a secret note.
+Flag: FORTRESS{test_flag_123}

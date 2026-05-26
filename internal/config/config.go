@@ -313,6 +313,70 @@ type PrometheusConfig struct {
 	Port    int    `yaml:"port"`
 }
 
+type JA3Config struct {
+	Enabled bool `yaml:"enabled"`
+}
+
+type BehavioralConfig struct {
+	Enabled     bool    `yaml:"enabled"`
+	Reputation  bool    `yaml:"reputation"`
+	Velocity    bool    `yaml:"velocity"`
+	PathEntropy bool    `yaml:"path_entropy"`
+	Threshold   float64 `yaml:"threshold"`
+	WindowSec   int     `yaml:"window_sec"`
+	MaxRequests int     `yaml:"max_requests"`
+}
+
+type WASMConfig struct {
+	Enabled       bool     `yaml:"enabled"`
+	ModuleDir     string   `yaml:"module_dir"`
+	MaxMemoryPages int     `yaml:"max_memory_pages"`
+	Modules       []string `yaml:"modules"`
+}
+
+type DesyncConfig struct {
+	Enabled      bool  `yaml:"enabled"`
+	MaxBodySize  int64 `yaml:"max_body_size"`
+	StrictCL    bool   `yaml:"strict_cl"`
+	DetectOBSFold bool `yaml:"detect_obs_fold"`
+}
+
+type AdaptiveConfig struct {
+	Enabled       bool    `yaml:"enabled"`
+	JSScriptPath  string  `yaml:"js_script_path"`
+	TarpitDelayMs int     `yaml:"tarpit_delay_ms"`
+	CAPTCHAScore  float64 `yaml:"captcha_score"`
+	ChallengeTTL  int     `yaml:"challenge_ttl"`
+}
+
+type EBPFConfig struct {
+	Enabled   bool   `yaml:"enabled"`
+	Interface string `yaml:"interface"`
+	Port      int    `yaml:"port"`
+	SampleRate int   `yaml:"sample_rate"`
+}
+
+type ParserHardeningConfig struct {
+	Enabled bool `yaml:"enabled"`
+}
+
+type ShadowModeConfig struct {
+	Enabled bool `yaml:"enabled"`
+}
+
+type LearningModeConfig struct {
+	Enabled bool `yaml:"enabled"`
+}
+
+type PerformanceConfig struct {
+	Enabled         bool `yaml:"enabled"`
+	MaxRegexMs      int  `yaml:"max_regex_ms"`
+	MaxWASMMs       int  `yaml:"max_wasm_ms"`
+	MaxMemoryMB     int  `yaml:"max_memory_mb"`
+	MaxConcurrency  int  `yaml:"max_concurrency"`
+	CircuitThreshold int `yaml:"circuit_threshold"`
+}
+
 type Config struct {
 	mu       sync.RWMutex
 	filePath string
@@ -351,6 +415,16 @@ type Config struct {
 	SOAP         SOAPConfig            `yaml:"soap"`
 	GRPC         GRPCConfig            `yaml:"grpc"`
 	Prometheus   PrometheusConfig      `yaml:"prometheus"`
+	JA3          JA3Config             `yaml:"ja3"`
+	Behavioral   BehavioralConfig      `yaml:"behavioral"`
+	WASM         WASMConfig            `yaml:"wasm"`
+	Desync       DesyncConfig          `yaml:"desync"`
+	Adaptive     AdaptiveConfig        `yaml:"adaptive"`
+	EBPF               EBPFConfig               `yaml:"ebpf"`
+	ParserHardening    ParserHardeningConfig    `yaml:"parser_hardening"`
+	ShadowMode         ShadowModeConfig         `yaml:"shadow_mode"`
+	LearningMode       LearningModeConfig       `yaml:"learning_mode"`
+	Performance        PerformanceConfig        `yaml:"performance"`
 }
 
 type Manager struct {
@@ -459,6 +533,48 @@ func DefaultConfig() *Config {
 		Prometheus: PrometheusConfig{
 			Path: "/metrics",
 			Port: 9090,
+		},
+		JA3: JA3Config{
+			Enabled: true,
+		},
+		Behavioral: BehavioralConfig{
+			Enabled:     false,
+			Reputation:  true,
+			Velocity:    true,
+			PathEntropy: true,
+			Threshold:   50,
+			WindowSec:   60,
+			MaxRequests: 100,
+		},
+		WASM: WASMConfig{
+			ModuleDir:      "wasm_modules",
+			MaxMemoryPages: 10,
+		},
+		Desync: DesyncConfig{
+			MaxBodySize:   10485760,
+			StrictCL:      true,
+			DetectOBSFold: true,
+		},
+		Adaptive: AdaptiveConfig{
+			JSScriptPath:  "challenge.js",
+			TarpitDelayMs: 30000,
+			CAPTCHAScore:  0.5,
+			ChallengeTTL:  300,
+		},
+		EBPF: EBPFConfig{
+			Interface:  "eth0",
+			Port:       80,
+			SampleRate: 10,
+		},
+		ParserHardening: ParserHardeningConfig{
+			Enabled: true,
+		},
+		Performance: PerformanceConfig{
+			MaxRegexMs:      1000,
+			MaxWASMMs:       5000,
+			MaxMemoryMB:     512,
+			MaxConcurrency:  0,
+			CircuitThreshold: 5,
 		},
 	}
 }

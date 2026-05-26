@@ -45,7 +45,7 @@ func init() {
 	flag.Usage = func() {
 		ver := Version
 		if ver == "dev" {
-			ver = "v1.3.0"
+			ver = "v1.4.0"
 		}
 		c := cyan; g := green; y := yellow; b := bold; n := reset; d := dim
 
@@ -891,7 +891,12 @@ setTimeout(function(){
 
 func buildEngineConfig(cfg *config.Config, dev bool) engine.EngineConfig {
 	eCfg := engine.EngineConfig{
-		DevMode: dev,
+		DevMode:             dev,
+		ShadowMode:          cfg.ShadowMode.Enabled,
+		LearningMode:        cfg.LearningMode.Enabled,
+		PerformanceIsolation: cfg.Performance.Enabled,
+		MaxRegexDuration:    int64(cfg.Performance.MaxRegexMs),
+		MaxWASMDuration:     int64(cfg.Performance.MaxWASMMs),
 	}
 
 	if cfg.SQLI.Enabled {
@@ -952,6 +957,36 @@ func buildEngineConfig(cfg *config.Config, dev bool) engine.EngineConfig {
 	}
 	if cfg.RespInspect.Enabled {
 		eCfg.RespInspect = engine.NewResponseInspector()
+	}
+
+	if cfg.JA3.Enabled {
+		eCfg.JA3 = engine.NewJA3Inspector(dev)
+	}
+	if cfg.Behavioral.Enabled {
+		eCfg.Behavioral = engine.NewBehavioralEngine(dev,
+			cfg.Behavioral.Reputation,
+			cfg.Behavioral.Velocity,
+			cfg.Behavioral.PathEntropy,
+			cfg.Behavioral.Threshold,
+			cfg.Behavioral.WindowSec,
+			cfg.Behavioral.MaxRequests,
+		)
+	}
+	if cfg.WASM.Enabled {
+		eCfg.WASM = engine.NewWASMInspector(dev, cfg.WASM.ModuleDir, cfg.WASM.MaxMemoryPages, cfg.WASM.Modules)
+	}
+	if cfg.Desync.Enabled {
+		eCfg.Desync = engine.NewDesyncDetector(dev, cfg.Desync.MaxBodySize, cfg.Desync.StrictCL, cfg.Desync.DetectOBSFold)
+	}
+	if cfg.Adaptive.Enabled {
+		eCfg.Adaptive = engine.NewAdaptiveChallenge(dev, cfg.Adaptive.JSScriptPath, cfg.Adaptive.TarpitDelayMs, cfg.Adaptive.CAPTCHAScore, cfg.Adaptive.ChallengeTTL)
+	}
+	if cfg.EBPF.Enabled {
+		eCfg.EBPF = engine.NewEBPFTelemetry(dev, cfg.EBPF.Interface, cfg.EBPF.Port, cfg.EBPF.SampleRate)
+	}
+
+	if cfg.ParserHardening.Enabled {
+		eCfg.Parser = engine.NewParserHardener(dev)
 	}
 
 	return eCfg
