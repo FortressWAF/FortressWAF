@@ -10,17 +10,31 @@ COMMIT ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 BUILD_DATE ?= $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
 LDFLAGS := -ldflags="-s -w -X 'github.com/FortressWAF/FortressWAF/internal/version.Version=$(VERSION)' -X 'github.com/FortressWAF/FortressWAF/internal/version.Commit=$(COMMIT)' -X 'github.com/FortressWAF/FortressWAF/internal/version.BuildDate=$(BUILD_DATE)'"
 
-.PHONY: help dev build build-all test lint lint-go lint-py lint-ts clean docker-build docker-up docker-down docker-logs release install uninstall coverage bench profile format generate docs
+.PHONY: help dev build build-all test lint lint-go lint-py lint-ts clean docker-build docker-up docker-down docker-logs docker-dev docker-dev-down docker-monitoring docker-status docker-clean docker-shell-proxy docker-shell-ml docker-shell-db release install uninstall coverage bench profile format generate docs
 
 help: ## Display this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
 		awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
-dev: ## Start development environment
+dev: ## Start development environment (Docker)
+	@echo "Starting FortressWAF development stack..."
 	docker compose -f deploy/docker-compose.dev.yml up -d --build
+	@echo ""
+	@echo "═══════════════════════════════════════════════════════"
+	@echo "  FortressWAF Dev Stack Running"
+	@echo "═══════════════════════════════════════════════════════"
+	@echo "  Proxy:     http://localhost:8080"
+	@echo "  Admin API: http://localhost:8443"
+	@echo "  Dashboard: http://localhost:3000"
+	@echo "  ML Engine: http://localhost:8000"
+	@echo "  Redis:     localhost:6379"
+	@echo "  Postgres:  localhost:5432"
+	@echo "  NATS:      localhost:4222 (monitor: 8222)"
+	@echo "═══════════════════════════════════════════════════════"
 
 dev-down: ## Stop development environment
 	docker compose -f deploy/docker-compose.dev.yml down -v
+	@echo "Development stack stopped."
 
 dev-logs: ## View development logs
 	docker compose -f deploy/docker-compose.dev.yml logs -f
@@ -108,27 +122,97 @@ clean: ## Clean build artifacts
 	@echo "Clean complete"
 
 docker-build: ## Build all Docker images
-	docker build -t fortresswaf/proxy:latest .
-	docker build -t fortresswaf/ml-engine:latest ml-engine/
-	docker build -t fortresswaf/dashboard:latest dashboard/
-	@echo "Docker images built"
+	@echo "Building FortressWAF Docker images..."
+	docker build \
+		--build-arg VERSION=$(VERSION) \
+		--build-arg COMMIT=$(COMMIT) \
+		--build-arg BUILD_DATE=$(BUILD_DATE) \
+		-t fortresswaf/proxy:$(VERSION) \
+		-t fortresswaf/proxy:latest .
+	docker build -t fortresswaf/ml-engine:$(VERSION) -t fortresswaf/ml-engine:latest ml-engine/
+	docker build -t fortresswaf/dashboard:$(VERSION) -t fortresswaf/dashboard:latest dashboard/
+	@echo "Docker images built: proxy, ml-engine, dashboard ($(VERSION))"
 
 docker-build-multi: ## Build multi-arch Docker images
-	docker buildx build --platform linux/amd64,linux/arm64 -t fortresswaf/proxy:latest .
-	docker buildx build --platform linux/amd64,linux/arm64 -t fortresswaf/ml-engine:latest ml-engine/
-	docker buildx build --platform linux/amd64,linux/arm64 -t fortresswaf/dashboard:latest dashboard/
+	docker buildx build --platform linux/amd64,linux/arm64 \
+		--build-arg VERSION=$(VERSION) \
+		--build-arg COMMIT=$(COMMIT) \
+		--build-arg BUILD_DATE=$(BUILD_DATE) \
+		-t fortresswaf/proxy:$(VERSION) .
+	docker buildx build --platform linux/amd64,linux/arm64 -t fortresswaf/ml-engine:$(VERSION) ml-engine/
+	docker buildx build --platform linux/amd64,linux/arm64 -t fortresswaf/dashboard:$(VERSION) dashboard/
 
 docker-up: ## Start full production stack
-	docker compose -f deploy/docker-compose.prod.yml up -d
+	@test -f .env || (echo "ERROR: .env not found. Run: cp .env.example .env" && exit 1)
+	@echo "Starting FortressWAF production stack..."
+	docker compose -f deploy/docker-compose.yml up -d
+	@echo ""
+	@echo "═══════════════════════════════════════════════════════"
+	@echo "  FortressWAF Production Stack Running"
+	@echo "═══════════════════════════════════════════════════════"
+	@echo "  Proxy:      http://localhost:$${PROXY_HTTP_PORT:-80}"
+	@echo "  Admin API:  https://localhost:$${PROXY_ADMIN_PORT:-8443}"
+	@echo "  Dashboard:  http://localhost:$${DASHBOARD_PORT:-3000}"
+	@echo "  ML Engine:  http://localhost:$${ML_ENGINE_PORT:-8000}"
+	@echo "═══════════════════════════════════════════════════════"
 
 docker-down: ## Stop full production stack
-	docker compose -f deploy/docker-compose.prod.yml down -v
+	docker compose -f deploy/docker-compose.yml down
+	@echo "Production stack stopped. Data volumes preserved."
 
-docker-logs: ## View production logs
-	docker compose -f deploy/docker-compose.prod.yml logs -f
+docker-down-clean: ## Stop production stack and remove volumes
+	docker compose -f deploy/docker-compose.yml down -v
+	@echo "Production stack stopped. All data removed."
 
-docker-staging: ## Start staging environment
-	docker compose -f deploy/docker-compose.staging.yml up -d
+docker-logs: ## View production logs (all services)
+	docker compose -f deploy/docker-compose.yml logs -f
+
+docker-logs-proxy: ## View proxy logs only
+	docker compose -f deploy/docker-compose.yml logs -f fortress-proxy
+
+docker-logs-ml: ## View ML engine logs only
+	docker compose -f deploy/docker-compose.yml logs -f ml-engine
+
+docker-dev: ## Start development environment with hot-reload
+	@echo "Starting FortressWAF dev stack with hot-reload..."
+	docker compose -f deploy/docker-compose.dev.yml up -d --build
+	@echo "Dev stack running. All services have hot-reload enabled."
+
+docker-dev-down: ## Stop development environment
+	docker compose -f deploy/docker-compose.dev.yml down -v
+
+docker-monitoring: ## Start monitoring stack (Prometheus + Grafana + Loki)
+	@echo "Starting monitoring stack..."
+	docker compose -f deploy/docker-compose.yml \
+		-f deploy/monitoring/docker-compose.monitoring.yml up -d
+	@echo ""
+	@echo "  Prometheus:   http://localhost:$${PROMETHEUS_PORT:-9090}"
+	@echo "  Grafana:      http://localhost:$${GRAFANA_PORT:-3001}"
+	@echo "  Alertmanager: http://localhost:$${ALERTMANAGER_PORT:-9093}"
+
+docker-status: ## Show status of all containers
+	@echo "FortressWAF Container Status:"
+	@echo "═══════════════════════════════════════════════════════"
+	@docker compose -f deploy/docker-compose.yml ps 2>/dev/null || echo "Production stack: not running"
+	@echo ""
+	@docker compose -f deploy/docker-compose.dev.yml ps 2>/dev/null || echo "Dev stack: not running"
+
+docker-clean: ## Remove all FortressWAF Docker resources
+	@echo "Removing all FortressWAF Docker resources..."
+	docker compose -f deploy/docker-compose.yml down -v --rmi local 2>/dev/null || true
+	docker compose -f deploy/docker-compose.dev.yml down -v --rmi local 2>/dev/null || true
+	docker compose -f deploy/monitoring/docker-compose.monitoring.yml down -v --rmi local 2>/dev/null || true
+	docker image rm fortresswaf/proxy:latest fortresswaf/ml-engine:latest fortresswaf/dashboard:latest 2>/dev/null || true
+	@echo "Cleanup complete."
+
+docker-shell-proxy: ## Open shell in proxy container
+	docker exec -it fortress-proxy /bin/sh
+
+docker-shell-ml: ## Open shell in ML engine container
+	docker exec -it fortress-ml-engine /bin/bash
+
+docker-shell-db: ## Open psql in PostgreSQL container
+	docker exec -it fortress-postgres psql -U $${DB_USER:-fortress} -d $${DB_NAME:-fortresswaf}
 
 format: ## Format code
 	$(GO) fmt ./...

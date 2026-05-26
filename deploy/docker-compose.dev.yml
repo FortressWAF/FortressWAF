@@ -1,0 +1,201 @@
+# ============================================================================
+# FortressWAF - Development Docker Compose
+# ============================================================================
+# Usage:
+#   docker compose -f deploy/docker-compose.dev.yml up -d --build
+#
+# Features:
+#   - Hot-reload for Go proxy (via air)
+#   - Hot-reload for Next.js dashboard
+#   - Hot-reload for Python ML engine
+#   - All ports exposed for local debugging
+#   - No resource limits
+# ============================================================================
+
+services:
+  # --------------------------------------------------------------------------
+  # FortressWAF Proxy (dev with hot-reload)
+  # --------------------------------------------------------------------------
+  fortress-proxy:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.dev
+    container_name: fortress-proxy-dev
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8443:8443"
+      - "8080:8080"
+      - "2345:2345"  # Delve debugger
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    environment:
+      - CONFIG_PATH=/etc/fortresswaf/config.yaml
+      - REDIS_URL=redis://:fortress@redis:6379
+      - DATABASE_URL=postgres://fortress:fortress@postgres:5432/fortresswaf?sslmode=disable
+      - ML_ENGINE_URL=http://ml-engine:8000
+      - NATS_URL=nats://nats:4222
+      - ADMIN_JWT_SECRET=dev-secret-do-not-use-in-prod
+      - FORTRESS_DEV_MODE=true
+      - LOG_LEVEL=debug
+    volumes:
+      - ..:/app
+      - go-mod-cache:/go/pkg/mod
+      - go-build-cache:/root/.cache/go-build
+      - ./config.yaml:/etc/fortresswaf/config.yaml:ro
+      - ../rules:/etc/fortresswaf/rules:ro
+    networks:
+      - fortress-dev
+
+  # --------------------------------------------------------------------------
+  # ML Engine (dev with hot-reload)
+  # --------------------------------------------------------------------------
+  ml-engine:
+    build:
+      context: ../ml-engine
+      dockerfile: Dockerfile
+    container_name: fortress-ml-dev
+    ports:
+      - "8000:8000"
+      - "50051:50051"
+    environment:
+      - REDIS_URL=redis://:fortress@redis:6379
+      - MODEL_DIR=/app/models
+      - LOG_LEVEL=debug
+    volumes:
+      - ../ml-engine:/app
+      - ml-models-dev:/app/models/persisted
+    command: >
+      uvicorn api.app:app
+        --host 0.0.0.0
+        --port 8000
+        --reload
+        --reload-dir /app
+        --log-level debug
+    networks:
+      - fortress-dev
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+
+  # --------------------------------------------------------------------------
+  # Dashboard (dev with hot-reload)
+  # --------------------------------------------------------------------------
+  dashboard:
+    image: node:22-alpine
+    container_name: fortress-dashboard-dev
+    working_dir: /app
+    ports:
+      - "3000:3000"
+    depends_on:
+      - fortress-proxy
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8443/api/v1
+      - NODE_ENV=development
+      - WATCHPACK_POLLING=true
+    volumes:
+      - ../dashboard:/app
+      - dashboard-node-modules:/app/node_modules
+    command: sh -c "npm install && npm run dev"
+    networks:
+      - fortress-dev
+
+  # --------------------------------------------------------------------------
+  # PostgreSQL
+  # --------------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: fortress-postgres-dev
+    environment:
+      POSTGRES_DB: fortresswaf
+      POSTGRES_USER: fortress
+      POSTGRES_PASSWORD: fortress
+    volumes:
+      - postgres-data-dev:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "5432:5432"
+    networks:
+      - fortress-dev
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fortress -d fortresswaf"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # --------------------------------------------------------------------------
+  # Redis
+  # --------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: fortress-redis-dev
+    command: redis-server --appendonly yes --requirepass fortress
+    volumes:
+      - redis-data-dev:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - fortress-dev
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "fortress", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # --------------------------------------------------------------------------
+  # NATS
+  # --------------------------------------------------------------------------
+  nats:
+    image: nats:2.10-alpine
+    container_name: fortress-nats-dev
+    command: -js -m 8222
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    networks:
+      - fortress-dev
+
+  # --------------------------------------------------------------------------
+  # OpenSearch (optional for dev)
+  # --------------------------------------------------------------------------
+  opensearch:
+    image: opensearchproject/opensearch:2.12.0
+    container_name: fortress-opensearch-dev
+    environment:
+      - discovery.type=single-node
+      - plugins.security.disabled=true
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=FortressWAF123!
+      - "OPENSEARCH_JAVA_OPTS=-Xms256m -Xmx256m"
+    volumes:
+      - opensearch-data-dev:/usr/share/opensearch/data
+    ports:
+      - "9200:9200"
+    networks:
+      - fortress-dev
+    profiles:
+      - full  # Only start with: docker compose --profile full up
+
+# ============================================================================
+# Networks
+# ============================================================================
+networks:
+  fortress-dev:
+    driver: bridge
+
+# ============================================================================
+# Volumes
+# ============================================================================
+volumes:
+  postgres-data-dev:
+  redis-data-dev:
+  opensearch-data-dev:
+  ml-models-dev:
+  go-mod-cache:
+  go-build-cache:
+  dashboard-node-modules:

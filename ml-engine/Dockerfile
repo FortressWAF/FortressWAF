@@ -1,4 +1,9 @@
-FROM python:3.14-slim
+# ============================================================================
+# FortressWAF ML Engine - Multi-stage Docker Build (Python/FastAPI)
+# ============================================================================
+
+# Stage 1: Build dependencies (with build tools)
+FROM python:3.14-slim AS builder
 
 WORKDIR /app
 
@@ -8,11 +13,29 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 
-COPY . .
+# Stage 2: Runtime
+FROM python:3.14-slim AS runtime
 
-RUN mkdir -p /app/models/persisted
+LABEL maintainer="FortressWAF Team"
+LABEL org.opencontainers.image.title="FortressWAF ML Engine"
+LABEL org.opencontainers.image.description="ML-powered threat detection engine for FortressWAF"
+
+WORKDIR /app
+
+# Copy installed Python packages from builder
+COPY --from=builder /install /usr/local
+
+# Create non-root user
+RUN groupadd --gid 1001 mlengine && \
+    useradd --uid 1001 --gid mlengine --shell /bin/bash --create-home mlengine && \
+    mkdir -p /app/models/persisted && \
+    chown -R mlengine:mlengine /app
+
+COPY --chown=mlengine:mlengine . .
+
+USER mlengine
 
 EXPOSE 8000
 EXPOSE 50051

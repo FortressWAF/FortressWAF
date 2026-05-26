@@ -1,0 +1,20 @@
+# ============================================================================
+# FortressWAF Proxy - Development Dockerfile (with hot-reload via air)
+# ============================================================================
+FROM golang:1.26-alpine
+
+WORKDIR /app
+
+# Install development tools
+RUN apk add --no-cache git ca-certificates tzdata curl && \
+    go install github.com/air-verse/air@latest
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+
+# Air configuration for hot-reload
+EXPOSE 80 443 8443 8080 2345
+
+CMD ["air", "-c", ".air.toml"]

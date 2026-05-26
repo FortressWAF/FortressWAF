@@ -1,113 +1,353 @@
-version: '3.8'
+# ============================================================================
+# FortressWAF - Production Docker Compose
+# ============================================================================
+# Usage:
+#   cp .env.example .env   # Configure environment variables
+#   docker compose -f deploy/docker-compose.yml up -d
+#
+# Services:
+#   - fortress-proxy  : WAF reverse proxy (Go)
+#   - ml-engine       : ML threat detection (Python/FastAPI)
+#   - dashboard       : Admin dashboard (Next.js)
+#   - postgres        : Primary database
+#   - redis           : Cache, rate limiting, session store
+#   - nats            : Event streaming / pub-sub
+#   - opensearch      : Log aggregation & search
+# ============================================================================
+
 services:
+  # --------------------------------------------------------------------------
+  # FortressWAF Core Proxy
+  # --------------------------------------------------------------------------
   fortress-proxy:
     build:
       context: ..
       dockerfile: Dockerfile
+      args:
+        VERSION: ${VERSION:-dev}
+        COMMIT: ${COMMIT:-unknown}
+        BUILD_DATE: ${BUILD_DATE:-unknown}
+    image: fortresswaf/proxy:${VERSION:-latest}
+    container_name: fortress-proxy
+    restart: unless-stopped
     ports:
-      - "80:80"
-      - "443:443"
-      - "8443:8443" # admin API
+      - "${PROXY_HTTP_PORT:-80}:80"
+      - "${PROXY_HTTPS_PORT:-443}:443"
+      - "${PROXY_ADMIN_PORT:-8443}:8443"
     depends_on:
-      redis: condition: service_healthy
-      postgres: condition: service_healthy
-      ml-engine: condition: service_started
-      nats: condition: service_started
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      ml-engine:
+        condition: service_healthy
+      nats:
+        condition: service_started
     environment:
       - CONFIG_PATH=/etc/fortresswaf/config.yaml
-      - REDIS_URL=redis://redis:6379
-      - DATABASE_URL=postgres://fortress:fortress@postgres:5432/fortresswaf
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-fortress}@redis:6379
+      - DATABASE_URL=postgres://${DB_USER:-fortress}:${DB_PASSWORD:-fortress}@postgres:5432/${DB_NAME:-fortresswaf}?sslmode=disable
       - ML_ENGINE_URL=http://ml-engine:8000
       - NATS_URL=nats://nats:4222
+      - ADMIN_JWT_SECRET=${ADMIN_JWT_SECRET:-change-me-in-production}
+      - TZ=${TZ:-UTC}
     volumes:
-      - ./config.yaml:/etc/fortresswaf/config.yaml
+      - ./config.yaml:/etc/fortresswaf/config.yaml:ro
+      - ../rules:/etc/fortresswaf/rules:ro
       - fortress-data:/var/lib/fortresswaf
-      - ./rules:/etc/fortresswaf/rules
+      - fortress-logs:/var/log/fortresswaf
+    networks:
+      - fortress-net
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]
+      test: ["CMD", "/fortress-proxy", "--health-check"]
       interval: 10s
       timeout: 5s
+      start_period: 10s
       retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 128M
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "5"
 
+  # --------------------------------------------------------------------------
+  # ML Threat Detection Engine
+  # --------------------------------------------------------------------------
   ml-engine:
     build:
       context: ../ml-engine
       dockerfile: Dockerfile
+    image: fortresswaf/ml-engine:${VERSION:-latest}
+    container_name: fortress-ml-engine
+    restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "${ML_ENGINE_PORT:-8000}:8000"
     environment:
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-fortress}@redis:6379
       - MODEL_DIR=/app/models
+      - LOG_LEVEL=${ML_LOG_LEVEL:-info}
     volumes:
       - ml-models:/app/models
+    networks:
+      - fortress-net
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8000/health"]
-      interval: 10s
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 15s
       timeout: 5s
+      start_period: 30s
       retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    logging:
+      driver: json-file
+      options:
+        max-size: "30m"
+        max-file: "3"
 
+  # --------------------------------------------------------------------------
+  # Admin Dashboard (Next.js)
+  # --------------------------------------------------------------------------
   dashboard:
     build:
       context: ../dashboard
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8443/api/v1}
+    image: fortresswaf/dashboard:${VERSION:-latest}
+    container_name: fortress-dashboard
+    restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "${DASHBOARD_PORT:-3000}:3000"
     depends_on:
-      - fortress-proxy
+      fortress-proxy:
+        condition: service_healthy
     environment:
       - API_URL=http://fortress-proxy:8443/api/v1
       - NODE_ENV=production
+    networks:
+      - fortress-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/"]
+      interval: 15s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "3"
 
+  # --------------------------------------------------------------------------
+  # PostgreSQL Database
+  # --------------------------------------------------------------------------
   postgres:
     image: postgres:16-alpine
+    container_name: fortress-postgres
+    restart: unless-stopped
     environment:
-      POSTGRES_DB: fortresswaf
-      POSTGRES_USER: fortress
+      POSTGRES_DB: ${DB_NAME:-fortresswaf}
+      POSTGRES_USER: ${DB_USER:-fortress}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-fortress}
+      PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
       - postgres-data:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    networks:
+      - fortress-net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U fortress"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-fortress} -d ${DB_NAME:-fortresswaf}"]
       interval: 5s
       timeout: 5s
       retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "3"
 
+  # --------------------------------------------------------------------------
+  # Redis (Cache / Rate Limiting / Sessions)
+  # --------------------------------------------------------------------------
   redis:
     image: redis:7-alpine
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-fortress}
+    container_name: fortress-redis
+    restart: unless-stopped
+    command: >
+      redis-server
+        --appendonly yes
+        --requirepass ${REDIS_PASSWORD:-fortress}
+        --maxmemory 256mb
+        --maxmemory-policy allkeys-lru
+        --tcp-backlog 511
+        --save 60 1000
+        --save 300 100
     volumes:
       - redis-data:/data
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    networks:
+      - fortress-net
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-fortress}", "ping"]
       interval: 5s
       timeout: 3s
       retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 384M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
+  # --------------------------------------------------------------------------
+  # NATS (Event Streaming)
+  # --------------------------------------------------------------------------
   nats:
     image: nats:2.10-alpine
-    command: -js
+    container_name: fortress-nats
+    restart: unless-stopped
+    command: >
+      -js
+      -m 8222
+      --store_dir /data
+    volumes:
+      - nats-data:/data
     ports:
-      - "4222:4222"
+      - "${NATS_PORT:-4222}:4222"
+      - "${NATS_MONITOR_PORT:-8222}:8222"
+    networks:
+      - fortress-net
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8222/healthz || exit 1"]
       interval: 5s
       timeout: 3s
       retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
+  # --------------------------------------------------------------------------
+  # OpenSearch (Log Aggregation & Search)
+  # --------------------------------------------------------------------------
   opensearch:
     image: opensearchproject/opensearch:2.12.0
+    container_name: fortress-opensearch
+    restart: unless-stopped
     environment:
       - discovery.type=single-node
       - plugins.security.disabled=true
       - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_PASSWORD:-FortressWAF123!}
-    ports:
-      - "9200:9200"
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+      - bootstrap.memory_lock=true
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
     volumes:
       - opensearch-data:/usr/share/opensearch/data
+    ports:
+      - "${OPENSEARCH_PORT:-9200}:9200"
+      - "${OPENSEARCH_PERF_PORT:-9600}:9600"
+    networks:
+      - fortress-net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -vq '\"status\":\"red\"'"]
+      interval: 15s
+      timeout: 10s
+      start_period: 60s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1536M
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "3"
 
+# ============================================================================
+# Networks
+# ============================================================================
+networks:
+  fortress-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+
+# ============================================================================
+# Volumes
+# ============================================================================
 volumes:
   postgres-data:
+    driver: local
   redis-data:
+    driver: local
   opensearch-data:
+    driver: local
   fortress-data:
+    driver: local
+  fortress-logs:
+    driver: local
   ml-models:
+    driver: local
+  nats-data:
+    driver: local

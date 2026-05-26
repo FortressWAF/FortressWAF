@@ -1,0 +1,75 @@
+# Version control
+.git
+.github
+.gitignore
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Documentation
+docs/
+*.md
+!README.md
+LICENSE
+
+# Test & coverage
+tests/
+coverage/
+*.test
+*.out
+*.prof
+benchmark.txt
+.pytest_cache/
+
+# Build artifacts
+bin/
+dist/
+release/
+artifacts/
+
+# Node / Dashboard (separate build context)
+dashboard/node_modules/
+dashboard/.next/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+.mypy_cache/
+.ruff_cache/
+
+# Docker
+deploy/
+docker-compose*.yml
+Dockerfile
+
+# Terraform / Helm / Ansible
+deploy/terraform/
+deploy/helm/
+deploy/ansible/
+
+# Secrets
+.env
+.env.*
+*.key
+*.pem
+*.cert
+*.crt
+secrets/
+credentials/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Tools
+tools/
+scripts/
+.pre-commit-config.yaml
+.golangci.yml
+
+# ML engine (separate build context)
+ml-engine/

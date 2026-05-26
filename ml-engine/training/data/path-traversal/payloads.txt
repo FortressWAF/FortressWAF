@@ -61,7 +61,7 @@ expect://id
 ../var/log/syslog
 ../var/log/apache2/access.log
 ../var/www/html/config.php
-../var/www/html/.env
+../var/www/html/.env-example
 ../proc/self/environ
 ../proc/self/cmdline
 ../proc/self/fd/0

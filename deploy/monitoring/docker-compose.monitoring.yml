@@ -1,9 +1,21 @@
-version: '3.8'
+# ============================================================================
+# FortressWAF - Monitoring Stack (Prometheus + Grafana + Loki)
+# ============================================================================
+# Usage:
+#   docker compose -f deploy/docker-compose.yml \
+#                  -f deploy/monitoring/docker-compose.monitoring.yml up -d
+#
+# This extends the main stack with observability services.
+# ============================================================================
 
 services:
+  # --------------------------------------------------------------------------
+  # Prometheus (Metrics Collection)
+  # --------------------------------------------------------------------------
   prometheus:
     image: prom/prometheus:v2.49.1
-    container_name: prometheus
+    container_name: fortress-prometheus
+    restart: unless-stopped
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
@@ -11,90 +23,157 @@ services:
       - '--web.console.libraries=/etc/prometheus/console_libraries'
       - '--web.console.templates=/etc/prometheus/consoles'
       - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/prometheus-rules:/etc/prometheus/rules:ro
       - prometheus-data:/prometheus
     ports:
-      - "9090:9090"
-    restart: unless-stopped
+      - "${PROMETHEUS_PORT:-9090}:9090"
     networks:
-      - monitoring
+      - fortress-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9090/-/healthy"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
 
+  # --------------------------------------------------------------------------
+  # Alertmanager
+  # --------------------------------------------------------------------------
   alertmanager:
     image: prom/alertmanager:v0.27.0
-    container_name: alertmanager
+    container_name: fortress-alertmanager
+    restart: unless-stopped
     command:
       - '--config.file=/etc/alertmanager/alertmanager.yml'
       - '--storage.path=/alertmanager'
+      - '--web.listen-address=:9093'
     volumes:
-      - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - ./monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
       - alertmanager-data:/alertmanager
     ports:
-      - "9093:9093"
-    restart: unless-stopped
+      - "${ALERTMANAGER_PORT:-9093}:9093"
     networks:
-      - monitoring
+      - fortress-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9093/-/healthy"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
+  # --------------------------------------------------------------------------
+  # Grafana (Dashboards & Visualization)
+  # --------------------------------------------------------------------------
   grafana:
     image: grafana/grafana:10.2.3
-    container_name: grafana
+    container_name: fortress-grafana
+    restart: unless-stopped
     depends_on:
-      - prometheus
+      prometheus:
+        condition: service_healthy
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
       - GF_USERS_ALLOW_SIGN_UP=false
       - GF_FEATURE_TOGGLES_ENABLE=publicDashboards
       - GF_ALERTING_ENABLED=true
+      - GF_SERVER_ROOT_URL=http://localhost:${GRAFANA_PORT:-3001}
     volumes:
-      - ./grafana/provisioning:/etc/grafana/provisioning:ro
-      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
       - grafana-data:/var/lib/grafana
     ports:
-      - "3001:3000"
-    restart: unless-stopped
+      - "${GRAFANA_PORT:-3001}:3000"
     networks:
-      - monitoring
+      - fortress-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
+  # --------------------------------------------------------------------------
+  # Loki (Log Aggregation)
+  # --------------------------------------------------------------------------
   loki:
     image: grafana/loki:2.9.4
-    container_name: loki
+    container_name: fortress-loki
+    restart: unless-stopped
     command: -config.file=/etc/loki/local-config.yaml
     volumes:
       - loki-data:/loki
     ports:
-      - "3100:3100"
-    restart: unless-stopped
+      - "${LOKI_PORT:-3100}:3100"
     networks:
-      - monitoring
+      - fortress-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3100/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
+  # --------------------------------------------------------------------------
+  # Promtail (Log Shipping to Loki)
+  # --------------------------------------------------------------------------
   promtail:
     image: grafana/promtail:2.9.4
-    container_name: promtail
+    container_name: fortress-promtail
+    restart: unless-stopped
+    depends_on:
+      - loki
     volumes:
       - /var/log:/var/log:ro
-      - ./promtail.yml:/etc/promtail/config.yml:ro
+      - ./monitoring/promtail.yml:/etc/promtail/config.yml:ro
+      - fortress-logs:/var/log/fortresswaf:ro
     command: -config.file=/etc/promtail/config.yml
-    restart: unless-stopped
     networks:
-      - monitoring
+      - fortress-net
 
-  alertmanager-ui:
-    image: prom/alertmanager:v0.27.0
-    container_name: alertmanager-ui
-    command: --alertmanager.url=http://alertmanager:9093
+  # --------------------------------------------------------------------------
+  # Node Exporter (Host Metrics)
+  # --------------------------------------------------------------------------
+  node-exporter:
+    image: prom/node-exporter:v1.7.0
+    container_name: fortress-node-exporter
+    restart: unless-stopped
+    command:
+      - '--path.rootfs=/host'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    volumes:
+      - /:/host:ro,rslave
     ports:
-      - "9094:9094"
-    restart: unless-stopped
+      - "${NODE_EXPORTER_PORT:-9100}:9100"
     networks:
-      - monitoring
+      - fortress-net
+    pid: host
 
-networks:
-  monitoring:
-    driver: bridge
-
+# ============================================================================
+# Volumes
+# ============================================================================
 volumes:
   prometheus-data:
+    driver: local
   alertmanager-data:
+    driver: local
   grafana-data:
+    driver: local
   loki-data:
+    driver: local
+  # These are defined in the main compose, referenced here
+  fortress-logs:
+    external: true
+    name: deploy_fortress-logs
+
+# ============================================================================
+# Networks (extend main network)
+# ============================================================================
+networks:
+  fortress-net:
+    external: true
+    name: deploy_fortress-net
