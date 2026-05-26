@@ -9,9 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "next": "16.2.6",
-    "react": "19.2.6",
-    "react-dom": "19.2.6",
+    "@hookform/resolvers": "^3.3.4",
     "@radix-ui/react-dialog": "^1.0.5",
     "@radix-ui/react-dropdown-menu": "^2.0.6",
     "@radix-ui/react-select": "^2.0.0",
@@ -20,16 +18,19 @@
     "@radix-ui/react-tabs": "^1.0.4",
     "@radix-ui/react-toast": "^1.1.5",
     "@radix-ui/react-tooltip": "^1.0.7",
-    "lucide-react": "^1.16.0",
-    "recharts": "^2.12.0",
-    "tailwind-merge": "^3.6.0",
+    "@tailwindcss/postcss": "^4.3.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
-    "react-hook-form": "^7.50.0",
-    "zod": "^3.22.0",
-    "@hookform/resolvers": "^3.3.4",
     "date-fns": "^4.3.0",
-    "ws": "^8.16.0"
+    "lucide-react": "^1.16.0",
+    "next": "16.2.6",
+    "react": "19.2.6",
+    "react-dom": "19.2.6",
+    "react-hook-form": "^7.50.0",
+    "recharts": "^2.12.0",
+    "tailwind-merge": "^3.6.0",
+    "ws": "^8.16.0",
+    "zod": "^3.22.0"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",

@@ -56,10 +56,11 @@ const config: Config = {
           950: '#042f2e',
         },
       },
-      borderRadius: {
-        lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)',
+      boxShadow: {
+        brutal: '4px 4px 0px 0px hsl(var(--foreground))',
+        'brutal-sm': '2px 2px 0px 0px hsl(var(--foreground))',
+        'brutal-lg': '6px 6px 0px 0px hsl(var(--foreground))',
+        'brutal-primary': '4px 4px 0px 0px hsl(var(--primary))',
       },
       keyframes: {
         'accordion-down': {

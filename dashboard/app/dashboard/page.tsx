@@ -10,7 +10,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ChartContainer, Sparkline, AreaChart, PieChart } from '@/components/ui/chart'
 import { WorldMapHeatmap } from '@/components/ui/map'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useWebSocket } from '@/components/ui/websocket-provider'
 import { formatNumber, formatDate, cn } from '@/lib/utils'
 import type { DashboardStats, TrafficPoint, TopEndpoint, AttackerIP, Alert } from '@/types'
 
@@ -86,14 +85,14 @@ function StatCard({
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
-        <div className="p-2 rounded-lg bg-fortress-600/10 text-fortress-400">{icon}</div>
+        <CardTitle className="text-xs">{title}</CardTitle>
+        <div className="p-2 border-2 border-foreground bg-primary/10 text-primary">{icon}</div>
       </CardHeader>
       <CardContent>
         <div className="flex items-baseline justify-between">
           <div>
-            <div className="text-2xl font-bold">{value}</div>
-            <div className={cn('flex items-center gap-1 text-xs mt-1', isUp ? 'text-green-500' : 'text-red-500')}>
+            <div className="text-3xl font-black">{value}</div>
+            <div className={cn('flex items-center gap-1 text-xs font-bold mt-1', isUp ? 'text-green-600' : 'text-red-600')}>
               {isUp ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
               <span>{Math.abs(trend)}% vs last hour</span>
             </div>
@@ -109,21 +108,21 @@ function StatCard({
 
 function AlertItem({ alert }: { alert: Alert }) {
   const severityColors: Record<string, string> = {
-    critical: 'border-red-500 bg-red-500/5',
-    high: 'border-orange-500 bg-orange-500/5',
-    medium: 'border-yellow-500 bg-yellow-500/5',
-    low: 'border-blue-500 bg-blue-500/5',
-    info: 'border-green-500 bg-green-500/5',
+    critical: 'border-foreground bg-red-100 dark:bg-red-950',
+    high: 'border-foreground bg-orange-100 dark:bg-orange-950',
+    medium: 'border-foreground bg-yellow-100 dark:bg-yellow-950',
+    low: 'border-foreground bg-blue-100 dark:bg-blue-950',
+    info: 'border-foreground bg-green-100 dark:bg-green-950',
   }
   return (
-    <div className={cn('flex items-start gap-3 p-3 rounded-lg border', severityColors[alert.severity], !alert.read && 'ring-1 ring-foreground/5')}>
-      <div className={cn('w-2 h-2 rounded-full mt-1.5 shrink-0', alert.read ? 'bg-muted-foreground' : 'bg-fortress-400')} />
+    <div className={cn('flex items-start gap-3 p-3 border-2 border-foreground', severityColors[alert.severity])}>
+      <div className={cn('w-3 h-3 mt-1.5 shrink-0 border-2 border-foreground', alert.read ? 'bg-muted-foreground' : 'bg-primary')} />
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium truncate">{alert.message}</p>
+        <p className="text-sm font-bold truncate">{alert.message}</p>
         <div className="flex items-center gap-2 mt-1">
-          <Badge variant="outline" className="text-[10px] px-1.5 py-0">{alert.severity}</Badge>
-          {alert.siteName && <span className="text-xs text-muted-foreground">{alert.siteName}</span>}
-          <span className="text-xs text-muted-foreground">{formatDate(alert.timestamp)}</span>
+          <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-bold">{alert.severity}</Badge>
+          {alert.siteName && <span className="text-xs text-muted-foreground font-medium">{alert.siteName}</span>}
+          <span className="text-xs text-muted-foreground font-medium">{formatDate(alert.timestamp)}</span>
         </div>
       </div>
     </div>
@@ -164,7 +163,7 @@ export default function DashboardPage() {
       <div className="space-y-6">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <Card key={i}><CardContent className="p-6"><Skeleton className="h-24" /></CardContent></Card>
+            <Card key={i}><CardContent className="p-5"><Skeleton className="h-24" /></CardContent></Card>
           ))}
         </div>
       </div>
@@ -173,10 +172,10 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between border-b-2 border-foreground pb-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Overview</h1>
-          <p className="text-muted-foreground">Real-time WAF security dashboard</p>
+          <h1 className="text-2xl font-black uppercase tracking-tight">Overview</h1>
+          <p className="text-muted-foreground font-medium">Real-time WAF security dashboard</p>
         </div>
         <Button variant="outline" onClick={() => setLoading(true)} className="hidden sm:flex">
           <Activity className="w-4 h-4 mr-2" /> Refresh
@@ -214,9 +213,9 @@ export default function DashboardPage() {
         <div className="lg:col-span-4">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Top Attacked Endpoints</CardTitle>
+              <CardTitle className="text-xs">Top Attacked Endpoints</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-0">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -234,8 +233,8 @@ export default function DashboardPage() {
                       <TableCell>
                         <Badge variant="secondary" className="font-mono text-[10px]">{ep.method}</Badge>
                       </TableCell>
-                      <TableCell className="text-right">{formatNumber(ep.requests)}</TableCell>
-                      <TableCell className="text-right text-red-500">{formatNumber(ep.attacks)}</TableCell>
+                      <TableCell className="text-right font-bold">{formatNumber(ep.requests)}</TableCell>
+                      <TableCell className="text-right text-destructive font-bold">{formatNumber(ep.attacks)}</TableCell>
                       <TableCell className="text-right">
                         <Badge variant={ep.attacks / ep.requests > 0.1 ? 'destructive' : 'secondary'}>
                           {((ep.attacks / ep.requests) * 100).toFixed(1)}%
@@ -251,9 +250,9 @@ export default function DashboardPage() {
         <div className="lg:col-span-3 space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Recent Alerts</CardTitle>
+              <CardTitle className="text-xs">Recent Alerts</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2 max-h-[360px] overflow-y-auto scrollbar-thin">
+            <CardContent className="p-3 space-y-2 max-h-[360px] overflow-y-auto scrollbar-thin">
               {stats.alerts.map((alert: Alert) => (
                 <AlertItem key={alert.id} alert={alert} />
               ))}
@@ -269,9 +268,9 @@ export default function DashboardPage() {
         <div className="lg:col-span-3">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Top Attacker IPs</CardTitle>
+              <CardTitle className="text-xs">Top Attacker IPs</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-0">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -283,9 +282,9 @@ export default function DashboardPage() {
                 <TableBody>
                   {stats.attackers.map((a: AttackerIP) => (
                     <TableRow key={a.ip}>
-                      <TableCell className="font-mono text-xs">{a.ip}</TableCell>
-                      <TableCell>{a.country}</TableCell>
-                      <TableCell className="text-right text-red-500">{formatNumber(a.attacks)}</TableCell>
+                      <TableCell className="font-mono text-xs font-bold">{a.ip}</TableCell>
+                      <TableCell className="font-bold">{a.country}</TableCell>
+                      <TableCell className="text-right text-destructive font-bold">{formatNumber(a.attacks)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/components/ui/toast'
 import { api, setToken } from '@/lib/api'
-import { cn } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
 
 const loginSchema = z.object({
@@ -63,35 +62,33 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-fortress-950 to-slate-900">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-fortress-500/10 via-transparent to-transparent" />
-      <div className="relative w-full max-w-md px-8">
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="w-full max-w-md px-8">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-fortress-600 shadow-lg shadow-fortress-500/25 mb-4">
-            <Shield className="w-8 h-8 text-white" />
+          <div className="inline-flex items-center justify-center w-16 h-16 border-2 border-foreground bg-primary shadow-brutal mb-4">
+            <Shield className="w-8 h-8 text-primary-foreground" />
           </div>
-          <h1 className="text-2xl font-bold text-white">FortressWAF</h1>
-          <p className="text-slate-400 mt-1">Enterprise Web Application Firewall</p>
+          <h1 className="text-3xl font-black text-foreground uppercase tracking-tight">FortressWAF</h1>
+          <p className="text-muted-foreground font-bold mt-1">Enterprise Web Application Firewall</p>
         </div>
 
-        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl">
+        <div className="border-2 border-foreground bg-card p-8 shadow-brutal-lg">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-1.5">
+              <label htmlFor="email" className="block text-sm font-bold text-foreground mb-1.5">
                 Email address
               </label>
               <Input
                 id="email"
                 type="email"
                 placeholder="admin@company.com"
-                className="bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:border-fortress-500"
                 {...register('email')}
               />
-              {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email.message}</p>}
+              {errors.email && <p className="text-destructive text-xs font-bold mt-1">{errors.email.message}</p>}
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-1.5">
+              <label htmlFor="password" className="block text-sm font-bold text-foreground mb-1.5">
                 Password
               </label>
               <div className="relative">
@@ -99,22 +96,22 @@ export default function LoginPage() {
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••"
-                  className="bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:border-fortress-500 pr-10"
+                  className="pr-10"
                   {...register('password')}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-300"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
-              {errors.password && <p className="text-red-400 text-xs mt-1">{errors.password.message}</p>}
+              {errors.password && <p className="text-destructive text-xs font-bold mt-1">{errors.password.message}</p>}
             </div>
 
             <div className="flex items-center justify-end">
-              <button type="button" className="text-sm text-fortress-400 hover:text-fortress-300 transition-colors">
+              <button type="button" className="text-sm font-bold text-primary hover:text-primary/80 underline underline-offset-4">
                 Forgot password?
               </button>
             </div>
@@ -122,7 +119,7 @@ export default function LoginPage() {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-fortress-600 hover:bg-fortress-500 text-white shadow-lg shadow-fortress-500/25"
+              className="w-full"
             >
               {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
               Sign in
@@ -131,10 +128,10 @@ export default function LoginPage() {
 
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-white/10" />
+              <div className="w-full border-t-2 border-foreground" />
             </div>
             <div className="relative flex justify-center text-xs">
-              <span className="px-2 bg-transparent text-slate-500">or continue with</span>
+              <span className="px-2 bg-card text-muted-foreground font-bold">or continue with</span>
             </div>
           </div>
 
@@ -143,14 +140,14 @@ export default function LoginPage() {
             variant="outline"
             disabled={ssoLoading}
             onClick={handleSSO}
-            className="w-full border-white/10 text-slate-300 hover:bg-white/5 hover:text-white"
+            className="w-full"
           >
             {ssoLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
             Sign in with SSO
           </Button>
         </div>
 
-        <p className="text-center text-xs text-slate-600 mt-6">
+        <p className="text-center text-xs font-bold text-muted-foreground mt-6">
           &copy; {new Date().getFullYear()} FortressWAF. All rights reserved.
         </p>
       </div>

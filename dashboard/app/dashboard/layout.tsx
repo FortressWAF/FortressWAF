@@ -39,11 +39,11 @@ const navItems: NavItem[] = [
 ]
 
 function Avatar({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <div className={cn('relative flex h-8 w-8 shrink-0 overflow-hidden rounded-full', className)}>{children}</div>
+  return <div className={cn('relative flex h-8 w-8 shrink-0 overflow-hidden border-2 border-foreground', className)}>{children}</div>
 }
 
 function AvatarFallback({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <div className={cn('flex h-full w-full items-center justify-center rounded-full bg-muted text-xs font-medium', className)}>{children}</div>
+  return <div className={cn('flex h-full w-full items-center justify-center bg-secondary text-secondary-foreground text-xs font-black', className)}>{children}</div>
 }
 
 function DashboardShell({ children }: { children: React.ReactNode }) {
@@ -52,7 +52,6 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
   const { theme, setTheme } = useTheme()
   const { toast } = useToast()
   const [sidebarOpen, setSidebarOpen] = React.useState(false)
-  const [searchOpen, setSearchOpen] = React.useState(false)
 
   const userRole = 'admin'
   const filteredNav = navItems.filter((item) => !item.roles || item.roles.includes(userRole))
@@ -67,15 +66,15 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-background">
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 w-64 bg-card border-r border-border transform transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static lg:z-auto',
+          'fixed inset-y-0 left-0 z-50 w-64 bg-card border-r-2 border-foreground transform transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static lg:z-auto',
           sidebarOpen ? 'translate-x-0' : '-translate-x-full',
         )}
       >
-        <div className="flex items-center gap-3 px-6 h-16 border-b border-border">
-          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-fortress-600">
-            <Shield className="w-4 h-4 text-white" />
+        <div className="flex items-center gap-3 px-6 h-16 border-b-2 border-foreground">
+          <div className="flex items-center justify-center w-8 h-8 border-2 border-foreground bg-primary shadow-brutal-sm">
+            <Shield className="w-4 h-4 text-primary-foreground" />
           </div>
-          <span className="font-semibold text-foreground">FortressWAF</span>
+          <span className="font-black text-foreground uppercase tracking-tight">FortressWAF</span>
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
@@ -87,10 +86,10 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
                 href={item.href}
                 onClick={() => setSidebarOpen(false)}
                 className={cn(
-                  'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+                  'flex items-center gap-3 px-3 py-2.5 text-sm font-bold uppercase tracking-wide border-2 border-transparent transition-all',
                   isActive
-                    ? 'bg-fortress-600/10 text-fortress-400'
-                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+                    ? 'bg-primary text-primary-foreground border-foreground shadow-brutal-sm'
+                    : 'text-muted-foreground hover:bg-muted hover:border-foreground',
                 )}
               >
                 {item.icon}
@@ -100,13 +99,13 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
           })}
         </nav>
 
-        <div className="px-3 py-4 border-t border-border">
+        <div className="px-3 py-4 border-t-2 border-foreground">
           <div className="flex items-center gap-3 px-3 py-2">
             <Avatar>
               <AvatarFallback>AD</AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground truncate">Admin User</p>
+              <p className="text-sm font-bold text-foreground truncate">Admin User</p>
               <p className="text-xs text-muted-foreground truncate">admin@fortresswaf.io</p>
             </div>
           </div>
@@ -114,11 +113,11 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       {sidebarOpen && (
-        <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={() => setSidebarOpen(false)} />
+        <div className="fixed inset-0 z-40 bg-foreground/50 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
       <div className="lg:pl-64">
-        <header className="sticky top-0 z-30 flex items-center gap-4 px-4 h-16 bg-background/95 backdrop-blur border-b border-border">
+        <header className="sticky top-0 z-30 flex items-center gap-4 px-4 h-16 bg-card border-b-2 border-foreground">
           <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setSidebarOpen(true)}>
             {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </Button>
@@ -127,8 +126,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Search sites, rules, logs..."
-              className="pl-9 bg-muted/50 border-0"
-              onFocus={() => setSearchOpen(true)}
+              className="pl-9 bg-background"
             />
           </div>
 
@@ -140,7 +138,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
               onClick={() => toast({ title: 'Notifications', description: 'No new notifications' })}
             >
               <Bell className="w-5 h-5" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+              <span className="absolute top-1 right-1 w-2 h-2 bg-destructive border-2 border-foreground" />
             </Button>
 
             <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
@@ -166,7 +164,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
                   <Key className="w-4 h-4 mr-2" /> API Keys
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="text-red-500">
+                <DropdownMenuItem onClick={handleLogout} className="text-destructive">
                   <LogOut className="w-4 h-4 mr-2" /> Sign out
                 </DropdownMenuItem>
               </DropdownMenuContent>

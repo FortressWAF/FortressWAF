@@ -32,9 +32,9 @@ interface ChartContainerProps {
 
 function ChartContainer({ title, subtitle, className, children }: ChartContainerProps) {
   return (
-    <div className={cn('rounded-lg border bg-card p-6 shadow-sm', className)}>
-      {title && <h3 className="text-sm font-medium text-foreground">{title}</h3>}
-      {subtitle && <p className="text-xs text-muted-foreground mt-1 mb-4">{subtitle}</p>}
+    <div className={cn('border-2 border-foreground bg-card p-5 shadow-brutal', className)}>
+      {title && <h3 className="text-sm font-black uppercase tracking-tight text-foreground">{title}</h3>}
+      {subtitle && <p className="text-xs text-muted-foreground font-medium mt-1 mb-4">{subtitle}</p>}
       {children}
     </div>
   )
@@ -61,7 +61,7 @@ function Sparkline({ data, color = '#06b6d4', height = 40 }: SparklineProps) {
           dataKey="value"
           stroke={color}
           fill={`url(#gradient-${color})`}
-          strokeWidth={1.5}
+          strokeWidth={2}
           dot={false}
         />
       </AreaChart>
@@ -82,15 +82,16 @@ function AreaChartComponent({ data, xKey, series, height = 300, showGrid = true,
   return (
     <ResponsiveContainer width="100%" height={height}>
       <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-        {showGrid && <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />}
-        <XAxis dataKey={xKey} tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" tickLine={false} />
-        <YAxis tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" tickLine={false} />
+        {showGrid && <CartesianGrid strokeDasharray="4 4" stroke="hsl(var(--muted-foreground) / 0.3)" strokeWidth={1.5} />}
+        <XAxis dataKey={xKey} tick={{ fontSize: 11, fontWeight: 'bold' }} stroke="hsl(var(--foreground))" tickLine={false} />
+        <YAxis tick={{ fontSize: 11, fontWeight: 'bold' }} stroke="hsl(var(--foreground))" tickLine={false} />
         <Tooltip
           contentStyle={{
-            backgroundColor: 'hsl(var(--popover))',
-            border: '1px solid hsl(var(--border))',
-            borderRadius: '8px',
-            color: 'hsl(var(--popover-foreground))',
+            backgroundColor: 'hsl(var(--card))',
+            border: '2px solid hsl(var(--foreground))',
+            borderRadius: 0,
+            color: 'hsl(var(--card-foreground))',
+            boxShadow: '4px 4px 0px 0px hsl(var(--foreground))',
           }}
         />
         {showLegend && <Legend />}
@@ -103,6 +104,7 @@ function AreaChartComponent({ data, xKey, series, height = 300, showGrid = true,
             stroke={s.color || '#06b6d4'}
             fill={s.color || '#06b6d4'}
             fillOpacity={0.1}
+            strokeWidth={2}
             stackId="1"
           />
         ))}
@@ -115,20 +117,21 @@ function BarChartComponent({ data, xKey, series, height = 300, showGrid = true }
   return (
     <ResponsiveContainer width="100%" height={height}>
       <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-        {showGrid && <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />}
-        <XAxis dataKey={xKey} tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" tickLine={false} />
-        <YAxis tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" tickLine={false} />
+        {showGrid && <CartesianGrid strokeDasharray="4 4" stroke="hsl(var(--muted-foreground) / 0.3)" strokeWidth={1.5} />}
+        <XAxis dataKey={xKey} tick={{ fontSize: 11, fontWeight: 'bold' }} stroke="hsl(var(--foreground))" tickLine={false} />
+        <YAxis tick={{ fontSize: 11, fontWeight: 'bold' }} stroke="hsl(var(--foreground))" tickLine={false} />
         <Tooltip
           contentStyle={{
-            backgroundColor: 'hsl(var(--popover))',
-            border: '1px solid hsl(var(--border))',
-            borderRadius: '8px',
-            color: 'hsl(var(--popover-foreground))',
+            backgroundColor: 'hsl(var(--card))',
+            border: '2px solid hsl(var(--foreground))',
+            borderRadius: 0,
+            color: 'hsl(var(--card-foreground))',
+            boxShadow: '4px 4px 0px 0px hsl(var(--foreground))',
           }}
         />
         <Legend />
         {series.map((s, i) => (
-          <Bar key={s.key} dataKey={s.key} name={s.name || s.key} fill={s.color || COLORS[i % COLORS.length]} radius={[4, 4, 0, 0]} />
+          <Bar key={s.key} dataKey={s.key} name={s.name || s.key} fill={s.color || COLORS[i % COLORS.length]} />
         ))}
       </BarChart>
     </ResponsiveContainer>
@@ -154,6 +157,8 @@ function PieChartComponent({ data, height = 300, innerRadius = 60, outerRadius =
           outerRadius={outerRadius}
           paddingAngle={2}
           dataKey="value"
+          stroke="hsl(var(--foreground))"
+          strokeWidth={2}
           label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
         >
           {data.map((entry, index) => (
@@ -162,10 +167,11 @@ function PieChartComponent({ data, height = 300, innerRadius = 60, outerRadius =
         </Pie>
         <Tooltip
           contentStyle={{
-            backgroundColor: 'hsl(var(--popover))',
-            border: '1px solid hsl(var(--border))',
-            borderRadius: '8px',
-            color: 'hsl(var(--popover-foreground))',
+            backgroundColor: 'hsl(var(--card))',
+            border: '2px solid hsl(var(--foreground))',
+            borderRadius: 0,
+            color: 'hsl(var(--card-foreground))',
+            boxShadow: '4px 4px 0px 0px hsl(var(--foreground))',
           }}
         />
       </PieChart>
