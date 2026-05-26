@@ -12,7 +12,7 @@ COPY . .
 
 RUN CGO_ENABLED=0 GOOS=linux go build \
     -ldflags="-s -w -extldflags '-static'" \
-    -o /app/fortress-proxy \
+    -o /app/fortresswaf \
     ./cmd/proxy
 
 RUN CGO_ENABLED=0 GOOS=linux go build \
@@ -25,7 +25,7 @@ FROM gcr.io/distroless/static-debian12:latest
 
 USER 65534:65534
 
-COPY --from=builder /app/fortress-proxy /fortress-proxy
+COPY --from=builder /app/fortresswaf /fortresswaf
 COPY --from=builder /app/fortressctl /fortressctl
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
@@ -39,4 +39,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
 
 EXPOSE 80 443 8443 8080
 
-ENTRYPOINT ["/fortress-proxy"]
+ENTRYPOINT ["/fortresswaf"]

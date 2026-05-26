@@ -27,17 +27,17 @@ dev-logs: ## View development logs
 
 build: ## Build all Go binaries
 	@mkdir -p $(BIN_DIR)
-	$(GO) build $(LDFLAGS) -o $(BIN_DIR)/fortress-proxy ./cmd/proxy
+	$(GO) build $(LDFLAGS) -o $(BIN_DIR)/fortresswaf ./cmd/proxy
 	$(GO) build $(LDFLAGS) -o $(BIN_DIR)/fortressctl ./cmd/ctl
 	@echo "Binaries built in $(BIN_DIR)/"
 
 build-all: build ## Build for all platforms
 	@mkdir -p $(BIN_DIR)
-	GOOS=linux GOARCH=amd64 $(GO) build $(LDFLAGS) -o $(BIN_DIR)/fortress-proxy-linux-amd64 ./cmd/proxy
-	GOOS=linux GOARCH=arm64 $(GO) build $(LDFLAGS) -o $(BIN_DIR)/fortress-proxy-linux-arm64 ./cmd/proxy
-	GOOS=darwin GOARCH=amd64 $(GO) build $(LDFLAGS) -o $(BIN_DIR)/fortress-proxy-darwin-amd64 ./cmd/proxy
-	GOOS=darwin GOARCH=arm64 $(GO) build $(LDFLAGS) -o $(BIN_DIR)/fortress-proxy-darwin-arm64 ./cmd/proxy
-	GOOS=windows GOARCH=amd64 $(GO) build $(LDFLAGS) -o $(BIN_DIR)/fortress-proxy-windows-amd64.exe ./cmd/proxy
+	GOOS=linux GOARCH=amd64 $(GO) build $(LDFLAGS) -o $(BIN_DIR)/fortresswaf-linux-amd64 ./cmd/proxy
+	GOOS=linux GOARCH=arm64 $(GO) build $(LDFLAGS) -o $(BIN_DIR)/fortresswaf-linux-arm64 ./cmd/proxy
+	GOOS=darwin GOARCH=amd64 $(GO) build $(LDFLAGS) -o $(BIN_DIR)/fortresswaf-darwin-amd64 ./cmd/proxy
+	GOOS=darwin GOARCH=arm64 $(GO) build $(LDFLAGS) -o $(BIN_DIR)/fortresswaf-darwin-arm64 ./cmd/proxy
+	GOOS=windows GOARCH=amd64 $(GO) build $(LDFLAGS) -o $(BIN_DIR)/fortresswaf-windows-amd64.exe ./cmd/proxy
 	@echo "Cross-compiled binaries in $(BIN_DIR)/"
 
 test: ## Run all tests
@@ -145,15 +145,33 @@ docs-build: ## Build documentation site
 	cd docs && mkdocs build --strict
 
 install: build ## Install binaries to system
-	sudo cp $(BIN_DIR)/fortress-proxy /usr/local/bin/
+	sudo cp $(BIN_DIR)/fortresswaf /usr/local/bin/
 	sudo cp $(BIN_DIR)/fortressctl /usr/local/bin/
 	sudo mkdir -p /etc/fortresswaf/rules
 	@echo "Installed to /usr/local/bin/"
 
 uninstall: ## Remove installed binaries
-	sudo rm -f /usr/local/bin/fortress-proxy
+	sudo rm -f /usr/local/bin/fortresswaf
 	sudo rm -f /usr/local/bin/fortressctl
 	@echo "Uninstalled"
+
+dist: build-all ## Create release archives
+	@mkdir -p dist
+	@for os in linux darwin windows; do \
+		for arch in amd64 arm64; do \
+			ext=""; \
+			[ "$$os" = "windows" ] && ext=".exe"; \
+			bin="fortresswaf-$$os-$$arch$$ext"; \
+			dir="fortresswaf-$$VERSION-$$os-$$arch"; \
+			mkdir -p dist/$$dir; \
+			cp $(BIN_DIR)/$$bin dist/$$dir/fortresswaf$$ext; \
+			cp deploy/config.yaml dist/$$dir/; \
+			cp LICENSE dist/$$dir/; \
+			cd dist && tar czf $$dir.tar.gz $$dir && rm -rf $$dir && cd ..; \
+		done; \
+	done
+	cp $(BIN_DIR)/fortresswaf-linux-amd64 dist/fortresswaf-linux-amd64
+	@echo "Release archives in dist/"
 
 release: lint test docker-build ## Prepare release
 	@echo "Release checks passed for v$(VERSION)"

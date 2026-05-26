@@ -259,6 +259,6 @@ helm upgrade fortresswaf fortresswaf/fortresswaf
 ```bash
 wget https://github.com/fortresswaf/fortresswaf/releases/download/v1.0.0/fortresswaf-linux-amd64.tar.gz
 tar -xzf fortresswaf-linux-amd64.tar.gz
-sudo mv fortress-proxy fortressctl /usr/local/bin/
+sudo mv fortresswaf fortressctl /usr/local/bin/
 sudo systemctl restart fortresswaf
 ```

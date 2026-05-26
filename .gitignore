@@ -1,5 +1,8 @@
 # Binaries and build output
+fortresswaf
+fortressctl
 bin/
+dist/
 *.out
 *.exe
 *.test

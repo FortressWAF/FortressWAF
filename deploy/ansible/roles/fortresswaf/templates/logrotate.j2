@@ -12,6 +12,6 @@
     minsize 10M
     create 0640 {{ fortresswaf_user }} {{ fortresswaf_group }}
     postrotate
-        /usr/bin/docker exec $(docker ps --filter name=fortress-proxy -q) kill -USR1 1 2>/dev/null || true
+        /usr/bin/docker exec $(docker ps --filter name=fortresswaf -q) kill -USR1 1 2>/dev/null || true
     endscript
 }

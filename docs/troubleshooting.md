@@ -5,7 +5,7 @@
 ### Proxy Won't Start
 
 **Symptoms:**
-- `fortress-proxy` exits immediately
+- `fortresswaf` exits immediately
 - `docker logs` shows error on startup
 - Systemd service shows `failed` status
 
@@ -24,7 +24,7 @@ ls -la /etc/fortresswaf/config.yaml
 # Should be readable by fortresswaf user (0640)
 
 # 4. Check log output
-fortress-proxy --config /etc/fortresswaf/config.yaml --log-level debug
+fortresswaf --config /etc/fortresswaf/config.yaml --log-level debug
 ```
 
 **Solutions:**
@@ -206,7 +206,7 @@ websocket:
 # Check memory usage
 docker stats fortresswaf-proxy
 # or
-ps aux | grep fortress-proxy | awk '{print $6/1024 " MB"}'
+ps aux | grep fortresswaf | awk '{print $6/1024 " MB"}'
 
 # Check Go runtime metrics
 curl http://localhost:8080/debug/vars | jq '.memstats.HeapInuse'
@@ -235,7 +235,7 @@ curl -X POST -H "Authorization: Bearer $TOKEN" \
   http://localhost:8080/api/v1/config/reload
 
 # Or via environment
-FORTRESS_LOG_LEVEL=debug fortress-proxy --config /etc/fortresswaf/config.yaml
+FORTRESS_LOG_LEVEL=debug fortresswaf --config /etc/fortresswaf/config.yaml
 ```
 
 ### Request Tracing

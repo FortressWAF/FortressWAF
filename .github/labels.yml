@@ -13,7 +13,7 @@
   color: c2e0c6
   description: Configuration
 
-- name: fortress-proxy
+- name: fortresswaf
   color: c2e0c6
   description: Proxy server
 

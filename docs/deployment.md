@@ -688,7 +688,7 @@ setsebool -P httpd_can_network_connect on
 
 # AppArmor (Ubuntu/Debian)
 apt install apparmor-utils
-aa-enforce /etc/apparmor.d/usr.local.bin.fortress-proxy
+aa-enforce /etc/apparmor.d/usr.local.bin.fortresswaf
 
 # Kernel hardening
 sysctl -w net.ipv4.tcp_syncookies=1

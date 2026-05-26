@@ -1,13 +1,14 @@
 version: '3.8'
 services:
-  fortress-proxy:
+  fortresswaf:
+    image: fortresswaf/fortresswaf:latest
     build:
       context: ..
       dockerfile: Dockerfile
     ports:
       - "80:80"
       - "443:443"
-      - "8443:8443" # admin API
+      - "8443:8443"
     depends_on:
       redis: condition: service_healthy
       postgres: condition: service_healthy
@@ -53,9 +54,9 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - fortress-proxy
+      - fortresswaf
     environment:
-      - API_URL=http://fortress-proxy:8443/api/v1
+      - API_URL=http://fortresswaf:8443/api/v1
       - NODE_ENV=production
 
   postgres:

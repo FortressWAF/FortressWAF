@@ -49,10 +49,10 @@ jobs:
           cache: true
 
       - name: Build proxy
-        run: go build -o /tmp/fortress-proxy ./cmd/proxy
+        run: go build -o /tmp/fortresswaf ./cmd/proxy
 
-      - name: Verify binary
-        run: file /tmp/fortress-proxy && ls -lh /tmp/fortress-proxy
+    - name: Verify binary
+      run: file /tmp/fortresswaf && ls -lh /tmp/fortresswaf
 
   test-go:
     name: Test Go

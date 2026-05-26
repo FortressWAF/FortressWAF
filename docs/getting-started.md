@@ -50,13 +50,13 @@ wget https://github.com/fortresswaf/fortresswaf/releases/latest/download/fortres
 
 # Extract and install
 tar -xzf fortresswaf-linux-amd64.tar.gz
-sudo mv fortress-proxy fortressctl /usr/local/bin/
+sudo mv fortresswaf fortressctl /usr/local/bin/
 
 # Create config directory
 sudo mkdir -p /etc/fortresswaf/{rules,certs}
 
 # Run
-fortress-proxy --config /etc/fortresswaf/config.yaml
+fortresswaf --config /etc/fortresswaf/config.yaml
 ```
 
 ## First Site Setup
@@ -90,7 +90,7 @@ logging:
 ### 2. Start the proxy
 
 ```bash
-fortress-proxy --config /etc/fortresswaf/config.yaml
+fortresswaf --config /etc/fortresswaf/config.yaml
 ```
 
 ### 3. Apply default OWASP rules
