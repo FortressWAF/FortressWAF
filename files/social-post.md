@@ -1,64 +1,116 @@
 # LinkedIn Post
 
-Salin teks di bawah ini ke LinkedIn:
-
 ---
 
-🔥 **FORTRESSWAF v1.4.0 IS OUT — AND WE NEED YOU**
+Been heads-down building FortressWAF for a while. Just cut v1.4.0 and honestly, I think it's starting to look like something serious.
 
-Building an enterprise-grade WAF is hard. Doing it in the open? Even harder. But we're all-in.
+Here's what we added:
 
-We just shipped 6 new detection modules:
+- **JA3 fingerprinting** — parses real TLS ClientHello, computes MD5 hash, matches known bad actors. No more relying on IP alone.
+- **Behavioral engine** — per-IP velocity tracking, path entropy analysis, reputation scoring with auto-escalation to block.
+- **WASM runtime** — hot-loadable .wasm modules via wazero. Write your own inspector in any language that compiles to WASM, drop it in a folder, it just works.
+- **HTTP desync detection** — CL.TE, TE.CL, obs-fold, chunked encoding abuse. Request smuggling is still alive and well.
+- **Adaptive challenge system** — graduated response from JS challenge → CAPTCHA → tarpit → block, based on cumulative threat score.
+- **eBPF telemetry** — Linux packet-level observability. Still early but the foundation is there.
 
-🛡️ **JA3 TLS Fingerprinting** — raw ClientHello analysis, known-bad hash matching
-🛡️ **Behavioral Engine** — IP reputation, request velocity, path entropy
-🛡️ **WASM Inspector** — wazero-based hot-loadable WASM modules
-🛡️ **HTTP Desync / Request Smuggling** — CL.TE, TE.CL, obs-fold, chunk abuse
-🛡️ **Adaptive Challenge** — JS → CAPTCHA → tarpit → block graduated response
-🛡️ **eBPF Telemetry** — Linux packet-level telemetry
+Also shipped parser hardening (unicode bypass, normalization attacks, HTTP downgrade detection), a false positive reduction engine with shadow mode + learning mode, and performance isolation with circuit breakers per inspector.
 
-Plus parser hardening, false positive reduction engine (shadow mode + learning mode + confidence scoring), and performance isolation with circuit breakers.
+Pure Go, single binary, no heavy dependencies.
 
-Pure Go. Enterprise WAF. Open source.
+**We're looking for people who want to help:**
+- Go backend folks
+- WASM runtime / sandbox people
+- eBPF / kernel engineers
+- Frontend (React / dashboard)
+- Security researchers who want to contribute rules
+- Docs / DevRel
 
-We need contributors:
-→ Go backend engineers
-→ WASM runtime hackers
-→ eBPF / kernel folks
-→ Frontend devs (React dashboard)
-→ Security researchers
-→ Documentation writers
+If any of this sounds interesting, hop on the repo or DM me. PRs genuinely welcome.
 
-⭐ **github.com/FortressWAF/FortressWAF** ⭐
+https://github.com/FortressWAF/FortressWAF
 
-DM me or drop a PR. Let's build the best open-source WAF together.
-
-#OpenSource #Cybersecurity #WAF #GoLang #eBPF #WASM #InfoSec #DevSecOps
+#OpenSource #WAF #Cybersecurity #GoLang
 
 ---
 
 # X (Twitter) Post
 
-Salin teks di bawah ini ke X:
-
 ---
 
-we just dropped FortressWAF v1.4.0
+just dropped fortresswaf v1.4.0
 
-6 new detection modules:
-• JA3 fingerprinting
-• Behavioral engine (IP rep + velocity)
-• WASM hot-loadable inspector
-• HTTP desync/smuggling
-• Adaptive challenge (JS→CAPTCHA→tarpit)
-• eBPF telemetry
+everything new:
+• ja3 fingerprinting — real clienthello parser, md5 hash, known-bad matching
+• behavioral ip rep + velocity + path entropy
+• wasm hot-loadable inspectors (wazero runtime)
+• http desync / smuggling (cl.te, te.cl, obs-fold)
+• adaptive challenge: js → captcha → tarpit → block
+• ebpf telemetry (linux, early but working)
 
-parser hardening, FP reduction, performance isolation.
+plus parser hardening, fp reduction engine, shadow mode, learning mode, circuit breakers.
 
-pure Go. enterprise WAF. open source.
+pure go. single binary. no bloat.
 
-we need contributors. PRs welcome.
+want to contribute? come hang out on the repo. need go folks, wasm people, ebpf nerds, security researchers.
 
 github.com/FortressWAF/FortressWAF
 
-#golang #waf #osint #cybersecurity #ebpf #wasm
+#golang #waf #infosec
+
+---
+
+# Instagram Post
+
+Caption:
+
+---
+
+we just dropped fortresswaf v1.4.0 — 6 new detection modules, all in pure go
+
+ja3 fingerprinting · behavioral engine · wasm hot-loadable inspectors · http desync / smuggling detection · adaptive challenge system (js→captcha→tarpit→block) · ebpf telemetry
+
+plus parser hardening, false positive reduction, circuit breakers. single binary, no bloat.
+
+we need contributors. go, wasm, ebpf, security research, frontend. come build with us.
+
+link in bio / github.com/FortressWAF/FortressWAF
+
+---
+
+**Stories / Reels text overlay ideas:**
+
+Frame 1: "FortressWAF v1.4.0 just dropped"
+Frame 2: "6 new detection modules"
+Frame 3: "JA3 · Behavioral · WASM · Desync · Adaptive · eBPF"
+Frame 4: "Pure Go. Open Source. We need you."
+Frame 5: "github.com/FortressWAF/FortressWAF"
+
+---
+
+# TikTok Post
+
+Script / voiceover:
+
+---
+
+**Visual: code editor scrolling through Go files**
+
+"we just shipped fortresswaf v1.4.0. six new detection modules in pure go. no python. no node. just a single binary."
+
+**Visual: terminal with go build running**
+
+"ja3 fingerprinting that parses real tls clienthello. behavioral engine with ip velocity and path entropy. hot-loadable wasm inspectors — write your own detection logic and drop it in a folder."
+
+**Visual: architecture diagram or demo**
+
+"http desync smuggling detection. adaptive challenge that goes from js captcha all the way to tarpit. ebpf telemetry on linux."
+
+**Visual: github repo page**
+
+"plus parser hardening, false positive reduction, circuit breakers. we're open source and looking for contributors. go devs, wasm people, ebpf nerds, security researchers."
+
+**Visual: link on screen**
+
+"github.com/FortressWAF/FortressWAF"
+
+---

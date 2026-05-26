@@ -1,0 +1,61 @@
+sites:
+  - name: example
+    domains:
+      - localhost
+    upstream: http://127.0.0.1:8081
+    port: 80
+    waf_enabled: true
+
+admin:
+  enabled: true
+  port: 8443
+  api_keys:
+    - test-key
+
+sqli:
+  enabled: true
+
+xss:
+  enabled: true
+
+rce:
+  enabled: true
+
+ddos:
+  enabled: true
+
+protocol:
+  enabled: true
+
+bot:
+  enabled: true
+
+api_protect:
+  enabled: true
+
+upload:
+  enabled: true
+
+credential:
+  enabled: true
+
+ja3:
+  enabled: true
+
+behavioral:
+  enabled: true
+
+desync:
+  enabled: true
+
+adaptive:
+  enabled: true
+
+parser_hardening:
+  enabled: true
+
+performance:
+  enabled: true
+  max_regex_ms: 1000
+  max_wasm_ms: 5000
+  max_memory_mb: 512

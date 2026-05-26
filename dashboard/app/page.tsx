@@ -1,9 +1,6 @@
 'use client'
 
 import * as React from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import { Shield, Eye, EyeOff, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,53 +8,33 @@ import { useToast } from '@/components/ui/toast'
 import { api, setToken } from '@/lib/api'
 import { useRouter } from 'next/navigation'
 
-const loginSchema = z.object({
-  email: z.string().email('Please enter a valid email'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-})
-
-type LoginForm = z.infer<typeof loginSchema>
-
 export default function LoginPage() {
   const router = useRouter()
   const { toast } = useToast()
   const [showPassword, setShowPassword] = React.useState(false)
   const [isLoading, setIsLoading] = React.useState(false)
-  const [ssoLoading, setSsoLoading] = React.useState(false)
+  const [email, setEmail] = React.useState('')
+  const [password, setPassword] = React.useState('')
+  const [error, setError] = React.useState('')
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LoginForm>({
-    resolver: zodResolver(loginSchema),
-  })
-
-  async function onSubmit(data: LoginForm) {
+  async function handleLogin(e: React.FormEvent) {
+    e.preventDefault()
+    if (!email || !password) {
+      setError('Email and password are required')
+      return
+    }
+    setError('')
     setIsLoading(true)
     try {
-      const response = await api.auth.login(data.email, data.password)
+      const response = await api.auth.login(email, password)
       setToken(response.token)
       toast({ title: 'Welcome back!', description: 'Redirecting to dashboard...', variant: 'success' })
-      router.push('/dashboard')
+      window.location.href = '/dashboard'
     } catch (err: unknown) {
-      const error = err as { message?: string }
-      toast({ title: 'Login failed', description: error.message || 'Invalid credentials', variant: 'destructive' })
+      const errorObj = err as { message?: string }
+      toast({ title: 'Login failed', description: errorObj.message || 'Invalid credentials', variant: 'destructive' })
     } finally {
       setIsLoading(false)
-    }
-  }
-
-  async function handleSSO() {
-    setSsoLoading(true)
-    try {
-      const response = await api.auth.sso('saml')
-      setToken(response.token)
-      router.push('/dashboard')
-    } catch {
-      toast({ title: 'SSO login failed', description: 'Could not authenticate with SSO', variant: 'destructive' })
-    } finally {
-      setSsoLoading(false)
     }
   }
 
@@ -73,7 +50,7 @@ export default function LoginPage() {
         </div>
 
         <div className="border-2 border-foreground bg-card p-8 shadow-brutal-lg">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          <form onSubmit={handleLogin} className="space-y-5">
             <div>
               <label htmlFor="email" className="block text-sm font-bold text-foreground mb-1.5">
                 Email address
@@ -82,9 +59,9 @@ export default function LoginPage() {
                 id="email"
                 type="email"
                 placeholder="admin@company.com"
-                {...register('email')}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
-              {errors.email && <p className="text-destructive text-xs font-bold mt-1">{errors.email.message}</p>}
             </div>
 
             <div>
@@ -95,9 +72,10 @@ export default function LoginPage() {
                 <Input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="••••••••"
+                  placeholder="Password"
                   className="pr-10"
-                  {...register('password')}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                 />
                 <button
                   type="button"
@@ -107,8 +85,9 @@ export default function LoginPage() {
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
-              {errors.password && <p className="text-destructive text-xs font-bold mt-1">{errors.password.message}</p>}
             </div>
+
+            {error && <p className="text-destructive text-xs font-bold">{error}</p>}
 
             <div className="flex items-center justify-end">
               <button type="button" className="text-sm font-bold text-primary hover:text-primary/80 underline underline-offset-4">
@@ -138,11 +117,10 @@ export default function LoginPage() {
           <Button
             type="button"
             variant="outline"
-            disabled={ssoLoading}
-            onClick={handleSSO}
+            disabled={isLoading}
             className="w-full"
           >
-            {ssoLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+            {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
             Sign in with SSO
           </Button>
         </div>
