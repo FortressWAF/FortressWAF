@@ -32,6 +32,50 @@ import (
 )
 
 var (
+	cyan   = "\033[36m"
+	green  = "\033[32m"
+	yellow = "\033[33m"
+	red    = "\033[31m"
+	bold   = "\033[1m"
+	reset  = "\033[0m"
+	dim    = "\033[2m"
+)
+
+func init() {
+	flag.Usage = func() {
+		ver := Version
+		if ver == "dev" {
+			ver = "v1.3.0"
+		}
+		c := cyan; g := green; y := yellow; b := bold; n := reset; d := dim
+
+		s := c + n + `  ╔══════════════════════════════════════════════╗
+` + c + `  ║        ` + b + y + `FORTRESS WAF` + b + c + `               ║
+` + c + `  ║     Enterprise WAF & API Security Gateway    ║
+` + c + `  ╚══════════════════════════════════════════════╝` + n + `
+
+  ` + b + `Version` + n + ` : ` + g + ver + n + `
+  ` + d + `Commit` + b + n + ` : ` + g + Commit + n + `
+
+  ` + b + y + `USAGE` + n + `
+    fortresswaf [options]
+
+  ` + b + y + `OPTIONS` + n + `
+    -config  string     path to YAML config file ` + d + `(default: "config.yaml")` + n + `
+    -dev                enable dev mode (verbose logging, rule debug)
+    -admin-port int     admin API server port ` + d + `(default: 8443)` + n + `
+    -proxy-port int     reverse proxy listening port ` + d + `(default: 80)` + n + `
+
+  ` + b + y + `EXAMPLES` + n + `
+    fortresswaf                      ` + d + `(uses config.yaml in current dir)` + n + `
+    fortresswaf -dev -admin-port 9000
+    fortresswaf -proxy-port 8080 -config /etc/fortresswaf/config.yaml
+`
+		os.Stderr.WriteString(s)
+	}
+}
+
+var (
 	Version   = "dev"
 	Commit    = "unknown"
 	BuildDate = "unknown"
@@ -49,7 +93,7 @@ var (
 )
 
 func main() {
-	configPath := flag.String("config", "deploy/config.yaml", "path to YAML config file")
+	configPath := flag.String("config", "config.yaml", "path to YAML config file")
 	dev := flag.Bool("dev", false, "enable dev mode: verbose logging and rule debug")
 	adminPort := flag.Int("admin-port", 8443, "admin API server port")
 	proxyPort := flag.Int("proxy-port", 80, "reverse proxy listening port")
