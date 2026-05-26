@@ -69,9 +69,8 @@ sites:
     domains:
       - "example.com"
       - "*.example.com"
-    # Upstream backend servers (load-balanced)
-    upstreams:
-      - "http://app:3000"
+    # Upstream backend server
+    upstream: "http://app:3000"
     # Enable TLS for this site
     tls_enabled: false
     # TLS certificate paths (leave empty to use auto-cert from server)

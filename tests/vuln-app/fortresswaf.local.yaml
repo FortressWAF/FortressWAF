@@ -1,0 +1,102 @@
+# FortressWAF Local Test Configuration
+# Upstream points to the vulnerable test app on localhost:9099
+# Proxy listens on localhost:8081 (HTTP) and localhost:8444 (admin API)
+# To test: run the vuln-app, then start fortress-proxy with this config
+
+sites:
+  - name: "vuln-test"
+    domains:
+      - "localhost"
+      - "127.0.0.1"
+    upstream: "http://localhost:9099"
+    waf_enabled: true
+    rate_limit:
+      requests_per_second: 1000
+      burst: 2000
+
+rules:
+  - id: "LOCAL-SQLI-001"
+    name: "SQL Injection Detection"
+    enabled: true
+    severity: "critical"
+    action: "block"
+    phase: "request"
+    field: "request.all"
+    operator: "regex"
+    value: '(?i)(union\s+(all\s+)?select|select\s+.*from|insert\s+into|drop\s+table|or\s+[''"]\s*[''"]|--|#|or\s+1\s*=\s*1)'
+    tags: ["sqli", "test"]
+
+  - id: "LOCAL-XSS-001"
+    name: "XSS Detection"
+    enabled: true
+    severity: "critical"
+    action: "block"
+    phase: "request"
+    field: "request.all"
+    operator: "regex"
+    value: '(?i)(<script[^>]*>|onerror|onload|onclick|alert\(|prompt\(|confirm\(|document\.cookie|fromCharCode)'
+    tags: ["xss", "test"]
+
+  - id: "LOCAL-RCE-001"
+    name: "Command Injection Detection"
+    enabled: true
+    severity: "critical"
+    action: "block"
+    phase: "request"
+    field: "request.all"
+    operator: "regex"
+    value: '(?i)(;\s*(cat|ls|id|whoami|pwd|nc|bash|sh|python|perl|php|rm|wget|curl|chmod|chown|mkfifo|exec)|`[^`]+`|\$\{.*\}|&\s*(cat|ls|id|whoami))'
+    tags: ["rce", "test"]
+
+  - id: "LOCAL-LFI-001"
+    name: "Path Traversal / LFI Detection"
+    enabled: true
+    severity: "high"
+    action: "block"
+    phase: "request"
+    field: "request.all"
+    operator: "regex"
+    value: '(?i)(\.\./|\.\.\\|/etc/passwd|/etc/shadow|/proc/self|/var/log|windows\\win\.ini|boot\.ini)'
+    tags: ["lfi", "test"]
+
+  - id: "LOCAL-SCANNER-001"
+    name: "Scanner / Bot Detection"
+    enabled: true
+    severity: "medium"
+    action: "block"
+    phase: "request"
+    field: "request.headers"
+    operator: "regex"
+    value: '(?i)(sqlmap|nmap|nikto|acunetix|nessus|burp|zap|openvas|netsparker|appscan)'
+    tags: ["scanner", "test"]
+
+# --- Enable individual inspectors ---
+sqli:
+  enabled: true
+xss:
+  enabled: true
+rce:
+  enabled: true
+ddos:
+  enabled: true
+bot:
+  enabled: true
+
+logging:
+  level: "debug"
+  format: "text"
+  output: "stdout"
+
+admin:
+  enabled: true
+  port: 8443
+
+ml:
+  enabled: false
+
+redis:
+  enabled: false
+
+db:
+  driver: "sqlite3"
+  dsn: "fortresswaf.test.db"

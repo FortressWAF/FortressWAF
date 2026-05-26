@@ -162,6 +162,7 @@ vendor/
 
 # Test artifacts
 test-results/
+tests/vuln-app/files/
 junit.xml
 *.trx
 *.coverage
